@@ -3,7 +3,7 @@ from optparse import OptionParser
 import os
 import scipy.io as sio
 import json
-from pyCondorSTAMPLib_V3 import create_dir
+from pyCondorSTAMPLib import create_dir
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
@@ -30,8 +30,10 @@ print("NOTE: script ignores all files and directories starting with '.'")
 baseDir = options.targetDirectory + "/jobs"
 
 jobDirs = [x for x in os.listdir(baseDir) if "job" in x]
+nums = dict((x, x[4:]) for x in jobDirs)
 
-gsoutMats = [baseDir + "/" + x + "/grandstochtrackOutput/bknd_1.mat" for x in jobDirs]
+#gsoutMats = [baseDir + "/" + x + "/grandstochtrackOutput/bknd_1.mat" for x in jobDirs]
+gsoutMats = [baseDir + "/" + x + "/grandstochtrackOutput/bknd_" + nums[x] + ".mat" for x in jobDirs]
 
 def getSNR(inputFile):
     data = sio.loadmat(inputFile)

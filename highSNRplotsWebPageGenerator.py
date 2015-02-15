@@ -3,7 +3,7 @@ from optparse import OptionParser
 import os
 import scipy.io as sio
 import json
-import webpageGenerateLib_v2 as webGen
+import webpageGenerateLib as webGen
 #from pyCondorSTAMPLib_V3 import create_dir
 
 # command line options
@@ -44,7 +44,7 @@ SNRvals = [x[0] for x in SNRs]
 
 SNRvals.sort()
 
-highSNRs = SNRvals[-10:]
+highSNRs = SNRvals[:]
 #print(max(SNRvals))
 #print(highSNRs)
 highSNRsubDirs = dict((gsoutMats[SNRdict[x]], ["Cluster SNR = " + str(x)]) for x in highSNRs[::-1])

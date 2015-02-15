@@ -47,7 +47,7 @@ print("NSPI used: " + str(int(options.NSPI)))
 
 endsBuffer = (int(options.NSPI) - 1) / 2 + 2
 
-separation = endsBuffer * 2 + int(options.jobBuffer)
+separation = endsBuffer * 2 + int(options.jobBuffer) + int(options.timeShift) + 1 # last one to account for the last half pixel and give an extra separation due to it.
 
 quit_loop = False
 
@@ -69,11 +69,11 @@ if len(possibleJobsFlat) < int(options.numberJobs):
 else:
     backgroundJobs = possibleJobsFlat[:int(options.numberJobs)]
 
-stringOne = "\n".join(" ".join(str(int(x)) for x in [index+1, job[0], job[1], job[1] - job[0]]) for index, job in enumerate(backgroundJobs))
+stringOne = "\n".join(" ".join(str(int(x)) for x in [index+1, job[0] - endsBuffer, job[1] + endsBuffer + 1, job[1] - job[0] + 2 * endsBuffer + 1]) for index, job in enumerate(backgroundJobs))
 stringTwo = "\n\n".join("\n".join(x for x in ["job " + str(index+1), "grandStochtrack job " + str(index+1), "grandStochtrack hstart " + str(int(job[0])), "grandStochtrack hstop " + str(int(job[1]))]) for index, job in enumerate(backgroundJobs))
 
-with open(options.fileNameBase + "Jobs.txt","w") as outfile:
+with open(options.outputDir + "/" + options.fileNameBase + "Jobs.txt","w") as outfile:
     outfile.write(stringOne)
 
-with open(options.fileNameBase + "Configuration.txt","w") as outfile:
+with open(options.outputDir + "/" + options.fileNameBase + "Configuration.txt","w") as outfile:
     outfile.write(stringTwo)

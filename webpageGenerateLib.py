@@ -436,3 +436,81 @@ def make_display_page(directory, saveDir, subDirList, subSubDir, plotTypeList, p
     #print(saveDir + "/" + outputFileName)
     with open(saveDir + "/" + outputFileName,"w") as outfile:
         outfile.write(page_text)
+
+def small_table_section_v5(directory, subDirDict, subSubDir, plotTypeList, plotTypeDict, indent = 3, newline = 0, title = None, row_order = None):
+
+    # each row will have every type of plot. that means the top row should be a single
+    # blank followed by a cell for each plot type. currently two plot typee displayed.
+    titleCells = [""] + [x for x in plotTypeList]
+
+    output = make_data_cells(titleCells, indent+1) + "\n"
+    output = make_row_v2(output, indent) + "\n"
+
+    # iterate through and create rows
+    if row_order:
+        subDirOrder = row_order
+    else:
+        subDirOrder = subDirDict.keys()
+    for subDir in subDirOrder:
+        gluedSubDir = glueFileLocation(subDir, subSubDir)
+        baseDir = glueFileLocation(directory, gluedSubDir)
+        if type(subDirDict) == dict:
+            row_header = "<br/>".join(x for x in [subDir] + subDirDict[subDir])
+        else:
+            row_header = subDir
+        temp_output = [row_header]
+        temp_output += [wrapLinkedImage(glueFileLocation(baseDir, plotTypeDict[x])) for x in plotTypeList]
+
+        temp_output = make_data_cells(temp_output,indent+1)
+        output += make_row_v2(temp_output, indent) + "\n"
+
+    # slice string to cut off trailing new line character
+    output = output[:-1]
+    output = attachNewlines(output, newline)
+
+    # make table
+    output = wrap_table(output, indent - 1)
+    # Make display buttons
+    ##tabs = tabify("", indent)
+    ##buttonCode = '\n' + tabs + '<button onclick="buttonGo(15)" type="button">Display 15 More Rows</button>\n' + tabs + '<button onclick="buttonGo(50)" type="button">Display 50 More Rows</button>\n'
+    ##fileList_commas = ','.join(fileList)
+
+    ##scriptCode = tabs + '<script> \n' + tabs + 'var i = ' + str(i) + ";\n" + tabs + "var ranks_commas = '" + fileList_commas + "'; \n" + tabs + 'var ranks_list = ranks_commas.split(",");\n' + tabs + 'function buttonGo(x) {\n' + tabs + tabs + "var table = document.getElementById('theTable');\n" + tabs + tabs + "var currentLimit = i + x;\n" + tabs + tabs + "while (i < ranks_list.length && i < currentLimit) {\n" + tabs + tabs + tabs + "var fullName = ranks_list[i];\n" + tabs + tabs + tabs + 'var cutIndex = fullName.search("dPlots");\n' + tabs + tabs + tabs + 'fullName = fullName.slice(cutIndex + 7, -1) + "g";\n' + tabs + tabs + tabs + "var name = fullName;\n" + tabs + tabs + tabs + "var fullNameLength = fullName.length;\n" + tabs + tabs + tabs + "name = name.slice(0, fullNameLength - 3);\n" + tabs + tabs + tabs + 'name = name.replace(" vs ", "<br>and<br>");\n' + tabs + tabs + tabs + "var tr = document.createElement('tr');\n" + tabs + tabs + tabs + "var td0 = tr.appendChild(document.createElement('td'));\n" + tabs + tabs + tabs + "var td1 = tr.appendChild(document.createElement('td'));\n" + tabs + tabs + tabs + "var td2 = tr.appendChild(document.createElement('td'));\n" + tabs + tabs + tabs + "td0.innerHTML = name;\n" + tabs + tabs + tabs + '''td1.innerHTML = '<a href="plots/minimalLinearBoundPlots/' + fullName + '"><img src="plots/minimalLinearBoundPlots/' + fullName + '" height="200" width="200" /></a>';\n ''' + tabs + tabs + tabs + '''td2.innerHTML = '<a href="plots/timeSqrdPlots/' + fullName + '"><img src="plots/timeSqrdPlots/' + fullName + '" height="200" width="200" /></a>';\n ''' + tabs + tabs + tabs + "table.appendChild(tr);\n" + tabs + tabs + tabs + 'i = i + 1;\n' + tabs + tabs + '}\n' + tabs + '}\n' + tabs + '</script>\n'
+    #output = output + buttonCode + scriptCode
+
+    return output
+
+def make_display_page_v2(directory, saveDir, subDirDict, subSubDir, plotTypeList, plotTypeDict, outputFileName, row_order = None):
+    # setup header
+    header = """        <style type="text/css">
+            img
+            {
+                width:auto;
+                height:200px
+            }
+            th, td
+            {
+                padding: 15px
+            }
+        </style>"""
+
+    header = wrapHead(header)
+
+
+    # ordering
+    # subplots
+
+    #plotTypeList = ["SNR", "Loudest Cluster", "sig map", "y map", "Xi snr map"]
+
+    #plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster" : "rmap.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
+
+    #subSubDir = "output/plots"
+
+    #baseDir = "jobs"
+
+    page_text = wrapHTML(header + "\n" + wrapBody(small_table_section_v5(directory, subDirDict, subSubDir, plotTypeList, plotTypeDict, row_order = row_order)))
+
+    #savePath = glueFileLocation(saveDir, directory)
+    #print(saveDir + "/" + outputFileName)
+    with open(saveDir + "/" + outputFileName,"w") as outfile:
+        outfile.write(page_text)
