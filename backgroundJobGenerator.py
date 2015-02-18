@@ -30,7 +30,7 @@ parser.add_option("-d", "--duration", dest = "duration",
 parser.add_option("-t", "--name", dest = "fileNameBase",
                   help = "Base string to base the job files name on",
                   metavar = "STRING")
-#parser.add_option("-v", action="store_true", dest="verbose")
+parser.add_option("-v", action="store_true", dest="verbose")
 
 (options, args) = parser.parse_args()
 
@@ -40,7 +40,7 @@ with open(options.jsonFile, "r") as inJSON:
 timeSegments = data["section list"]
 
 if int(options.NSPI) % 2 == 0:
-    print("WARNING: NSPI entered is odd. Buffers of job may not guard properly for desired NSPI.")
+    print("WARNING: NSPI entered is not odd. Buffers of job may not guard properly for desired NSPI.")
     sys.exit()
 
 print("NSPI used: " + str(int(options.NSPI)))
