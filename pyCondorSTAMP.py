@@ -16,12 +16,15 @@ print("Code not currently set up to handle a mix of gpu and non-gpu jobs. A futu
 
 # command line options
 parser = OptionParser()
-parser.set_defaults(verbose = True)
+parser.set_defaults(verbose = False)
 parser.add_option("-c", "--conf", dest = "configFile",
                   help = "Path to config file detailing analysis for preproc and grand_stochtrack executables",
                   metavar = "FILE")
 parser.add_option("-j", "--jobFile", dest = "jobFile",
                   help = "Path to job file detailing job times and durations",
+                  metavar = "FILE")
+parser.add_option("-p", "--preprocJobFile", dest = "preprocJobFile",
+                  help = "(optional) Path to job file detailing job times and durations for preproc if preproc jobs are different from grandstochtrack jobs (for example: gaps from applying cat2 vetos)",
                   metavar = "FILE")
 parser.add_option("-d", "--dir", dest = "outputDir",
                   help = "Path to directory to hold analysis output (a new directory \
@@ -45,16 +48,37 @@ through condor", metavar = "NUMBER")
 # add options to load defaults for preproc and grand_stochtrack
 
 (options, args) = parser.parse_args()
+
 if options.outputDir[0:2] == "./":
     options.outputDir = os.getcwd() + options.outputDir[1:]
+elif options.outputDir == ".":
+    options.outputDir = os.getcwd() + "/"
+elif not options.outputDir:
+    print("Please specifiy output directory.")
+elif options.outputDir[0] != "/":
+    options.outputDir = os.getcwd() + "/" + options.outputDir[1:]
+
 if options.jobFile[0:2] == "./":
     options.jobFile = os.getcwd() + options.jobFile[1:]
+elif options.jobFile[0] != "/":
+    options.jobFile = os.getcwd() + "/" + options.jobFile[1:]
+
+if options.configFile[0:2] == "./":
+    options.configFile = os.getcwd() + options.configFile[1:]
+elif options.configFile[0] != "/":
+    options.configFile = os.getcwd() + "/" + options.configFile[1:]
+
+if options.preprocJobFile[0:2] == "./":
+    options.preprocJobFile = os.getcwd() + options.preprocJobFile[1:]
+elif options.preprocJobFile[0] != "/":
+    options.preprocJobFile = os.getcwd() + "/" + options.preprocJobFile[1:]
 
 # constants
 quit_program = False
-# can adjust path from relative to absolute here
+# can adjust path from relative to absolute here (done above?)
 configPath = options.configFile
 jobPath = options.jobFile
+preprocJobPath = options.preprocJobFile
 # default dictionary json path
 defaultDictionaryPath = "/home/quitzow/STAMP/stamp2/test/condorTesting/pythonWrapper/default/defaultStochtrack.json"
 # set other defaults this way too instead of definining them inside the preprocSupportLib.py file
