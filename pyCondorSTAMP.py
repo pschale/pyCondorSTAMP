@@ -68,10 +68,11 @@ if options.configFile[0:2] == "./":
 elif options.configFile[0] != "/":
     options.configFile = os.getcwd() + "/" + options.configFile[1:]
 
-if options.preprocJobFile[0:2] == "./":
-    options.preprocJobFile = os.getcwd() + options.preprocJobFile[1:]
-elif options.preprocJobFile[0] != "/":
-    options.preprocJobFile = os.getcwd() + "/" + options.preprocJobFile[1:]
+if options.preprocJobFile:
+    if options.preprocJobFile[0:2] == "./":
+        options.preprocJobFile = os.getcwd() + options.preprocJobFile[1:]
+    elif options.preprocJobFile[0] != "/":
+        options.preprocJobFile = os.getcwd() + "/" + options.preprocJobFile[1:]
 
 # constants
 quit_program = False
