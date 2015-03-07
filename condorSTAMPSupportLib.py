@@ -77,7 +77,7 @@ def preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_st
     argList = ["paramFile", "jobFile", "jobNum"]
     jobPath = jobDictionary[jobKey]["grandStochtrackParams"]["params"]["jobsFile"]
     confPath = jobDictionary[jobKey]["preprocInputDir"] + "/preprocParams.txt"
-    jobNum = str(jobDictionary[jobKey]["grandStochtrackParams"]["job"])
+    jobNum = str(jobDictionary[jobKey]["preprocJobs"])
     vars_entries = [confPath, jobPath, jobNum]
 
     # create job entry
@@ -193,7 +193,7 @@ def create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_ex
         for jobKey in job_order:
             if jobKey != "constants":
                 argList = ["paramPath", "jobNum"]
-                jobNum = str(job_dictionary[jobKey]["grandStochtrackParams"]["job"])
+                jobNum = str(job_dictionary[jobKey]["jobNum"])
                 paramPath = job_dictionary[jobKey]["stochtrackInputDir"] + "/" + "params.mat"
                 vars_entries = [paramPath, jobNum]
 
