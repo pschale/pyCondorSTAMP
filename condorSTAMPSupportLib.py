@@ -77,6 +77,20 @@ def preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_st
     argList = ["paramFile", "jobFile", "jobNum"]
     jobPath = jobDictionary[jobKey]["grandStochtrackParams"]["params"]["jobsFile"]
     confPath = jobDictionary[jobKey]["preprocInputDir"] + "/preprocParams.txt"
+    for job_num in jobDictionary[jobKey]["preprocJobs"].split(","):
+        jobNum = str(job_num)
+        vars_entries = [confPath, jobPath, jobNum]
+
+        # create job entry
+        job_number, output_string = create_dag_job(job_number, condor_sub_loc, vars_entries, argList, output_string, restrictCat = preproc_category)
+
+    return job_number, output_string
+
+"""def preproc_dag_job_backup(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category = None):#output_dir, output_string)#, test_interval = None):
+    # possible arguments
+    argList = ["paramFile", "jobFile", "jobNum"]
+    jobPath = jobDictionary[jobKey]["grandStochtrackParams"]["params"]["jobsFile"]
+    confPath = jobDictionary[jobKey]["preprocInputDir"] + "/preprocParams.txt"
     jobNum = str(jobDictionary[jobKey]["preprocJobs"])
     vars_entries = [confPath, jobPath, jobNum]
 
@@ -84,10 +98,28 @@ def preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_st
     job_number, output_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
                                 argList, output_string, restrictCat = preproc_category)
 
-    return job_number, output_string
+    return job_number, output_string"""
 
 # Helper function to write list of preproc job entries
-def write_preproc_jobs(job_number, jobDictionary, job_tracker, condor_sub_loc,
+def write_preproc_jobs(job_number, jobDictionary, job_tracker, condor_sub_loc, output_string, preproc_category = None, job_order = None):
+    #start_job = job_number
+    # record jobs to job numbers translation
+    job_relationship = {}
+    if not job_order:
+        job_order = jobDictionary.keys()
+    for jobKey in job_order:
+        if jobKey != "constants":
+            start_job = job_number
+            #job_relationship[jobKey] = job_number
+            job_number, output_string = preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category)
+
+    #end_job = job_number - 1
+            job_relationship[jobKey] = range(start_job, job_number)
+    # record range of job numbers just written
+    #job_tracker += [[start_job, end_job]]
+    return job_relationship, job_number, output_string
+
+"""def write_preproc_jobs_backup(job_number, jobDictionary, job_tracker, condor_sub_loc,
                      output_string, preproc_category = None, job_order = None):
     start_job = job_number
     # record jobs to job numbers translation
@@ -102,7 +134,7 @@ def write_preproc_jobs(job_number, jobDictionary, job_tracker, condor_sub_loc,
     end_job = job_number - 1
     # record range of job numbers just written
     #job_tracker += [[start_job, end_job]]
-    return job_relationship, job_number, output_string
+    return job_relationship, job_number, output_string"""
 
 # Helper function to enter job hierarchy in dagfile
 def job_heirarchy(job_tracker, output_string):
@@ -244,7 +276,9 @@ def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_exec
             # create job hierarchy
         print(dag_string)
         print(job_order)
-        job_orderings = [[[job_relationship_preproc[job]],[job_relationship_gs[job]]] for job in job_order if job != "constants"]
+        print(job_relationship_preproc)
+        job_orderings = [[job_relationship_preproc[job],[job_relationship_gs[job]]] for job in job_order if job != "constants"]
+        #job_orderings = [[[job_relationship_preproc[job]],[job_relationship_gs[job]]] for job in job_order if job != "constants"]
         dag_string = job_heirarchy_v2(job_orderings, dag_string)
 
         # write preproc job category restriction

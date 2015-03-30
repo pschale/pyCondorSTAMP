@@ -19,14 +19,14 @@ print('DEPRECATED: "grandstochtrack job" option in parameter files is deprecated
 parser = OptionParser()
 parser.set_defaults(verbose = False)
 parser.add_option("-c", "--conf", dest = "configFile",
-                  help = "Path to config file detailing analysis for preproc and grand_stochtrack executables",
+                  help = "Path to config file detailing analysis for preproc and grand_stochtrack executables (preproc job options can have multiple jobs if separated by a \",\" [may be a good idea to switch to a single directory all preproc jobs are dumped, however this would require them to share many of the same parameters, or not, just don't overlap in time at all, something to think about])",
                   metavar = "FILE")
 parser.add_option("-j", "--jobFile", dest = "jobFile",
                   help = "Path to job file detailing job times and durations",
                   metavar = "FILE")
-parser.add_option("-p", "--preprocJobFile", dest = "preprocJobFile",
-                  help = "(optional) Path to job file detailing job times and durations for preproc if preproc jobs are different from grandstochtrack jobs (for example: gaps from applying cat2 vetos)",
-                  metavar = "FILE")
+#parser.add_option("-p", "--preprocJobFile", dest = "preprocJobFile",
+#                  help = "(optional) Path to job file detailing job times and durations for preproc if preproc jobs are different from grandstochtrack jobs (for example: gaps from applying cat2 vetos)",
+#                  metavar = "FILE")
 parser.add_option("-d", "--dir", dest = "outputDir",
                   help = "Path to directory to hold analysis output (a new directory \
 will be created with appropriate subdirectories to hold analysis)", metavar = "DIRECTORY")
@@ -69,18 +69,18 @@ if options.configFile[0:2] == "./":
 elif options.configFile[0] != "/":
     options.configFile = os.getcwd() + "/" + options.configFile[1:]
 
-if options.preprocJobFile:
-    if options.preprocJobFile[0:2] == "./":
-        options.preprocJobFile = os.getcwd() + options.preprocJobFile[1:]
-    elif options.preprocJobFile[0] != "/":
-        options.preprocJobFile = os.getcwd() + "/" + options.preprocJobFile[1:]
+#if options.preprocJobFile:
+#    if options.preprocJobFile[0:2] == "./":
+#        options.preprocJobFile = os.getcwd() + options.preprocJobFile[1:]
+#    elif options.preprocJobFile[0] != "/":
+#        options.preprocJobFile = os.getcwd() + "/" + options.preprocJobFile[1:]
 
 # constants
 quit_program = False
 # can adjust path from relative to absolute here (done above?)
 configPath = options.configFile
 jobPath = options.jobFile
-preprocJobPath = options.preprocJobFile
+#preprocJobPath = options.preprocJobFile
 # default dictionary json path
 defaultDictionaryPath = "/home/quitzow/STAMP/stamp2/test/condorTesting/pythonWrapper/default/defaultStochtrack.json"
 # set other defaults this way too instead of definining them inside the preprocSupportLib.py file
@@ -194,7 +194,8 @@ if not quit_program:
                     quit_program = True
                 else:
                     jobNumber = line[2]
-                    jobs[jobKey]["preprocJobs"] = int(jobNumber)
+                    jobs[jobKey]["preprocJobs"] = jobNumber
+                    #jobs[jobKey]["preprocJobs"] = int(jobNumber)
                     #jobs[jobKey]["grandStochtrackParams"]["jobsFile"] = jobPath
 
                     # find job duration for given job number (currently rounding to indices, but will change to
@@ -304,6 +305,8 @@ print("Got a lot of float checks here. May want to either have all the float che
 # check job lengths after parameters are entered
 #if options.lockStartTime
 
+# gsTimeLength deprecated. Should instead specify hstart and hstop in input config file.
+"""
 if options.gsTimeLength:
     tempDefaultDictionary = jobs["constants"]["grandStochtrackParams"]
     tempPreprocDefaultDictionary = jobs["constants"]["preprocParams"]
@@ -369,6 +372,7 @@ if options.gsTimeLength:
                     jobs[job]["grandStochtrackParams"]["params"]["hstop"] = jobs[job]["grandStochtrackParams"]["params"]["hstart"] + float(options.gsTimeLength)
                     jobs[job]["grandStochtrackParams"]["jobdur"] = float(options.gsTimeLength)
                 print(jobs[job]["grandStochtrackParams"]["params"]["hstart"])
+"""
 
 if commentsToPrintIfVerbose and options.verbose:
     print(commentsToPrintIfVerbose)
