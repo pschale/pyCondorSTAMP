@@ -24,20 +24,9 @@ parser.add_option("-c", "--conf", dest = "configFile",
 parser.add_option("-j", "--jobFile", dest = "jobFile",
                   help = "Path to job file detailing job times and durations",
                   metavar = "FILE")
-#parser.add_option("-p", "--preprocJobFile", dest = "preprocJobFile",
-#                  help = "(optional) Path to job file detailing job times and durations for preproc if preproc jobs are different from grandstochtrack jobs (for example: gaps from applying cat2 vetos)",
-#                  metavar = "FILE")
 parser.add_option("-d", "--dir", dest = "outputDir",
                   help = "Path to directory to hold analysis output (a new directory \
 will be created with appropriate subdirectories to hold analysis)", metavar = "DIRECTORY")
-parser.add_option("-t", "--timeLength", dest = "gsTimeLength",
-                  help = "(optional) Duration limit for data input to grandstochtrack (will not run correctly \
-                  if longer than non-null preproc data output)", metavar = "INT")
-#parser.add_option("-u", action="store_false", dest="lockStartTime", default=True,
-#                  help = "Set flag to limit background to job time (analysis will start after job start time and end \
-#                  before job stop time. Default will start analysis at start time and end at end time [depending on \
-#                  -t flag] and take background pixels for the edge of the analysis from before and after the analysis \
-#                  time as needed)")
 parser.add_option("-v", action="store_true", dest="verbose")
 
 # MAYBE maxjobs will be useful.
@@ -68,12 +57,6 @@ if options.configFile[0:2] == "./":
     options.configFile = os.getcwd() + options.configFile[1:]
 elif options.configFile[0] != "/":
     options.configFile = os.getcwd() + "/" + options.configFile[1:]
-
-#if options.preprocJobFile:
-#    if options.preprocJobFile[0:2] == "./":
-#        options.preprocJobFile = os.getcwd() + options.preprocJobFile[1:]
-#    elif options.preprocJobFile[0] != "/":
-#        options.preprocJobFile = os.getcwd() + "/" + options.preprocJobFile[1:]
 
 # constants
 quit_program = False
@@ -143,6 +126,7 @@ jobNum = 0
 jobs = {}
 currentJob = None
 commentsToPrintIfVerbose = []
+job_groups = []
 if not quit_program:
     for line in rawData: # make this rawData?
         temp = line[0].lower()
@@ -185,6 +169,12 @@ if not quit_program:
             if "grandStochtrackParams" not in jobs[jobKey]:
                 jobs[jobKey]["grandStochtrackParams"] = {}
                 jobs[jobKey]["grandStochtrackParams"]["params"] = {}
+            if "job_group" not in jobs[jobKey]:
+                jobs[jobKey]["job_group"] = None
+        # job_group
+        elif temp == "job_group":
+            jobs[jobKey]["job_group"] = line[1]
+            job_groups += [line[1]]
         # preproc settings
         elif temp == "preproc":
             if line[1].lower() == "job":
@@ -284,6 +274,16 @@ if not quit_program:
         jobs['constants']["grandStochtrackParams"] = {}
         jobs['constants']["grandStochtrackParams"]["params"] = {}
 
+job_group_iterator = 1
+for job in jobs:
+    if job != "constants":
+        if not jobs[job]["job_group"]:
+            while str(job_group_iterator) in job_groups:
+                job_group_iterator += 1
+            jobs[job]["job_group"] = str(job_group_iterator)
+            job_groups += [str(job_group_iterator)]
+#        job_group_iterator += 1
+
 # set job durations
 print("Code currently not set up to handle 'hstart' or 'hstop' individually without the other in specific jobs or 'constants'.")
 for job in jobs:
@@ -297,82 +297,6 @@ for job in jobs:
     if bool(checkEssentialParameter(jobs[jobKey]["grandStochtrackParams"]["params"], "jobdur")):
         jobs[job]["grandStochtrackParams"]["jobdur"] = float(jobs[job]["grandStochtrackParams"]["jobdur"])
 print("Got a lot of float checks here. May want to either have all the float checks occur here, or maybe make them as the data is loaded.")
-
-#def loadEssentialParameter(parameter, dictionary, defaultDict):
-#    if checkEssentialParameter(dictionary, parameter):
-#        return
-
-# check job lengths after parameters are entered
-#if options.lockStartTime
-
-# gsTimeLength deprecated. Should instead specify hstart and hstop in input config file.
-"""
-if options.gsTimeLength:
-    tempDefaultDictionary = jobs["constants"]["grandStochtrackParams"]
-    tempPreprocDefaultDictionary = jobs["constants"]["preprocParams"]
-    defaultMaxBuffer1, quit_program = getEssentialParameter(tempPreprocDefaultDictionary, "bufferSecs1", "constants", quit_program)
-    defaultMaxBuffer2, quit_program = getEssentialParameter(tempPreprocDefaultDictionary, "bufferSecs2", "constants", quit_program)
-    defaultMaxBuffer = max([float(defaultMaxBuffer1),float(defaultMaxBuffer2)])
-    defaultValNSPI, quit_program = getEssentialParameter(tempPreprocDefaultDictionary, "numSegmentsPerInterval", "constants", quit_program)
-    defaultSpecificJobdur, quit_program = getEssentialParameter(tempDefaultDictionary, "jobdur", "constants", quit_program)
-    defaultEffectiveJobLength = defaultSpecificJobdur - defaultMaxBuffer*2 - (float(defaultValNSPI) - 1) - 0.5 #0.5 due to 50 percent overlap
-    defaultHstart = jobs["constants"]["grandStochtrackParams"]["params"]["hstart"]
-    if float(options.gsTimeLength) > defaultEffectiveJobLength:
-        quit_program = True
-        print("WARNING: Quitting program. Duration of 'constants' is shorter than required length of " + options.gsTimeLength + " seconds. Please correct this and try running program again.")
-        print("'constants' length: " + str(effectiveJobLength))
-        version_input("\n\nPress enter to quit program")
-    else:
-        jobs["constants"]["grandStochtrackParams"]["params"]["hstart"] += (float(defaultValNSPI) - 1)/2 + defaultMaxBuffer
-        jobs["constants"]["grandStochtrackParams"]["params"]["hstop"] = jobs["constants"]["grandStochtrackParams"]["params"]["hstart"] + float(options.gsTimeLength)
-        jobs["constants"]["grandStochtrackParams"]["jobdur"] = float(options.gsTimeLength)
-    print(jobs["constants"]["grandStochtrackParams"]["params"]["hstart"])
-    for job in jobs:
-        if job != "constants":
-            specificQuantities1 = ["hstart", "hstop"]
-            specificQuantities2 = ["jobdur"]
-            specificQuantities3 = ["bufferSecs1", "bufferSecs2", "numSegmentsPerInterval"]
-            print("specific quantities 3 = ")
-            print(specificQuantities3)
-            tempDictionary = jobs[job]["grandStochtrackParams"]
-            tempPreprocDictionary = jobs[job]["preprocParams"]
-            specificQuantities1Check = [bool(checkEssentialParameter(tempDictionary["params"], x)) for x in specificQuantities1]
-            specificQuantities2Check = [bool(checkEssentialParameter(tempDictionary, x)) for x in specificQuantities2]
-            specificQuantities3Check = [bool(checkEssentialParameter(tempPreprocDictionary, x)) for x in specificQuantities3]
-            print(specificQuantities3Check)
-            if True in specificQuantities1Check + specificQuantities2Check + specificQuantities3Check:
-                specificQuantitiesCheck = True
-            else:
-                specificQuantitiesCheck = False
-            if specificQuantitiesCheck:
-                maxBuffer1, quit_program = getEssentialParameter(tempPreprocDictionary, "bufferSecs1", job, quit_program, defaultMaxBuffer1)
-                maxBuffer2, quit_program = getEssentialParameter(tempPreprocDictionary, "bufferSecs2", job, quit_program, defaultMaxBuffer2)
-                maxBuffer = max([float(maxBuffer1),float(maxBuffer1)])
-                valNSPI, quit_program = getEssentialParameter(tempPreprocDictionary, "numSegmentsPerInterval", job, quit_program, defaultValNSPI)
-                specificJobDur, quit_program = getEssentialParameter(tempDictionary, "jobdur", job, quit_program, defaultSpecificJobdur)
-                effectiveJobLength = float(specificJobDur) - maxBuffer*2 - (float(valNSPI) - 1) - 0.5 #0.5 due to 50 percent overlap
-                print(getEssentialParameter(tempDictionary, "jobdur", job, quit_program, defaultSpecificJobdur))
-                print(job)
-                print("tempDictionary")
-                print(tempDictionary)
-                print(defaultSpecificJobdur)
-                print(specificJobDur)
-                print(maxBuffer*2 + (float(valNSPI) - 1) + 0.5)
-                print(effectiveJobLength)
-                if float(options.gsTimeLength) > effectiveJobLength:
-                    quit_program = True
-                    print("WARNING: Quitting program. Duration of " + job + " is shorter than required length of " + options.gsTimeLength + " seconds. Please correct this and try running program again.")
-                    print(job + " length: " + str(effectiveJobLength))
-                    version_input("\n\nPress enter to quit program")
-                else:
-                    if bool(checkEssentialParameter(jobs[job]["grandStochtrackParams"]["params"], "hstart")):
-                        jobs[job]["grandStochtrackParams"]["params"]["hstart"] += (float(valNSPI) - 1)/2 + maxBuffer
-                    else:
-                        jobs[job]["grandStochtrackParams"]["params"]["hstart"] = defaultHstart + (float(valNSPI) - 1)/2 + maxBuffer
-                    jobs[job]["grandStochtrackParams"]["params"]["hstop"] = jobs[job]["grandStochtrackParams"]["params"]["hstart"] + float(options.gsTimeLength)
-                    jobs[job]["grandStochtrackParams"]["jobdur"] = float(options.gsTimeLength)
-                print(jobs[job]["grandStochtrackParams"]["params"]["hstart"])
-"""
 
 if commentsToPrintIfVerbose and options.verbose:
     print(commentsToPrintIfVerbose)
@@ -512,7 +436,7 @@ if not quit_program:
         if job != "constants":
             # stochtrack_day_job_num (injection? gps time?)
             #jobs[job]["jobDir"] = create_dir(baseDir + "/" + job)
-            jobDir = create_dir(jobsBaseDir + "/" + job)
+            jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + jobs[job]["job_group"] + "/" + job)
             jobs[job]["jobDir"] = jobDir
 
 #			README.txt with job information? json maybe? job type
@@ -635,7 +559,7 @@ if not quit_program:
 # order plots by job
 #jobDirs = [job for job in jobs]
 
-jobTempDict = dict((int(job[job.index("_")+1:]),job) for job in [x for x in jobs if x != "constants"])
+jobTempDict = dict((int(job[job.index("_")+1:]),{"job" : job, "job dir" : "job_group_" + jobs[job]["job_group"] + "/" + job}) for job in [x for x in jobs if x != "constants"])
 
 plotTypeList = ["SNR", "Loudest Cluster", "sig map", "y map", "Xi snr map"]
 
@@ -645,12 +569,14 @@ outFile = "pageDisplayTest.html"
 
 jobNumOrder = [jobNum for jobNum in jobTempDict]
 jobNumOrder.sort()
-jobOrder = [jobTempDict[jobNum] for jobNum in jobNumOrder]
+#jobOrder = [jobTempDict[jobNum] for jobNum in jobNumOrder]
+jobOrder = [jobTempDict[jobNum]["job"] for jobNum in jobNumOrder]
+jobOrderWeb = [jobTempDict[jobNum]["job dir"] for jobNum in jobNumOrder]
 
 #webGen.make_display_page(directory, saveDir, subDirList, subSubDir, plotTypeList, plotTypeDict, outputFileName)
 print('DEBUG NOTE: Maybe figure out how to variablize "grandstochtrackOutput/plots" in next line?')
 if not quit_program:
-    webGen.make_display_page("jobs", baseDir, jobOrder, "grandstochtrackOutput/plots", plotTypeList, plotTypeDict, outFile)
+    webGen.make_display_page("jobs", baseDir, jobOrderWeb, "grandstochtrackOutput/plots", plotTypeList, plotTypeDict, outFile)
 
 # build DAGs
 # preproc DAG
