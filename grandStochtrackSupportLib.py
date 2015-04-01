@@ -1,5 +1,6 @@
 from __future__ import division
 import json
+import collections
 #import scipy.io as sio
 
 # Helper function to convert unicode strings in dictionary to strings
@@ -33,7 +34,12 @@ def dict_copy(data):
 # Helper function to copy default dictionary into specific dictionary.
 def load_default_dict(specificDictionary, defaultDictionary):
     dictionary = dict_copy(defaultDictionary)
-    dictionary.update(specificDictionary)
+    for key in specificDictionary:
+        if key in dictionary and isinstance(dictionary[key], collections.Mapping):
+            dictionary[key] = load_default_dict(specificDictionary[key], dictionary[key])
+        else:
+            dictionary[key] = specificDictionary[key]
+    #dictionary.update(specificDictionary)
     # or this one just to be extra careful, but I don't think you'll want a copy without the defaults if you're loading the defaults, but this is here anyway just in case, just uncomment it and comment out the above line.
     #dictionary.update(dict_copy(specificDictionary))
     return dictionary
