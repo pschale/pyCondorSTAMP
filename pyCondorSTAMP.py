@@ -587,7 +587,7 @@ if not quit_program:
     # build submission file
     #write_sub_file("preproc", preprocExecutable, dagDir, "$(paramFile) $(jobFile) $(jobNum)")
     doGPU = jobs["constants"]["grandStochtrackParams"]["params"]["doGPU"]
-    create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, dagDir, shellPath, quit_program, job_order = jobOrder)
+    create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU)
 # grand_stochtrack DAG
     # build stochtrack submission file
 #    write_sub_file("grand_stochtrack", grandStochtrackExecutable, dagDir, "???")

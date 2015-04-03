@@ -209,6 +209,13 @@ def create_grand_stochtrack_dag(job_dictionary, grand_stochtrack_executable, dag
 def create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, output_string, quit_program, use_gpu = False, job_order = None, gs_category = None):
     if not quit_program:
         # create grand_stochtrack executable submit file
+        if type(use_gpu) == str:
+            if use_gpu.lower() == "true":
+                print("Using GPUs for clustermap.")
+                use_gpu = True
+            else:
+                print("doGPU set to '" + use_gpu + "'. Using CPUs for clustermap.")
+                use_gpu = False
         if use_gpu:
             additional_inputs = ["Requirements = TARGET.WantGPU =?= True","+WantGPU = True"]
             memory = "4000"
@@ -261,7 +268,7 @@ def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_exec
         job_relationship_preproc, job_number, dag_string = write_preproc_jobs(job_number, job_dictionary,
                                                                  job_tracker, preproc_sub_filename, dag_string, preproc_category, job_order)
         # create grand stochtrack jobs
-        job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, quit_program, job_order = job_order, gs_category = gs_category)
+        job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, quit_program, use_gpu = use_gpu, job_order = job_order, gs_category = gs_category)
 
         # create grand stochtrack submission job
         #gs_dag_name_split_index = len(gs_dag_path) - gs_dag_path[::-1].find("/") - 1
