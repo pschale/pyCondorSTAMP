@@ -18,7 +18,7 @@ print('DEPRECATED: "grandstochtrack job" option in parameter files is deprecated
 # command line options
 parser = OptionParser()
 parser.set_defaults(verbose = False)
-parser.set_defaults(groupedPreprocessing = False)
+parser.set_defaults(groupedPreprocessing = True)
 parser.add_option("-c", "--conf", dest = "configFile",
                   help = "Path to config file detailing analysis for preproc and grand_stochtrack executables (preproc job options can have multiple jobs if separated by a \",\" [may be a good idea to switch to a single directory all preproc jobs are dumped, however this would require them to share many of the same parameters, or not, just don't overlap in time at all, something to think about])",
                   metavar = "FILE")
@@ -29,7 +29,7 @@ parser.add_option("-d", "--dir", dest = "outputDir",
                   help = "Path to directory to hold analysis output (a new directory \
 will be created with appropriate subdirectories to hold analysis)", metavar = "DIRECTORY")
 parser.add_option("-v", action="store_true", dest="verbose")
-parser.add_option("-g", action="store_true", dest="groupedPreprocessing")
+parser.add_option("-g", action="store_false", dest="groupedPreprocessing")
 
 # MAYBE maxjobs will be useful.
 
@@ -537,16 +537,10 @@ if not quit_program:
             if job != "constants":
                 temp_job_group = jobs[job]["job_group"]
                 job_preproc_num = jobs[job]["preprocJobs"]
-                #job_preproc_entry = "preproc_job_" + job_preproc_num
                 preprocJobCount = 1
                 if temp_job_group not in job_group_dict:
                     job_group_dict[temp_job_group] = {}
                     job_group_dict = load_job_group(job_group_dict, jobs, preprocJobCount, job)
-                    #job_group_dict[temp_job_group][job_preproc_entry][preprocJobCount] = {}
-                    #job_group_dict[temp_job_group][job_preproc_entry][preprocJobCount]["preprocParams"] = {}
-                    #job_group_dict[temp_job_group][job_preproc_entry][preprocJobCount]["jobs"] = [job]
-                    #job_group_dict[temp_job_group][job_preproc_entry][preprocJobCount]["preprocParams"].update{jobs[job]["preprocParams"]}
-                    #job_group_dict[temp_job_group][job_preproc_entry][preprocJobCount]["preprocJobs"] = job_preproc_num
                 quit_loop = False
                 while not quit_loop:
                     if preprocJobCount not in job_group_dict[temp_job_group]:
@@ -568,37 +562,18 @@ if not quit_program:
                 preproc_job_dir = create_dir(job_group_dir + "/preproc_job_" + str(preproc_job))
                 preprocInputDir = create_dir(preproc_job_dir + "/preprocInput")
                 job_group_dict[temp_job_group][preproc_job]["preprocInputDir"] = preprocInputDir
-                #jobs[job]["preprocInputDir"] = preprocInputDir
                 preprocOutputDir = create_dir(preproc_job_dir + "/preprocOutput")
                 job_group_dict[temp_job_group][preproc_job]["preprocParams"]["outputfiledir"] = preprocOutputDir + "/"
-                #print("\n\n\n" + preprocOutputDir + "\n\n\n")
                 job_group_dict[temp_job_group][preproc_job]["outputfiledir"] = preprocOutputDir
-                #jobs[job]["preprocOutputDir"] = preprocOutputDir
-                #preprocJobDict["preprocInputDir"] = preprocInputDir
-                #preprocJobDict["preprocOutputDir"] = preprocJobDict
-                #preprocJobDict["jobs"] = job_group_dict[temp_job_group][preprocJobCount]["jobs"][:]
-                #preprocJobDict[job] = [job_group_temp, preproc_job]
 
                 # write preproc parameter files for job groups
                 tempDict = {}
-                #tempDict.update(jobs[job]["preprocParams"])
-                #if "constants" in jobs: # better way to handle this?
-                 #   tempDict.update(jobs["constants"]["preprocParams"])
-                #tempDict.update(jobs[job]["preprocParams"])
                 tempDict = load_default_dict(tempDict, job_group_dict[temp_job_group][preproc_job]["preprocParams"])
-                #print("\n\n\n\n")
-                #print("tempDict")
-                #print(tempDict)
-                #print("\n\n\n\n")
                 if "constants" in jobs:
                     tempDict = load_default_dict(tempDict, jobs["constants"]["preprocParams"])
                 outputName = "preprocParams.txt"
                 buildPreprocParamFile(tempDict, preprocInputDir + "/" + outputName)
                 for job in job_group_dict[temp_job_group][preproc_job]["jobs"]:
-                    #print("\n\n\n" + job + "\n\n\n")
-                    #print("\n\n\n")
-                    #print(job_group_dict[temp_job_group][preproc_job]["jobs"])
-                    #print("\n\n\n")
                     jobs[job]["grandStochtrackParams"]["params"]["inmats"] = preprocOutputDir + "/map"
                     preprocJobDict[job] = [job_group_temp, preproc_job]
         job_group_dict["job_tracker"] = preprocJobDict
@@ -638,12 +613,12 @@ if not quit_program:
             # the way this following line is done needs to be reviewed.
             jobs[job]['grandStochtrackParams'] = load_default_dict(jobs[job]['grandStochtrackParams'], jobs["constants"]['grandStochtrackParams'])
             # write matrix file
-            print(jobs[job].keys())
-            for key in jobs[job]:
-                if isinstance(jobs[job][key], dict):
-                    print("dictionary found")
-                    print(key)
-                    print(jobs[job][key].keys())
+            #print(jobs[job].keys())
+            #for key in jobs[job]:
+            #    if isinstance(jobs[job][key], dict):
+            #        print("dictionary found")
+            #        print(key)
+            #        print(jobs[job][key].keys())
 #                    print(jobs[job][key])
             if "preprocJobs" not in jobs[job]:
                 print("\nQuitting Program: 'job' not specified for " + job + ". Please specify job then try\nagain.\n\n")
@@ -676,21 +651,10 @@ if not quit_program:
 # preproc DAG
 if not quit_program:
     # build submission file
-    #write_sub_file("preproc", preprocExecutable, dagDir, "$(paramFile) $(jobFile) $(jobNum)")
     doGPU = jobs["constants"]["grandStochtrackParams"]["params"]["doGPU"]
     create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, job_group_preproc = job_group_dict)
-# grand_stochtrack DAG
-    # build stochtrack submission file
-#    write_sub_file("grand_stochtrack", grandStochtrackExecutable, dagDir, "???")
 
 print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
-
-#print(job_group_dict.keys())
-#print(job_group_dict["1"].keys())
-#print(job_group_dict["1"][1].keys())
-#print(job_group_dict["1"][1]["jobs"])
-#print(job_group_dict["job_tracker"])
-#print(job_group_dict["1"][1]["preprocParams"].keys())
 
 # create webpage
 
