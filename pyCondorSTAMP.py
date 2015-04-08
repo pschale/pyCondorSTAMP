@@ -18,6 +18,7 @@ print('DEPRECATED: "grandstochtrack job" option in parameter files is deprecated
 # command line options
 parser = OptionParser()
 parser.set_defaults(verbose = False)
+parser.set_defaults(groupedPreprocessing = False)
 parser.add_option("-c", "--conf", dest = "configFile",
                   help = "Path to config file detailing analysis for preproc and grand_stochtrack executables (preproc job options can have multiple jobs if separated by a \",\" [may be a good idea to switch to a single directory all preproc jobs are dumped, however this would require them to share many of the same parameters, or not, just don't overlap in time at all, something to think about])",
                   metavar = "FILE")
@@ -28,6 +29,7 @@ parser.add_option("-d", "--dir", dest = "outputDir",
                   help = "Path to directory to hold analysis output (a new directory \
 will be created with appropriate subdirectories to hold analysis)", metavar = "DIRECTORY")
 parser.add_option("-v", action="store_true", dest="verbose")
+parser.add_option("-g", action="store_true", dest="groupedPreprocessing")
 
 # MAYBE maxjobs will be useful.
 
@@ -38,6 +40,9 @@ through condor", metavar = "NUMBER")
 # add options to load defaults for preproc and grand_stochtrack
 
 (options, args) = parser.parse_args()
+
+if options.groupedPreprocessing:
+    print("WARNING: consolidated preproc job option selected.")
 
 if options.outputDir[0:2] == "./":
     options.outputDir = os.getcwd() + options.outputDir[1:]
@@ -444,13 +449,14 @@ if not quit_program:
 
 #			README.txt with job information? json maybe? job type
 #			preproc inputs
-            preprocInputDir = create_dir(jobDir + "/preprocInput")
-            jobs[job]["preprocInputDir"] = preprocInputDir
-            preprocOutputDir = create_dir(jobDir + "/preprocOutput")
-            jobs[job]["preprocOutputDir"] = preprocOutputDir
+            if not options.groupedPreprocessing:
+                preprocInputDir = create_dir(jobDir + "/preprocInput")
+                jobs[job]["preprocInputDir"] = preprocInputDir
+                preprocOutputDir = create_dir(jobDir + "/preprocOutput")
+                jobs[job]["preprocOutputDir"] = preprocOutputDir
 
             # output directory for preproc dictionary
-            jobs[job]["preprocParams"]["outputfiledir"] = preprocOutputDir + "/" #jobs[job]["preprocInputDir"]
+                jobs[job]["preprocParams"]["outputfiledir"] = preprocOutputDir + "/" #jobs[job]["preprocInputDir"]
 
 #			inputs for stochtrack clustermap in text file (put this here or in the "/params" directory)
 #			grand_stochtrack inputs
@@ -514,27 +520,112 @@ else:
 print(jobs.keys())
 print(jobs["constants"].keys())
 
+def load_job_group(job_group_dict, job_dict, preprocJobCount, jobKey):
+    job_group_dict[temp_job_group][preprocJobCount] = {}
+    job_group_dict[temp_job_group][preprocJobCount]["preprocParams"] = {}
+    job_group_dict[temp_job_group][preprocJobCount]["jobs"] = [jobKey]
+    job_group_dict[temp_job_group][preprocJobCount]["preprocParams"].update(job_dict[jobKey]["preprocParams"])
+    job_group_dict[temp_job_group][preprocJobCount]["preprocJobs"] = job_preproc_num
+    return job_group_dict
+
+if not quit_program:
+    # set up group job preprocessing
+    job_group_dict = None
+    if options.groupedPreprocessing:
+        job_group_dict = {}
+        for job in jobs:
+            if job != "constants":
+                temp_job_group = jobs[job]["job_group"]
+                job_preproc_num = jobs[job]["preprocJobs"]
+                #job_preproc_entry = "preproc_job_" + job_preproc_num
+                preprocJobCount = 1
+                if temp_job_group not in job_group_dict:
+                    job_group_dict[temp_job_group] = {}
+                    job_group_dict = load_job_group(job_group_dict, jobs, preprocJobCount, job)
+                    #job_group_dict[temp_job_group][job_preproc_entry][preprocJobCount] = {}
+                    #job_group_dict[temp_job_group][job_preproc_entry][preprocJobCount]["preprocParams"] = {}
+                    #job_group_dict[temp_job_group][job_preproc_entry][preprocJobCount]["jobs"] = [job]
+                    #job_group_dict[temp_job_group][job_preproc_entry][preprocJobCount]["preprocParams"].update{jobs[job]["preprocParams"]}
+                    #job_group_dict[temp_job_group][job_preproc_entry][preprocJobCount]["preprocJobs"] = job_preproc_num
+                quit_loop = False
+                while not quit_loop:
+                    if preprocJobCount not in job_group_dict[temp_job_group]:
+                        job_group_dict = load_job_group(job_group_dict, jobs, preprocJobCount, job)
+                        quit_loop = True
+                    elif job_group_dict[temp_job_group][preprocJobCount]["preprocParams"] != jobs[job]["preprocParams"]:
+                        preprocJobCount += 1
+                    else:
+                        job_group_dict[temp_job_group][preprocJobCount]["jobs"] += [job]
+                        quit_loop = True
+
+    preprocJobDict = {}
+    # create jobGroup preproc director if needed
+    if options.groupedPreprocessing:
+        jobGroupsPreprocDir = create_dir(baseDir + "/preprocessingJobs")
+        for job_group_temp in job_group_dict:
+            job_group_dir = create_dir(jobGroupsPreprocDir + "/job_group_" + job_group_temp)
+            for preproc_job in job_group_dict[job_group_temp]:
+                preproc_job_dir = create_dir(job_group_dir + "/preproc_job_" + str(preproc_job))
+                preprocInputDir = create_dir(preproc_job_dir + "/preprocInput")
+                job_group_dict[temp_job_group][preproc_job]["preprocInputDir"] = preprocInputDir
+                #jobs[job]["preprocInputDir"] = preprocInputDir
+                preprocOutputDir = create_dir(preproc_job_dir + "/preprocOutput")
+                job_group_dict[temp_job_group][preproc_job]["preprocParams"]["outputfiledir"] = preprocOutputDir + "/"
+                #print("\n\n\n" + preprocOutputDir + "\n\n\n")
+                job_group_dict[temp_job_group][preproc_job]["outputfiledir"] = preprocOutputDir
+                #jobs[job]["preprocOutputDir"] = preprocOutputDir
+                #preprocJobDict["preprocInputDir"] = preprocInputDir
+                #preprocJobDict["preprocOutputDir"] = preprocJobDict
+                #preprocJobDict["jobs"] = job_group_dict[temp_job_group][preprocJobCount]["jobs"][:]
+                #preprocJobDict[job] = [job_group_temp, preproc_job]
+
+                # write preproc parameter files for job groups
+                tempDict = {}
+                #tempDict.update(jobs[job]["preprocParams"])
+                #if "constants" in jobs: # better way to handle this?
+                 #   tempDict.update(jobs["constants"]["preprocParams"])
+                #tempDict.update(jobs[job]["preprocParams"])
+                tempDict = load_default_dict(tempDict, job_group_dict[temp_job_group][preproc_job]["preprocParams"])
+                #print("\n\n\n\n")
+                #print("tempDict")
+                #print(tempDict)
+                #print("\n\n\n\n")
+                if "constants" in jobs:
+                    tempDict = load_default_dict(tempDict, jobs["constants"]["preprocParams"])
+                outputName = "preprocParams.txt"
+                buildPreprocParamFile(tempDict, preprocInputDir + "/" + outputName)
+                for job in job_group_dict[temp_job_group][preproc_job]["jobs"]:
+                    #print("\n\n\n" + job + "\n\n\n")
+                    #print("\n\n\n")
+                    #print(job_group_dict[temp_job_group][preproc_job]["jobs"])
+                    #print("\n\n\n")
+                    jobs[job]["grandStochtrackParams"]["params"]["inmats"] = preprocOutputDir + "/map"
+                    preprocJobDict[job] = [job_group_temp, preproc_job]
+        job_group_dict["job_tracker"] = preprocJobDict
+
 # write preproc parameter files for each job
 if not quit_program:
     for job in jobs:
         if job != "constants":
-            tempDict = {}
-            #tempDict.update(jobs[job]["preprocParams"])
-            #if "constants" in jobs: # better way to handle this?
-             #   tempDict.update(jobs["constants"]["preprocParams"])
-            #tempDict.update(jobs[job]["preprocParams"])
-            tempDict = load_default_dict(tempDict, jobs[job]["preprocParams"])
-            if "constants" in jobs:
-                tempDict = load_default_dict(tempDict, jobs["constants"]["preprocParams"])
-            outputName = "preprocParams.txt"
-            buildPreprocParamFile(tempDict, jobs[job]["preprocInputDir"] + "/" + outputName)
+            if not options.groupedPreprocessing:
+                tempDict = {}
+                #tempDict.update(jobs[job]["preprocParams"])
+                #if "constants" in jobs: # better way to handle this?
+                 #   tempDict.update(jobs["constants"]["preprocParams"])
+                #tempDict.update(jobs[job]["preprocParams"])
+                tempDict = load_default_dict(tempDict, jobs[job]["preprocParams"])
+                if "constants" in jobs:
+                    tempDict = load_default_dict(tempDict, jobs["constants"]["preprocParams"])
+                outputName = "preprocParams.txt"
+                buildPreprocParamFile(tempDict, jobs[job]["preprocInputDir"] + "/" + outputName)
 
             # put output directories in grand_stochtrack dictionary
             jobs[job]["grandStochtrackParams"]["params"]["plotdir"] = jobs[job]["plotDir"] + "/"
             jobs[job]["grandStochtrackParams"]["params"]["outputfilename"] = jobs[job]["resultsDir"] + "/map"
 #            jobs[job]["grandStochtrackParams"]["params"]["jobsFile"] = options.jobFile
             jobs[job]["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
-            jobs[job]["grandStochtrackParams"]["params"]["inmats"] = jobs[job]["preprocOutputDir"] + "/map"
+            if not options.groupedPreprocessing:
+                jobs[job]["grandStochtrackParams"]["params"]["inmats"] = jobs[job]["preprocOutputDir"] + "/map"
             jobs[job]["grandStochtrackParams"]["params"]["ofile"] = jobs[job]["resultsDir"] + "/bknd"
 
             # write start and end times
@@ -587,12 +678,19 @@ if not quit_program:
     # build submission file
     #write_sub_file("preproc", preprocExecutable, dagDir, "$(paramFile) $(jobFile) $(jobNum)")
     doGPU = jobs["constants"]["grandStochtrackParams"]["params"]["doGPU"]
-    create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU)
+    create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, job_group_preproc = job_group_dict)
 # grand_stochtrack DAG
     # build stochtrack submission file
 #    write_sub_file("grand_stochtrack", grandStochtrackExecutable, dagDir, "???")
 
 print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
+
+#print(job_group_dict.keys())
+#print(job_group_dict["1"].keys())
+#print(job_group_dict["1"][1].keys())
+#print(job_group_dict["1"][1]["jobs"])
+#print(job_group_dict["job_tracker"])
+#print(job_group_dict["1"][1]["preprocParams"].keys())
 
 # create webpage
 

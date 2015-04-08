@@ -72,11 +72,14 @@ def create_external_dag_job(job_number, dag_name, dag_location, output_string, r
 # Helper function to write preproc dag job entry
 #def blrms_dag_job(job_number, condor_sub_loc, frame_list_dict, frame_list,
 #                  conf_path, output_dir, file, test_interval = None):
-def preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category = None):#output_dir, output_string)#, test_interval = None):
+def preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category = None, preprocInputDir = None):#output_dir, output_string)#, test_interval = None):
     # possible arguments
     argList = ["paramFile", "jobFile", "jobNum"]
     jobPath = jobDictionary[jobKey]["grandStochtrackParams"]["params"]["jobsFile"]
-    confPath = jobDictionary[jobKey]["preprocInputDir"] + "/preprocParams.txt"
+    if preprocInputDir:
+        confPath = preprocInputDir + "/preprocParams.txt"
+    else:
+        confPath = jobDictionary[jobKey]["preprocInputDir"] + "/preprocParams.txt"
     for job_num in jobDictionary[jobKey]["preprocJobs"].split(","):
         jobNum = str(job_num)
         vars_entries = [confPath, jobPath, jobNum]
@@ -101,22 +104,29 @@ def preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_st
     return job_number, output_string"""
 
 # Helper function to write list of preproc job entries
-def write_preproc_jobs(job_number, jobDictionary, job_tracker, condor_sub_loc, output_string, preproc_category = None, job_order = None):
-    #start_job = job_number
+def write_preproc_jobs(job_number, jobDictionary, job_tracker, condor_sub_loc, output_string, preproc_category = None, job_order = None, job_group_preproc = None):
     # record jobs to job numbers translation
     job_relationship = {}
     if not job_order:
         job_order = jobDictionary.keys()
+    created_jobs = {}
+    if job_group_preproc:
+        job_tracker = job_group_preproc["job_tracker"]
     for jobKey in job_order:
         if jobKey != "constants":
             start_job = job_number
-            #job_relationship[jobKey] = job_number
-            job_number, output_string = preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category)
-
-    #end_job = job_number - 1
-            job_relationship[jobKey] = range(start_job, job_number)
+            if job_group_preproc:
+                if job_tracker[jobKey][1] not in created_jobs:
+                    temp_job_group = job_tracker[jobKey][0]
+                    temp_preproc_job = job_tracker[jobKey][1]
+                    preprocInputDir = job_group_preproc[temp_job_group][temp_preproc_job]["preprocInputDir"]
+                    job_number, output_string = preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category, preprocInputDir)
+                    created_jobs[job_tracker[jobKey][1]] = range(start_job, job_number)
+                job_relationship[jobKey] = created_jobs[job_tracker[jobKey][1]]
+            else:
+                job_number, output_string = preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category)
+                job_relationship[jobKey] = range(start_job, job_number)
     # record range of job numbers just written
-    #job_tracker += [[start_job, end_job]]
     return job_relationship, job_number, output_string
 
 """def write_preproc_jobs_backup(job_number, jobDictionary, job_tracker, condor_sub_loc,
@@ -250,7 +260,7 @@ def create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_ex
         return job_relationship, job_number, output_string
 
 # create preproc dag submission files
-def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_executable, dag_dir, shell_path, quit_program, use_gpu = False, max_preproc_jobs = 20, max_gs_jobs = 100, job_order = None):
+def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_executable, dag_dir, shell_path, quit_program, use_gpu = False, max_preproc_jobs = 20, max_gs_jobs = 100, job_order = None, job_group_preproc = None):
     if not quit_program:
         preproc_category = "PREPROC"
         gs_category = "GRANDSTOCKTRACK"
@@ -266,7 +276,7 @@ def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_exec
         job_tracker = []
         # create preproc jobs
         job_relationship_preproc, job_number, dag_string = write_preproc_jobs(job_number, job_dictionary,
-                                                                 job_tracker, preproc_sub_filename, dag_string, preproc_category, job_order)
+                                                                 job_tracker, preproc_sub_filename, dag_string, preproc_category, job_order, job_group_preproc)
         # create grand stochtrack jobs
         job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, quit_program, use_gpu = use_gpu, job_order = job_order, gs_category = gs_category)
 
