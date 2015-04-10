@@ -116,13 +116,19 @@ def write_preproc_jobs(job_number, jobDictionary, job_tracker, condor_sub_loc, o
         if jobKey != "constants":
             start_job = job_number
             if job_group_preproc:
-                if job_tracker[jobKey][1] not in created_jobs:
+                job_ID = str(job_tracker[jobKey][0]) + " " + str(job_tracker[jobKey][1])
+                if job_ID not in created_jobs:#job_tracker[jobKey][1] not in created_jobs:
                     temp_job_group = job_tracker[jobKey][0]
                     temp_preproc_job = job_tracker[jobKey][1]
+                    #print(job_group_preproc)
+                    #print(job_group_preproc[temp_job_group][temp_preproc_job])
+                    #print(temp_job_group)
+                    #print(temp_preproc_job)
                     preprocInputDir = job_group_preproc[temp_job_group][temp_preproc_job]["preprocInputDir"]
                     job_number, output_string = preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category, preprocInputDir)
-                    created_jobs[job_tracker[jobKey][1]] = range(start_job, job_number)
-                job_relationship[jobKey] = created_jobs[job_tracker[jobKey][1]]
+                    #created_jobs[job_tracker[jobKey][1]] = range(start_job, job_number)
+                    created_jobs[job_ID] = range(start_job, job_number)
+                job_relationship[jobKey] = created_jobs[job_ID]
             else:
                 job_number, output_string = preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category)
                 job_relationship[jobKey] = range(start_job, job_number)

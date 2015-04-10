@@ -532,6 +532,7 @@ if not quit_program:
     # set up group job preprocessing
     job_group_dict = None
     if options.groupedPreprocessing:
+        #preprocJobCount = 1
         job_group_dict = {}
         for job in jobs:
             if job != "constants":
@@ -541,16 +542,20 @@ if not quit_program:
                 if temp_job_group not in job_group_dict:
                     job_group_dict[temp_job_group] = {}
                     job_group_dict = load_job_group(job_group_dict, jobs, preprocJobCount, job)
-                quit_loop = False
-                while not quit_loop:
-                    if preprocJobCount not in job_group_dict[temp_job_group]:
-                        job_group_dict = load_job_group(job_group_dict, jobs, preprocJobCount, job)
-                        quit_loop = True
-                    elif job_group_dict[temp_job_group][preprocJobCount]["preprocParams"] != jobs[job]["preprocParams"]:
-                        preprocJobCount += 1
-                    else:
-                        job_group_dict[temp_job_group][preprocJobCount]["jobs"] += [job]
-                        quit_loop = True
+                else:
+                    quit_loop = False
+                    while not quit_loop:
+                        if preprocJobCount not in job_group_dict[temp_job_group]:
+                            job_group_dict = load_job_group(job_group_dict, jobs, preprocJobCount, job)
+                            quit_loop = True
+                        elif job_group_dict[temp_job_group][preprocJobCount]["preprocParams"] != jobs[job]["preprocParams"]:
+                            preprocJobCount += 1
+                        else:
+                            job_group_dict[temp_job_group][preprocJobCount]["jobs"] += [job]
+                            quit_loop = True
+                #print("\n\n\nFor job group " + str(temp_job_group))
+                #print("for preproc " + str(preprocJobCount))
+                #print(job_group_dict[temp_job_group][preprocJobCount]["jobs"])
 
     preprocJobDict = {}
     # create jobGroup preproc director if needed
@@ -558,22 +563,33 @@ if not quit_program:
         jobGroupsPreprocDir = create_dir(baseDir + "/preprocessingJobs")
         for job_group_temp in job_group_dict:
             job_group_dir = create_dir(jobGroupsPreprocDir + "/job_group_" + job_group_temp)
+            #print("\n\n\ntest0\n\n\n")
+            #print(job_group_dict[job_group_temp].keys())
             for preproc_job in job_group_dict[job_group_temp]:
+                #print("\n\n\ntest1\n\n\n")
+                #print("preproc_job")
+                #print(preproc_job)
+                #print("job_group")
+                #print(job_group_temp)
+                #print("test2")
                 preproc_job_dir = create_dir(job_group_dir + "/preproc_job_" + str(preproc_job))
                 preprocInputDir = create_dir(preproc_job_dir + "/preprocInput")
-                job_group_dict[temp_job_group][preproc_job]["preprocInputDir"] = preprocInputDir
+                job_group_dict[job_group_temp][preproc_job]["preprocInputDir"] = preprocInputDir
                 preprocOutputDir = create_dir(preproc_job_dir + "/preprocOutput")
-                job_group_dict[temp_job_group][preproc_job]["preprocParams"]["outputfiledir"] = preprocOutputDir + "/"
-                job_group_dict[temp_job_group][preproc_job]["outputfiledir"] = preprocOutputDir
+                job_group_dict[job_group_temp][preproc_job]["preprocParams"]["outputfiledir"] = preprocOutputDir + "/"
+                print("Fix line below, redundant with above line")
+                job_group_dict[job_group_temp][preproc_job]["outputfiledir"] = preprocOutputDir
 
                 # write preproc parameter files for job groups
                 tempDict = {}
-                tempDict = load_default_dict(tempDict, job_group_dict[temp_job_group][preproc_job]["preprocParams"])
+                tempDict = load_default_dict(tempDict, job_group_dict[job_group_temp][preproc_job]["preprocParams"])
                 if "constants" in jobs:
                     tempDict = load_default_dict(tempDict, jobs["constants"]["preprocParams"])
                 outputName = "preprocParams.txt"
                 buildPreprocParamFile(tempDict, preprocInputDir + "/" + outputName)
-                for job in job_group_dict[temp_job_group][preproc_job]["jobs"]:
+                #print("\n\n\nTracking job here\n\n\n")
+                #print(job_group_dict[job_group_temp][preproc_job]["jobs"])
+                for job in job_group_dict[job_group_temp][preproc_job]["jobs"]:
                     jobs[job]["grandStochtrackParams"]["params"]["inmats"] = preprocOutputDir + "/map"
                     preprocJobDict[job] = [job_group_temp, preproc_job]
         job_group_dict["job_tracker"] = preprocJobDict
