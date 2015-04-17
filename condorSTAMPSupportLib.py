@@ -205,7 +205,7 @@ def create_grand_stochtrack_dag(job_dictionary, grand_stochtrack_executable, dag
         return filename
 
 # create grandstochtrack jobs
-def create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, output_string, quit_program, use_gpu = False, job_order = None, gs_category = None):
+def create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, output_string, quit_program, use_gpu = False, restrict_cpus = False, job_order = None, gs_category = None):
     if not quit_program:
         # create grand_stochtrack executable submit file
         if type(use_gpu) == str:
@@ -218,6 +218,10 @@ def create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_ex
         if use_gpu:
             additional_inputs = ["Requirements = TARGET.WantGPU =?= True","+WantGPU = True"]
             memory = "4000"
+        if restrict_cpus:
+            print("Restricted cpu option selected. Using 4 cpus.")
+            additional_inputs = ["request_cpus = 4"]
+            memory = "8000"
         else:
             additional_inputs = ["request_cpus = 8"]
             memory = "8000"
@@ -242,7 +246,7 @@ def create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_ex
         return job_relationship, job_number, output_string
 
 # create preproc dag submission files
-def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_executable, dag_dir, shell_path, quit_program, use_gpu = False, max_preproc_jobs = 20, max_gs_jobs = 100, job_order = None, job_group_preproc = None):
+def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_executable, dag_dir, shell_path, quit_program, use_gpu = False, restrict_cpus = False, max_preproc_jobs = 20, max_gs_jobs = 100, job_order = None, job_group_preproc = None):
     if not quit_program:
         preproc_category = "PREPROC"
         gs_category = "GRANDSTOCKTRACK"
@@ -260,7 +264,7 @@ def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_exec
         job_relationship_preproc, job_number, dag_string = write_preproc_jobs(job_number, job_dictionary,
                                                                  job_tracker, preproc_sub_filename, dag_string, preproc_category, job_order, job_group_preproc)
         # create grand stochtrack jobs
-        job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, quit_program, use_gpu = use_gpu, job_order = job_order, gs_category = gs_category)
+        job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, quit_program, use_gpu = use_gpu, restrict_cpus = restrict_cpus, job_order = job_order, gs_category = gs_category)
 
         # to add!
         print("add test job(s) to check if frame type exists")
