@@ -21,6 +21,7 @@ parser = OptionParser()
 parser.set_defaults(verbose = False)
 parser.set_defaults(restrict_cpus = False)
 parser.set_defaults(groupedPreprocessing = True)
+parser.set_defaults(burstegard = False)
 parser.add_option("-c", "--conf", dest = "configFile",
                   help = "Path to config file detailing analysis for preproc and grand_stochtrack executables (preproc job options can have multiple jobs if separated by a \",\" [may be a good idea to switch to a single directory all preproc jobs are dumped, however this would require them to share many of the same parameters, or not, just don't overlap in time at all, something to think about])",
                   metavar = "FILE")
@@ -33,6 +34,7 @@ will be created with appropriate subdirectories to hold analysis)", metavar = "D
 parser.add_option("-v", action="store_true", dest="verbose")
 parser.add_option("-g", action="store_false", dest="groupedPreprocessing")
 parser.add_option("-r", action="store_true", dest="restrict_cpus")
+parser.add_option("-b", action="store_true", dest="burstegard")
 
 # MAYBE maxjobs will be useful.
 
@@ -573,7 +575,7 @@ if not quit_program:
                         if preprocJobCount not in job_group_dict[temp_job_group]:
                             job_group_dict = load_job_group(job_group_dict, temp_job_group, jobs, preprocJobCount, job)
                             quit_loop = True
-                        elif job_group_dict[temp_job_group][preprocJobCount]["preprocParams"] != jobs[job]["preprocParams"]:
+                        elif job_group_dict[temp_job_group][preprocJobCount]["preprocParams"] != jobs[job]["preprocParams"] or job_group_dict[temp_job_group][preprocJobCount]["preprocJobs"] != jobs[job]["preprocJobs"]:
                             preprocJobCount += 1
                         else:
                             job_group_dict[temp_job_group][preprocJobCount]["jobs"] += [job]
@@ -671,9 +673,12 @@ if not quit_program:
 
 jobTempDict = dict((int(job[job.index("_")+1:]),{"job" : job, "job dir" : "job_group_" + jobs[job]["job_group"] + "/" + job}) for job in [x for x in jobs if x != "constants"])
 
-plotTypeList = ["SNR", "Loudest Cluster", "sig map", "y map", "Xi snr map"]
-
-plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster" : "rmap.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
+if options.burstegard:
+    plotTypeList = ["SNR", "Largest Cluster", "All Clusters", "sig map", "y map", "Xi snr map"]
+    plotTypeDict = {"SNR" : "snr.png", "Largest Cluster" : "large_cluster.png", "All Clusters": "all_clusters.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
+else:
+    plotTypeList = ["SNR", "Loudest Cluster", "sig map", "y map", "Xi snr map"]
+    plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster" : "rmap.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
 
 outFile = "pageDisplayTest.html"
 
