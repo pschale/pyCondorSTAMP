@@ -30,7 +30,8 @@ parser.add_option("-j", "--jobFile", dest = "jobFile",
                   metavar = "FILE")
 parser.add_option("-d", "--dir", dest = "outputDir",
                   help = "Path to directory to hold analysis output (a new directory \
-will be created with appropriate subdirectories to hold analysis)", metavar = "DIRECTORY")
+will be created with appropriate subdirectories to hold analysis)",
+                  metavar = "DIRECTORY")
 parser.add_option("-v", action="store_true", dest="verbose")
 parser.add_option("-g", action="store_false", dest="groupedPreprocessing")
 parser.add_option("-r", action="store_true", dest="restrict_cpus")
