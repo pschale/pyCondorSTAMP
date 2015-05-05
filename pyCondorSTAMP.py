@@ -548,6 +548,26 @@ else:
 print(jobs.keys())
 print(jobs["constants"].keys())
 
+# If relative injection value set, override any existing injection time with calculated relative injection time.
+if not quit_program:
+    default_rel_inj_time = None
+    if "relativeInjectionStart" in jobs["constants"]["preprocParams"]:
+        default_rel_inj_time = int(jobs["constants"]["preprocParams"]["relativeInjectionStart"])
+        #print(jobs["constants"]["preprocParams"])
+        jobs["constants"]["preprocParams"] = dict((key, jobs["constants"]["preprocParams"][key]) for key in jobs["constants"]["preprocParams"] if key != "relativeInjectionStart")
+    for job in jobs:
+        rel_inj_time = None
+        if "relativeInjectionStart" in jobs[job]["preprocParams"]:
+            rel_inj_time = int(jobs[job]["preprocParams"]["relativeInjectionStart"])
+            jobs[job]["preprocParams"] = dict((key, jobs[job]["preprocParams"][key]) for key in jobs[job]["preprocParams"] if key != "relativeInjectionStart")
+        else:
+            rel_inj_time = default_rel_inj_time
+        print(job)
+        print(jobs[job]["preprocParams"]["stamp.startGPS"])
+        if rel_inj_time:
+            jobs[job]["preprocParams"]["stamp.startGPS"] = str(int(jobs[job]["grandStochtrackParams"]["params"]["hstart"]) + rel_inj_time)
+            print(jobs[job]["preprocParams"]["stamp.startGPS"])
+
 def load_job_group(job_group_dict, job_group, job_dict, preprocJobCount, jobKey):
     job_group_dict[job_group][preprocJobCount] = {}
     job_group_dict[job_group][preprocJobCount]["preprocParams"] = {}
