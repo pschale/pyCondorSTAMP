@@ -6,6 +6,7 @@ from grandStochtrackSupportLib import *
 from condorSTAMPSupportLib import *
 import webpageGenerateLib as webGen
 import scipy.io as sio
+import json
 
 print("Code not currently set up to handle a mix of gpu and non-gpu jobs. A future version should be able to address this.")
 print('DEPRECATED: "grandstochtrack job" option in parameter files is deprecated. Please use "preproc job" option istead or this program will fail.')
@@ -18,7 +19,9 @@ print('DEPRECATED: "grandstochtrack job" option in parameter files is deprecated
 # command line options
 parser = OptionParser()
 parser.set_defaults(verbose = False)
+parser.set_defaults(restrict_cpus = False)
 parser.set_defaults(groupedPreprocessing = True)
+parser.set_defaults(burstegard = False)
 parser.add_option("-c", "--conf", dest = "configFile",
                   help = "Path to config file detailing analysis for preproc and grand_stochtrack executables (preproc job options can have multiple jobs if separated by a \",\" [may be a good idea to switch to a single directory all preproc jobs are dumped, however this would require them to share many of the same parameters, or not, just don't overlap in time at all, something to think about])",
                   metavar = "FILE")
@@ -27,9 +30,12 @@ parser.add_option("-j", "--jobFile", dest = "jobFile",
                   metavar = "FILE")
 parser.add_option("-d", "--dir", dest = "outputDir",
                   help = "Path to directory to hold analysis output (a new directory \
-will be created with appropriate subdirectories to hold analysis)", metavar = "DIRECTORY")
+will be created with appropriate subdirectories to hold analysis)",
+                  metavar = "DIRECTORY")
 parser.add_option("-v", action="store_true", dest="verbose")
 parser.add_option("-g", action="store_false", dest="groupedPreprocessing")
+parser.add_option("-r", action="store_true", dest="restrict_cpus")
+parser.add_option("-b", action="store_true", dest="burstegard")
 
 # MAYBE maxjobs will be useful.
 
@@ -198,7 +204,7 @@ if not quit_program:
 
                     # find job duration for given job number (currently rounding to indices, but will change to
                     # handle floats as well in the future)
-                    index = jobNumbers.index(jobNumber)
+                    #index = jobNumbers.index(jobNumber)
                     #debug removal#jobDuration = load_number(jobData[index][3])
 
                     #print("DEBUG: why not use load number?")
@@ -224,7 +230,8 @@ if not quit_program:
             print("Fix this part to handle numbers properly! And less jumbled if possible!")
             #jobs[jobKey]["grandStochtrackParams"]["params"][line[1]] = load_if_number(line[2])
             if line[1] == "StampFreqsToRemove":
-                rawFreqs = [x.split(",") for x in line[2:]]
+                rawFreqs = [x.split(",") for x in line[2:]] # this part actually just strips the comma. The really frequency splitting is actually due to the list comprehension itself, or rather this part: line[2:]. Since the frequencies were already split in an earlier line.
+                # not a terrible check to have, just in case commas are used and spaces forgotten
                 print(rawFreqs)
                 rawFreqs = [item for sublist in rawFreqs for item in sublist]
                 print(rawFreqs)
@@ -336,12 +343,14 @@ if "doDetectorNoiseSim" in jobs["constants"]["preprocParams"]:
 #        print(defaultJobNumber)
 #        print(type(defaultJobNumber))
 #        print(len(jobNumbers))
-        index = jobNumbers.index(str(defaultJobNumber))
-        defaultStartTime = float(jobData[index][1])
-        defaultEndTime = float(jobData[index][2])
+        #index = jobNumbers.index(str(defaultJobNumber))
+        defaultTimes = [[jobData[jobNumbers.index(str(tempJob))][0], float(jobData[jobNumbers.index(str(tempJob))][1]), float(jobData[jobNumbers.index(str(tempJob))][2])] for tempJob in defaultJobNumber.split(",")]
+        #defaultStartTime = float(jobData[index][1])
+        #defaultEndTime = float(jobData[index][2])
     else:
-        defaultStartTime = None
-        defaultEndTime = None
+        defaultTimes = None
+        #defaultStartTime = None
+        #defaultEndTime = None
     print("must be a more robust way to do this, but for now take the first char of the observatory string")
     defaultObservatory1 = checkEssentialParameter(jobs["constants"]["preprocParams"], "ifo1")[0]
     defaultObservatory2 = checkEssentialParameter(jobs["constants"]["preprocParams"], "ifo2")[0]
@@ -366,13 +375,16 @@ for job in jobs:
         # check for needed entries
         #startTime, quit_program = getEssentialParameter(jobs[job]["preprocParams"], "hstart", job, quit_program)
         jobNumber = checkEssentialParameter(jobs[job], "preprocJobs")
+        print("Finding frames for " + job)
         if jobNumber:
-            index = jobNumbers.index(str(jobNumber))
-            startTime = float(jobData[index][1])#load_number(jobData[index][1])
-            endTime = float(jobData[index][2])
+            jobTimes = [[jobData[jobNumbers.index(str(tempJob))][0], float(jobData[jobNumbers.index(str(tempJob))][1]), float(jobData[jobNumbers.index(str(tempJob))][2])] for tempJob in jobNumber.split(",")]
+            #index = jobNumbers.index(str(jobNumber))
+            #startTime = float(jobData[index][1])#load_number(jobData[index][1])
+            #endTime = float(jobData[index][2])
         else:
-            startTime = defaultStartTime
-            endTime = defaultEndTime
+            jobTimes = defaultTimes[:]
+            #startTime = defaultStartTime
+            #endTime = defaultEndTime
 #        startTime = jobs[job]["preprocParams"]["hstart"]
         #endTime, quit_program = getEssentialParameter(jobs[job]["preprocParams"], "hstop", job, quit_program)
 #        endTime = jobs[job]["preprocParams"]["hstop"]
@@ -388,8 +400,18 @@ for job in jobs:
 #        frameType2 = jobs[job]["preprocParams"]["frameType2"]
         # create gps time file and frame cache file
         #print([frameType1, startTime, endTime, realDataJobs[job]["observatory1"], quit_program])
-        realDataJobs[job]["frame_file_list1"], quit_program = create_frame_file_list(frameType1, str(startTime), str(endTime), realDataJobs[job]["observatory1"], quit_program)
-        realDataJobs[job]["frame_file_list2"], quit_program = create_frame_file_list(frameType2, str(startTime), str(endTime), realDataJobs[job]["observatory2"], quit_program)
+        realDataJobs[job]["frame_file_list1"] = {}
+        realDataJobs[job]["frame_file_list2"] = {}
+        for timeSegment in jobTimes:
+            startTime = timeSegment[1]
+            endTime = timeSegment[2]
+            segmentJob = timeSegment[0]
+            temp_frame_list_1 = []
+            temp_frame_list_2 = []
+            temp_frame_list_1, quit_program = create_frame_file_list(frameType1, str(startTime), str(endTime), realDataJobs[job]["observatory1"], quit_program)
+            temp_frame_list_2, quit_program = create_frame_file_list(frameType2, str(startTime), str(endTime), realDataJobs[job]["observatory2"], quit_program)
+            realDataJobs[job]["frame_file_list1"][segmentJob] = temp_frame_list_1
+            realDataJobs[job]["frame_file_list2"][segmentJob] = temp_frame_list_2
 
 # update default dictionary
 print(jobs['constants'].keys())
@@ -471,12 +493,13 @@ if not quit_program:
             plotDir = create_dir(resultsDir + "/plots")
             jobs[job]["plotDir"] = plotDir
             if job in realDataJobs:
-                if "preprocJobs" in jobs[job]:
-                    jobNum = jobs[job]["preprocJobs"]
-                else:
-                    jobNum = jobs["constants"]["preprocJobs"]
-                quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list1"],realDataJobs[job]["observatory1"],jobNum,cacheDir,quit_program)
-                quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list2"],realDataJobs[job]["observatory2"],jobNum,cacheDir,quit_program)
+                #if "preprocJobs" in jobs[job]:
+                #    jobNum = jobs[job]["preprocJobs"]
+                #else:
+                #    jobNum = jobs["constants"]["preprocJobs"]
+                for tempJob in realDataJobs[job]["frame_file_list1"]:
+                    quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list1"][tempJob],realDataJobs[job]["observatory1"],int(tempJob),cacheDir,quit_program)
+                    quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list2"][tempJob],realDataJobs[job]["observatory2"],int(tempJob),cacheDir,quit_program)
                 # add to parameters
                 jobs[job]["preprocParams"]["gpsTimesPath1"] = cacheDir
                 jobs[job]["preprocParams"]["gpsTimesPath2"] = cacheDir
@@ -485,14 +508,19 @@ if not quit_program:
             else:
                 # point to fake cache directory
                 #jobNumber = checkEssentialParameter(jobs[job]["grandStochtrackParams"], "job")
-                jobNumber, quit_program = getEssentialParameter(jobs[job]["grandStochtrackParams"], "job", job, quit_program, defaultJobNumber)
-                index = jobNumbers.index(str(jobNumber))
-                startTime = float(jobData[index][1])#load_number(jobData[index][1])
-                endTime = float(jobData[index][2])
+                jobNumber, quit_program = getEssentialParameter(jobs[job], "preprocJobs", job, quit_program, defaultJobNumber)
+                jobTimes = [[jobData[jobNumbers.index(str(tempJob))][0], float(jobData[jobNumbers.index(str(tempJob))][1]), float(jobData[jobNumbers.index(str(tempJob))][2])] for tempJob in jobNumber.split(",")]
+                #index = jobNumbers.index(str(jobNumber))
+                #startTime = float(jobData[index][1])#load_number(jobData[index][1])
+                #endTime = float(jobData[index][2])
                 observatoryTemp1, quit_program = getEssentialParameter(jobs[job]["preprocParams"], "ifo1", job, quit_program, defaultObservatory1)
                 observatoryTemp2, quit_program = getEssentialParameter(jobs[job]["preprocParams"], "ifo2", job, quit_program, defaultObservatory2)
-                quit_program = create_fake_cache_and_time_file(startTime, endTime, observatoryTemp1, jobNumber, fakeCacheDir, quit_program)
-                quit_program = create_fake_cache_and_time_file(startTime, endTime, observatoryTemp2, jobNumber, fakeCacheDir, quit_program)
+                for segment in jobTimes:
+                    segmentJob = int(segment[0])
+                    startTime = segment[1]
+                    endTime = segment[2]
+                    quit_program = create_fake_cache_and_time_file(startTime, endTime, observatoryTemp1, segmentJob, fakeCacheDir, quit_program)
+                    quit_program = create_fake_cache_and_time_file(startTime, endTime, observatoryTemp2, segmentJob, fakeCacheDir, quit_program)
                 # add to parameters
                 jobs[job]["preprocParams"]["gpsTimesPath1"] = fakeCacheDir
                 jobs[job]["preprocParams"]["gpsTimesPath2"] = fakeCacheDir
@@ -520,12 +548,32 @@ else:
 print(jobs.keys())
 print(jobs["constants"].keys())
 
-def load_job_group(job_group_dict, job_dict, preprocJobCount, jobKey):
-    job_group_dict[temp_job_group][preprocJobCount] = {}
-    job_group_dict[temp_job_group][preprocJobCount]["preprocParams"] = {}
-    job_group_dict[temp_job_group][preprocJobCount]["jobs"] = [jobKey]
-    job_group_dict[temp_job_group][preprocJobCount]["preprocParams"].update(job_dict[jobKey]["preprocParams"])
-    job_group_dict[temp_job_group][preprocJobCount]["preprocJobs"] = job_preproc_num
+# If relative injection value set, override any existing injection time with calculated relative injection time.
+if not quit_program:
+    default_rel_inj_time = None
+    if "relativeInjectionStart" in jobs["constants"]["preprocParams"]:
+        default_rel_inj_time = int(jobs["constants"]["preprocParams"]["relativeInjectionStart"])
+        #print(jobs["constants"]["preprocParams"])
+        jobs["constants"]["preprocParams"] = dict((key, jobs["constants"]["preprocParams"][key]) for key in jobs["constants"]["preprocParams"] if key != "relativeInjectionStart")
+    for job in jobs:
+        rel_inj_time = None
+        if "relativeInjectionStart" in jobs[job]["preprocParams"]:
+            rel_inj_time = int(jobs[job]["preprocParams"]["relativeInjectionStart"])
+            jobs[job]["preprocParams"] = dict((key, jobs[job]["preprocParams"][key]) for key in jobs[job]["preprocParams"] if key != "relativeInjectionStart")
+        else:
+            rel_inj_time = default_rel_inj_time
+        print(job)
+        print(jobs[job]["preprocParams"]["stamp.startGPS"])
+        if rel_inj_time:
+            jobs[job]["preprocParams"]["stamp.startGPS"] = str(int(jobs[job]["grandStochtrackParams"]["params"]["hstart"]) + rel_inj_time)
+            print(jobs[job]["preprocParams"]["stamp.startGPS"])
+
+def load_job_group(job_group_dict, job_group, job_dict, preprocJobCount, jobKey):
+    job_group_dict[job_group][preprocJobCount] = {}
+    job_group_dict[job_group][preprocJobCount]["preprocParams"] = {}
+    job_group_dict[job_group][preprocJobCount]["jobs"] = [jobKey]
+    job_group_dict[job_group][preprocJobCount]["preprocParams"].update(job_dict[jobKey]["preprocParams"])
+    job_group_dict[job_group][preprocJobCount]["preprocJobs"] = job_preproc_num
     return job_group_dict
 
 if not quit_program:
@@ -541,14 +589,14 @@ if not quit_program:
                 preprocJobCount = 1
                 if temp_job_group not in job_group_dict:
                     job_group_dict[temp_job_group] = {}
-                    job_group_dict = load_job_group(job_group_dict, jobs, preprocJobCount, job)
+                    job_group_dict = load_job_group(job_group_dict, temp_job_group, jobs, preprocJobCount, job)
                 else:
                     quit_loop = False
                     while not quit_loop:
                         if preprocJobCount not in job_group_dict[temp_job_group]:
-                            job_group_dict = load_job_group(job_group_dict, jobs, preprocJobCount, job)
+                            job_group_dict = load_job_group(job_group_dict, temp_job_group, jobs, preprocJobCount, job)
                             quit_loop = True
-                        elif job_group_dict[temp_job_group][preprocJobCount]["preprocParams"] != jobs[job]["preprocParams"]:
+                        elif job_group_dict[temp_job_group][preprocJobCount]["preprocParams"] != jobs[job]["preprocParams"] or job_group_dict[temp_job_group][preprocJobCount]["preprocJobs"] != jobs[job]["preprocJobs"]:
                             preprocJobCount += 1
                         else:
                             job_group_dict[temp_job_group][preprocJobCount]["jobs"] += [job]
@@ -646,9 +694,12 @@ if not quit_program:
 
 jobTempDict = dict((int(job[job.index("_")+1:]),{"job" : job, "job dir" : "job_group_" + jobs[job]["job_group"] + "/" + job}) for job in [x for x in jobs if x != "constants"])
 
-plotTypeList = ["SNR", "Loudest Cluster", "sig map", "y map", "Xi snr map"]
-
-plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster" : "rmap.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
+if options.burstegard:
+    plotTypeList = ["SNR", "Largest Cluster", "All Clusters", "sig map", "y map", "Xi snr map"]
+    plotTypeDict = {"SNR" : "snr.png", "Largest Cluster" : "large_cluster.png", "All Clusters": "all_clusters.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
+else:
+    plotTypeList = ["SNR", "Loudest Cluster", "sig map", "y map", "Xi snr map"]
+    plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster" : "rmap.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
 
 outFile = "pageDisplayTest.html"
 
@@ -668,9 +719,16 @@ if not quit_program:
 if not quit_program:
     # build submission file
     doGPU = jobs["constants"]["grandStochtrackParams"]["params"]["doGPU"]
-    create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, job_group_preproc = job_group_dict)
+    create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, job_group_preproc = job_group_dict)
 
 print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
+
+if options.groupedPreprocessing:
+    print("Saving preproc job dictionary.")
+
+    with open(baseDir + "/preprocJobTracker.txt", "w") as outfile:
+        output_text = json.dumps(job_group_dict["job_tracker"], sort_keys = True, indent = 4)
+        outfile.write(output_text)
 
 # create webpage
 
