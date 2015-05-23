@@ -79,7 +79,8 @@ jobPath = options.jobFile
 #preprocJobPath = options.preprocJobFile
 # default dictionary json path
 #defaultDictionaryPath = "/home/quitzow/STAMP/stamp2/test/condorTesting/pythonWrapper/default/defaultStochtrack.json"
-defaultDictionaryPath = "/home/quitzow/STAMP/STAMP_4_2_2015/defaults/defaultStochtrack.json"
+#defaultDictionaryPath = "/home/quitzow/STAMP/STAMP_4_2_2015/defaults/defaultStochtrack.json"
+defaultDictionaryPath = "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/defaultStochtrack.json"
 # set other defaults this way too instead of definining them inside the preprocSupportLib.py file
 
 #defaultDictionaryPath = "/Users/Quitzow/Desktop/Magnetar Research/STAMP Condor Related/PythonWrapper/defaultBase3.txt"
@@ -88,8 +89,10 @@ shellPath = "#!/bin/bash"
 # paths to executables
 #preprocExecutable = "/home/quitzow/STAMP/stamp2/test/condorTesting/preprocDir/preproc"
 #grandStochtrackExecutable = "/home/quitzow/STAMP/stamp2/test/condorTesting/grand_stochtrack"
-preprocExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/preproc/preproc"
-grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
+#preprocExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/preproc/preproc"
+#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
+preprocExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/preproc/preproc"
+grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
 
 # check for minimum commands line arguments to function
 if not options.configFile or not options.outputDir or not options.jobFile:

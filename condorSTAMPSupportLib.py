@@ -218,7 +218,7 @@ def create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_ex
         if use_gpu:
             additional_inputs = ["Requirements = TARGET.WantGPU =?= True","+WantGPU = True"]
             memory = "4000"
-        if restrict_cpus:
+        elif restrict_cpus:
             print("Restricted cpu option selected. Using 4 cpus.")
             additional_inputs = ["request_cpus = 4"]
             memory = "8000"
