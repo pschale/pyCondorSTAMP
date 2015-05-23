@@ -22,6 +22,7 @@ parser.set_defaults(verbose = False)
 parser.set_defaults(restrict_cpus = False)
 parser.set_defaults(groupedPreprocessing = True)
 parser.set_defaults(burstegard = False)
+parser.set_defaults(all_clusters = False)
 parser.add_option("-c", "--conf", dest = "configFile",
                   help = "Path to config file detailing analysis for preproc and grand_stochtrack executables (preproc job options can have multiple jobs if separated by a \",\" [may be a good idea to switch to a single directory all preproc jobs are dumped, however this would require them to share many of the same parameters, or not, just don't overlap in time at all, something to think about])",
                   metavar = "FILE")
@@ -36,6 +37,7 @@ parser.add_option("-v", action="store_true", dest="verbose")
 parser.add_option("-g", action="store_false", dest="groupedPreprocessing")
 parser.add_option("-r", action="store_true", dest="restrict_cpus")
 parser.add_option("-b", action="store_true", dest="burstegard")
+parser.add_option("-a", action="store_true", dest="all_clusters")
 
 # MAYBE maxjobs will be useful.
 
@@ -77,7 +79,8 @@ jobPath = options.jobFile
 #preprocJobPath = options.preprocJobFile
 # default dictionary json path
 #defaultDictionaryPath = "/home/quitzow/STAMP/stamp2/test/condorTesting/pythonWrapper/default/defaultStochtrack.json"
-defaultDictionaryPath = "/home/quitzow/STAMP/STAMP_4_2_2015/defaults/defaultStochtrack.json"
+#defaultDictionaryPath = "/home/quitzow/STAMP/STAMP_4_2_2015/defaults/defaultStochtrack.json"
+defaultDictionaryPath = "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/defaultStochtrack.json"
 # set other defaults this way too instead of definining them inside the preprocSupportLib.py file
 
 #defaultDictionaryPath = "/Users/Quitzow/Desktop/Magnetar Research/STAMP Condor Related/PythonWrapper/defaultBase3.txt"
@@ -86,8 +89,10 @@ shellPath = "#!/bin/bash"
 # paths to executables
 #preprocExecutable = "/home/quitzow/STAMP/stamp2/test/condorTesting/preprocDir/preproc"
 #grandStochtrackExecutable = "/home/quitzow/STAMP/stamp2/test/condorTesting/grand_stochtrack"
-preprocExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/preproc/preproc"
-grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
+#preprocExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/preproc/preproc"
+#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
+preprocExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/preproc/preproc"
+grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
 
 # check for minimum commands line arguments to function
 if not options.configFile or not options.outputDir or not options.jobFile:
@@ -563,7 +568,8 @@ if not quit_program:
         else:
             rel_inj_time = default_rel_inj_time
         print(job)
-        print(jobs[job]["preprocParams"]["stamp.startGPS"])
+        if "stamp.startGPS" in jobs[job]["preprocParams"]:
+            print(jobs[job]["preprocParams"]["stamp.startGPS"])
         if rel_inj_time:
             jobs[job]["preprocParams"]["stamp.startGPS"] = str(int(jobs[job]["grandStochtrackParams"]["params"]["hstart"]) + rel_inj_time)
             print(jobs[job]["preprocParams"]["stamp.startGPS"])
@@ -697,6 +703,9 @@ jobTempDict = dict((int(job[job.index("_")+1:]),{"job" : job, "job dir" : "job_g
 if options.burstegard:
     plotTypeList = ["SNR", "Largest Cluster", "All Clusters", "sig map", "y map", "Xi snr map"]
     plotTypeDict = {"SNR" : "snr.png", "Largest Cluster" : "large_cluster.png", "All Clusters": "all_clusters.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
+elif options.all_clusters:
+    plotTypeList = ["SNR", "Loudest Cluster (stochtrack)", "Largest Cluster (burstegard)", "All Clusters (burstegard)", "sig map", "y map", "Xi snr map"]
+    plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster (stochtrack)" : "rmap.png", "Largest Cluster (burstegard)" : "large_cluster.png", "All Clusters (burstegard)": "all_clusters.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
 else:
     plotTypeList = ["SNR", "Loudest Cluster", "sig map", "y map", "Xi snr map"]
     plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster" : "rmap.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
