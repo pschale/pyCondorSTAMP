@@ -23,6 +23,7 @@ parser.set_defaults(restrict_cpus = False)
 parser.set_defaults(groupedPreprocessing = True)
 parser.set_defaults(burstegard = False)
 parser.set_defaults(all_clusters = False)
+parser.set_defaults(archived_frames_okay = False)
 parser.add_option("-c", "--conf", dest = "configFile",
                   help = "Path to config file detailing analysis for preproc and grand_stochtrack executables (preproc job options can have multiple jobs if separated by a \",\" [may be a good idea to switch to a single directory all preproc jobs are dumped, however this would require them to share many of the same parameters, or not, just don't overlap in time at all, something to think about])",
                   metavar = "FILE")
@@ -38,6 +39,7 @@ parser.add_option("-g", action="store_false", dest="groupedPreprocessing")
 parser.add_option("-r", action="store_true", dest="restrict_cpus")
 parser.add_option("-b", action="store_true", dest="burstegard")
 parser.add_option("-a", action="store_true", dest="all_clusters")
+parser.add_option("-f", action="store_true", dest="archived_frames_okay")
 
 # MAYBE maxjobs will be useful.
 
@@ -503,8 +505,8 @@ if not quit_program:
                 #else:
                 #    jobNum = jobs["constants"]["preprocJobs"]
                 for tempJob in realDataJobs[job]["frame_file_list1"]:
-                    quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list1"][tempJob],realDataJobs[job]["observatory1"],int(tempJob),cacheDir,quit_program)
-                    quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list2"][tempJob],realDataJobs[job]["observatory2"],int(tempJob),cacheDir,quit_program)
+                    quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list1"][tempJob],realDataJobs[job]["observatory1"],int(tempJob),cacheDir,quit_program, archived_frames_okay = options.archived_frames_okay)
+                    quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list2"][tempJob],realDataJobs[job]["observatory2"],int(tempJob),cacheDir,quit_program, archived_frames_okay = options.archived_frames_okay)
                 # add to parameters
                 jobs[job]["preprocParams"]["gpsTimesPath1"] = cacheDir
                 jobs[job]["preprocParams"]["gpsTimesPath2"] = cacheDir
