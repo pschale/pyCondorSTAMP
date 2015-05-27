@@ -37,7 +37,10 @@ def create_dag_job(job_number, condor_sub_loc, vars_entries, arg_list, output_st
     varEntries = [jobNum] + vars_entries
     argList = ["jobNumber"] + arg_list
     job_line = "JOB " + jobNum + " " + condor_sub_loc + "\n"
-    retry_line = "RETRY " + jobNum + " " + str(int(retry)) + "\n"
+    if retry:
+        retry_line = "RETRY " + jobNum + " " + str(int(retry)) + "\n"
+    else:
+        retry_line = ""
     vars_line = "VARS " + jobNum
     for num in range(len(varEntries)):
         vars_line += ' ' + argList[num] + '="' + varEntries[num] + '"'
@@ -72,7 +75,7 @@ def create_external_dag_job(job_number, dag_name, dag_location, output_string, r
 # Helper function to write preproc dag job entry
 #def blrms_dag_job(job_number, condor_sub_loc, frame_list_dict, frame_list,
 #                  conf_path, output_dir, file, test_interval = None):
-def preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category = None, preprocInputDir = None):#output_dir, output_string)#, test_interval = None):
+def preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category = None, preprocInputDir = None, no_job_retry = False):#output_dir, output_string)#, test_interval = None):
     # possible arguments
     argList = ["paramFile", "jobFile", "jobNum"]
     jobPath = jobDictionary[jobKey]["grandStochtrackParams"]["params"]["jobsFile"]
@@ -85,7 +88,10 @@ def preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_st
         vars_entries = [confPath, jobPath, jobNum]
 
         # create job entry
-        job_number, output_string = create_dag_job(job_number, condor_sub_loc, vars_entries, argList, output_string, restrictCat = preproc_category)
+        if no_job_retry:
+            job_number, output_string = create_dag_job(job_number, condor_sub_loc, vars_entries, argList, output_string, restrictCat = preproc_category, retry = None)
+        else:
+            job_number, output_string = create_dag_job(job_number, condor_sub_loc, vars_entries, argList, output_string, restrictCat = preproc_category)
 
     return job_number, output_string
 
@@ -104,7 +110,7 @@ def preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_st
     return job_number, output_string"""
 
 # Helper function to write list of preproc job entries
-def write_preproc_jobs(job_number, jobDictionary, job_tracker, condor_sub_loc, output_string, preproc_category = None, job_order = None, job_group_preproc = None):
+def write_preproc_jobs(job_number, jobDictionary, job_tracker, condor_sub_loc, output_string, preproc_category = None, job_order = None, job_group_preproc = None, no_job_retry = False):
     # record jobs to job numbers translation
     job_relationship = {}
     if not job_order:
@@ -125,7 +131,7 @@ def write_preproc_jobs(job_number, jobDictionary, job_tracker, condor_sub_loc, o
                     #print(temp_job_group)
                     #print(temp_preproc_job)
                     preprocInputDir = job_group_preproc[temp_job_group][temp_preproc_job]["preprocInputDir"]
-                    job_number, output_string = preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category, preprocInputDir)
+                    job_number, output_string = preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category, preprocInputDir, no_job_retry = no_job_retry)
                     #created_jobs[job_tracker[jobKey][1]] = range(start_job, job_number)
                     created_jobs[job_ID] = range(start_job, job_number)
                 job_relationship[jobKey] = created_jobs[job_ID]
@@ -205,7 +211,7 @@ def create_grand_stochtrack_dag(job_dictionary, grand_stochtrack_executable, dag
         return filename
 
 # create grandstochtrack jobs
-def create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, output_string, quit_program, use_gpu = False, restrict_cpus = False, job_order = None, gs_category = None):
+def create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, output_string, quit_program, use_gpu = False, restrict_cpus = False, job_order = None, gs_category = None, no_job_retry = False):
     if not quit_program:
         # create grand_stochtrack executable submit file
         if type(use_gpu) == str:
@@ -239,14 +245,18 @@ def create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_ex
 
                 job_relationship[jobKey] = job_number
                 # create job entry
-                job_number, dag_string = create_dag_job(job_number, grand_stochtrack_sub_filename, vars_entries,
+                if no_job_retry:
+                    job_number, dag_string = create_dag_job(job_number, grand_stochtrack_sub_filename, vars_entries,
+                                            argList, dag_string, restrictCat = gs_category, retry = None)
+                else:
+                    job_number, dag_string = create_dag_job(job_number, grand_stochtrack_sub_filename, vars_entries,
                                             argList, dag_string, restrictCat = gs_category)
 
         output_string += dag_string
         return job_relationship, job_number, output_string
 
 # create preproc dag submission files
-def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_executable, dag_dir, shell_path, quit_program, use_gpu = False, restrict_cpus = False, max_preproc_jobs = 20, max_gs_jobs = 100, job_order = None, job_group_preproc = None):
+def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_executable, dag_dir, shell_path, quit_program, use_gpu = False, restrict_cpus = False, max_preproc_jobs = 20, max_gs_jobs = 100, job_order = None, job_group_preproc = None, no_job_retry = False):
     if not quit_program:
         preproc_category = "PREPROC"
         gs_category = "GRANDSTOCKTRACK"
@@ -262,9 +272,9 @@ def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_exec
         job_tracker = []
         # create preproc jobs
         job_relationship_preproc, job_number, dag_string = write_preproc_jobs(job_number, job_dictionary,
-                                                                 job_tracker, preproc_sub_filename, dag_string, preproc_category, job_order, job_group_preproc)
+                                                                 job_tracker, preproc_sub_filename, dag_string, preproc_category, job_order, job_group_preproc, no_job_retry = no_job_retry)
         # create grand stochtrack jobs
-        job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, quit_program, use_gpu = use_gpu, restrict_cpus = restrict_cpus, job_order = job_order, gs_category = gs_category)
+        job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, quit_program, use_gpu = use_gpu, restrict_cpus = restrict_cpus, job_order = job_order, gs_category = gs_category, no_job_retry = no_job_retry)
 
         # to add!
         print("add test job(s) to check if frame type exists")

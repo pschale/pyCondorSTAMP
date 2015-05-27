@@ -211,7 +211,7 @@ def frame_start_time(frame_path):
     return frame_time
 
 # Helper function to create a file from the list of frame file locations
-def create_cache_and_time_file(frame_list,observatory,jobNumber,jobCacheDir,quit_program):
+def create_cache_and_time_file(frame_list,observatory,jobNumber,jobCacheDir,quit_program, archived_frames_okay = False):
     if quit_program:
         return quit_program
     # make list of times
@@ -234,19 +234,23 @@ def create_cache_and_time_file(frame_list,observatory,jobNumber,jobCacheDir,quit
 
     # check data for possibly archived data
     if archived:
-        display_files = ask_yes_no("Some frame files during the time \
+        if archived_frames_okay:
+            for line in archived:
+                print(line)
+        else:
+            display_files = ask_yes_no("Some frame files during the time \
 specified may have to be loaded from tape. Display frame files in 'archive' \
 directory? ('y' or 'n'): ")
 
-        if display_files == 'y':
-            for line in archived:
-                print(line)
+            if display_files == 'y':
+                for line in archived:
+                    print(line)
 
-        continue_program = ask_yes_no("Continue program? ('y' or 'n'): ")
+            continue_program = ask_yes_no("Continue program? ('y' or 'n'): ")
 
-        if continue_program == 'n':
-            quit_program = True
-            version_input("\n\nPress 'enter' to end program. ")
+            if continue_program == 'n':
+                quit_program = True
+                version_input("\n\nPress 'enter' to end program. ")
 
     # create file
     if not quit_program:
