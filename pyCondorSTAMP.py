@@ -24,6 +24,7 @@ parser.set_defaults(groupedPreprocessing = True)
 parser.set_defaults(burstegard = False)
 parser.set_defaults(all_clusters = False)
 parser.set_defaults(archived_frames_okay = False)
+parser.set_defaults(no_job_retry = False)
 parser.add_option("-c", "--conf", dest = "configFile",
                   help = "Path to config file detailing analysis for preproc and grand_stochtrack executables (preproc job options can have multiple jobs if separated by a \",\" [may be a good idea to switch to a single directory all preproc jobs are dumped, however this would require them to share many of the same parameters, or not, just don't overlap in time at all, something to think about])",
                   metavar = "FILE")
@@ -40,6 +41,8 @@ parser.add_option("-r", action="store_true", dest="restrict_cpus")
 parser.add_option("-b", action="store_true", dest="burstegard")
 parser.add_option("-a", action="store_true", dest="all_clusters")
 parser.add_option("-f", action="store_true", dest="archived_frames_okay")
+parser.add_option("-q", action="store_true", dest="no_job_retry")
+
 
 # MAYBE maxjobs will be useful.
 
@@ -91,10 +94,10 @@ shellPath = "#!/bin/bash"
 # paths to executables
 #preprocExecutable = "/home/quitzow/STAMP/stamp2/test/condorTesting/preprocDir/preproc"
 #grandStochtrackExecutable = "/home/quitzow/STAMP/stamp2/test/condorTesting/grand_stochtrack"
-#preprocExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/preproc/preproc"
-#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
-preprocExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/preproc/preproc"
-grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
+preprocExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/preproc/preproc"
+grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
+#preprocExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/preproc/preproc"
+#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
 
 # check for minimum commands line arguments to function
 if not options.configFile or not options.outputDir or not options.jobFile:
@@ -730,7 +733,7 @@ if not quit_program:
 if not quit_program:
     # build submission file
     doGPU = jobs["constants"]["grandStochtrackParams"]["params"]["doGPU"]
-    create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, job_group_preproc = job_group_dict)
+    create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, job_group_preproc = job_group_dict, no_job_retry = options.no_job_retry)
 
 print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
 
