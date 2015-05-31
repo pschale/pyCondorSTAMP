@@ -735,7 +735,7 @@ if not quit_program:
 if not quit_program:
     # build submission file
     doGPU = jobs["constants"]["grandStochtrackParams"]["params"]["doGPU"]
-    if doGPU and options.burstegard:
+    if doGPU and not options.burstegard:
         extract_from_gpu = True
     else:
         extract_from_gpu = False
