@@ -255,11 +255,42 @@ def create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_ex
         output_string += dag_string
         return job_relationship, job_number, output_string
 
+# create grandstochtrack jobs
+def create_matlab_mat_file_extraction_jobs(job_number, job_dictionary, matlab_matrix_extraction_executable, dag_dir, output_string, quit_program, job_order = None, matrix_extraction_category = None, no_job_retry = False):
+    if not quit_program:
+        # create grand_stochtrack executable submit file
+        #memory = "1000"
+        extraction_sub_filename = write_sub_file("matlab_matrix_extraction", matlab_matrix_extraction_executable, dag_dir, "$(inputFileName) $(outputDir)")#, memory)
+        dag_string = ""
+        #job_number = 0
+        job_relationship = {}
+        # create grand_stochtrack jobs
+        for jobKey in job_order:
+            if jobKey != "constants":
+                argList = ["inputFileName", "outputDir"]
+                jobNum = str(job_dictionary[jobKey]["jobNum"])
+                outputDir = job_dictionary[jobKey]["stochtrackOutputDir"]
+                inputFileName = outputDir + "/" + "bknd_" + jobNum + ".mat"
+                vars_entries = [inputFileName, outputDir]
+
+                job_relationship[jobKey] = job_number
+                # create job entry
+                if no_job_retry:
+                    job_number, dag_string = create_dag_job(job_number, extraction_sub_filename, vars_entries,
+                                            argList, dag_string, restrictCat = matrix_extraction_category, retry = None)
+                else:
+                    job_number, dag_string = create_dag_job(job_number, extraction_sub_filename, vars_entries,
+                                            argList, dag_string, restrictCat = matrix_extraction_category)
+
+        output_string += dag_string
+        return job_relationship, job_number, output_string
+
 # create preproc dag submission files
-def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_executable, dag_dir, shell_path, quit_program, use_gpu = False, restrict_cpus = False, max_preproc_jobs = 20, max_gs_jobs = 100, job_order = None, job_group_preproc = None, no_job_retry = False):
+def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_executable, matlab_matrix_extraction_executable, dag_dir, shell_path, quit_program, use_gpu = False, restrict_cpus = False, max_preproc_jobs = 20, max_gs_jobs = 100, max_extract_jobs = 100, job_order = None, job_group_preproc = None, no_job_retry = False, extract_from_gpu = False):
     if not quit_program:
         preproc_category = "PREPROC"
         gs_category = "GRANDSTOCKTRACK"
+        matrix_extraction_category = "GPUARRAY_TO_ARRAY"
         # order jobs alphanumerically (this will also help with parent child relationships later)
         if not job_order:
             job_order = job_dictionary.keys()
@@ -275,6 +306,9 @@ def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_exec
                                                                  job_tracker, preproc_sub_filename, dag_string, preproc_category, job_order, job_group_preproc, no_job_retry = no_job_retry)
         # create grand stochtrack jobs
         job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, quit_program, use_gpu = use_gpu, restrict_cpus = restrict_cpus, job_order = job_order, gs_category = gs_category, no_job_retry = no_job_retry)
+        # create matrix extraction jobs
+        if extract_from_gpu:
+            job_relationship_extraction, job_number, dag_string = create_matlab_mat_file_extraction_jobs(job_number, job_dictionary, matlab_matrix_extraction_executable, dag_dir, dag_string, quit_program, job_order = job_order, matrix_extraction_category = matrix_extraction_category, no_job_retry = no_job_retry)
 
         # to add!
         print("add test job(s) to check if frame type exists")
@@ -284,12 +318,16 @@ def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_exec
         print(job_order)
         print(job_relationship_preproc)
         job_orderings = [[job_relationship_preproc[job],[job_relationship_gs[job]]] for job in job_order if job != "constants"]
+        if extract_from_gpu:
+            job_orderings += [[job_relationship_gs[job],[job_relationship_extraction[job]]] for job in job_order if job != "constants"]
         #job_orderings = [[[job_relationship_preproc[job]],[job_relationship_gs[job]]] for job in job_order if job != "constants"]
         dag_string = job_heirarchy_v2(job_orderings, dag_string)
 
         # write preproc job category restriction
         dag_string += "\nMAXJOBS " + preproc_category + " " + str(max_preproc_jobs)
         dag_string += "\nMAXJOBS " + gs_category + " " + str(max_gs_jobs)
+        if extract_from_gpu:
+            dag_string += "\nMAXJOBS " + matrix_extraction_category + " " + str(max_extract_jobs)
 
         #dagfile.close()
         with open(filename, "w") as outfile:
