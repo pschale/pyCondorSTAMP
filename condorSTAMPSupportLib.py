@@ -243,7 +243,7 @@ def create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_ex
                 paramPath = job_dictionary[jobKey]["stochtrackInputDir"] + "/" + "params.mat"
                 vars_entries = [paramPath, jobNum]
 
-                job_relationship[jobKey] = job_number
+                job_relationship[jobKey] = [job_number]
                 # create job entry
                 if no_job_retry:
                     job_number, dag_string = create_dag_job(job_number, grand_stochtrack_sub_filename, vars_entries,
@@ -269,11 +269,11 @@ def create_matlab_mat_file_extraction_jobs(job_number, job_dictionary, matlab_ma
             if jobKey != "constants":
                 argList = ["inputFileName", "outputDir"]
                 jobNum = str(job_dictionary[jobKey]["jobNum"])
-                outputDir = job_dictionary[jobKey]["stochtrackOutputDir"]
+                outputDir = job_dictionary[jobKey]["grandstochtrackOutputDir"]
                 inputFileName = outputDir + "/" + "bknd_" + jobNum + ".mat"
                 vars_entries = [inputFileName, outputDir]
 
-                job_relationship[jobKey] = job_number
+                job_relationship[jobKey] = [job_number]
                 # create job entry
                 if no_job_retry:
                     job_number, dag_string = create_dag_job(job_number, extraction_sub_filename, vars_entries,
@@ -317,9 +317,9 @@ def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_exec
         print(dag_string)
         print(job_order)
         print(job_relationship_preproc)
-        job_orderings = [[job_relationship_preproc[job],[job_relationship_gs[job]]] for job in job_order if job != "constants"]
+        job_orderings = [[job_relationship_preproc[job],job_relationship_gs[job]] for job in job_order if job != "constants"]
         if extract_from_gpu:
-            job_orderings += [[job_relationship_gs[job],[job_relationship_extraction[job]]] for job in job_order if job != "constants"]
+            job_orderings += [[job_relationship_gs[job],job_relationship_extraction[job]] for job in job_order if job != "constants"]
         #job_orderings = [[[job_relationship_preproc[job]],[job_relationship_gs[job]]] for job in job_order if job != "constants"]
         dag_string = job_heirarchy_v2(job_orderings, dag_string)
 

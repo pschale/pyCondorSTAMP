@@ -497,12 +497,12 @@ if not quit_program:
             stochtrackInputDir = create_dir(jobDir + "/grandstochtrackInput")
             jobs[job]["stochtrackInputDir"] = stochtrackInputDir
 #			results
-            resultsDir = create_dir(jobDir + "/grandstochtrackOutput")
-            jobs[job]["resultsDir"] = resultsDir
+            grandstochtrackOutputDir = create_dir(jobDir + "/grandstochtrackOutput")
+            jobs[job]["grandstochtrackOutputDir"] = grandstochtrackOutputDir
 #				overview mat
 #				some other thing?
 #				plotDir
-            plotDir = create_dir(resultsDir + "/plots")
+            plotDir = create_dir(grandstochtrackOutputDir + "/plots")
             jobs[job]["plotDir"] = plotDir
             if job in realDataJobs:
                 #if "preprocJobs" in jobs[job]:
@@ -673,12 +673,12 @@ if not quit_program:
 
             # put output directories in grand_stochtrack dictionary
             jobs[job]["grandStochtrackParams"]["params"]["plotdir"] = jobs[job]["plotDir"] + "/"
-            jobs[job]["grandStochtrackParams"]["params"]["outputfilename"] = jobs[job]["resultsDir"] + "/map"
+            jobs[job]["grandStochtrackParams"]["params"]["outputfilename"] = jobs[job]["grandstochtrackOutputDir"] + "/map"
 #            jobs[job]["grandStochtrackParams"]["params"]["jobsFile"] = options.jobFile
             jobs[job]["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
             if not options.groupedPreprocessing:
                 jobs[job]["grandStochtrackParams"]["params"]["inmats"] = jobs[job]["preprocOutputDir"] + "/map"
-            jobs[job]["grandStochtrackParams"]["params"]["ofile"] = jobs[job]["resultsDir"] + "/bknd"
+            jobs[job]["grandStochtrackParams"]["params"]["ofile"] = jobs[job]["grandstochtrackOutputDir"] + "/bknd"
 
             # write start and end times
  #           jobs[job]["grandStochtrackParams"]["params"]["hstart"] =
