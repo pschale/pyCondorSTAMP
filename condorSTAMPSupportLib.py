@@ -260,7 +260,8 @@ def create_matlab_mat_file_extraction_jobs(job_number, job_dictionary, matlab_ma
     if not quit_program:
         # create grand_stochtrack executable submit file
         #memory = "1000"
-        extraction_sub_filename = write_sub_file("matlab_matrix_extraction", matlab_matrix_extraction_executable, dag_dir, "$(inputFileName) $(outputDir)")#, memory)
+        additional_inputs = ["Requirements = TARGET.WantGPU =?= True","+WantGPU = True"]
+        extraction_sub_filename = write_sub_file("matlab_matrix_extraction", matlab_matrix_extraction_executable, dag_dir, "$(inputFileName) $(outputDir)", additional_requirements_list = additional_inputs)#, memory)
         dag_string = ""
         #job_number = 0
         job_relationship = {}
