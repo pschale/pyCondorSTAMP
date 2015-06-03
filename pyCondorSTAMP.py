@@ -99,6 +99,8 @@ grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledS
 #preprocExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/preproc/preproc"
 #grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
 
+matlabMatrixExtractionExectuable = "/home/quitzow/GIT/Development_Branches/MatlabExecutableDuctTape/getSNRandCluster"
+
 # check for minimum commands line arguments to function
 if not options.configFile or not options.outputDir or not options.jobFile:
     print("\nMissing arguments: please specify at least a configuration file, a \
@@ -495,12 +497,12 @@ if not quit_program:
             stochtrackInputDir = create_dir(jobDir + "/grandstochtrackInput")
             jobs[job]["stochtrackInputDir"] = stochtrackInputDir
 #			results
-            resultsDir = create_dir(jobDir + "/grandstochtrackOutput")
-            jobs[job]["resultsDir"] = resultsDir
+            grandstochtrackOutputDir = create_dir(jobDir + "/grandstochtrackOutput")
+            jobs[job]["grandstochtrackOutputDir"] = grandstochtrackOutputDir
 #				overview mat
 #				some other thing?
 #				plotDir
-            plotDir = create_dir(resultsDir + "/plots")
+            plotDir = create_dir(grandstochtrackOutputDir + "/plots")
             jobs[job]["plotDir"] = plotDir
             if job in realDataJobs:
                 #if "preprocJobs" in jobs[job]:
@@ -671,12 +673,12 @@ if not quit_program:
 
             # put output directories in grand_stochtrack dictionary
             jobs[job]["grandStochtrackParams"]["params"]["plotdir"] = jobs[job]["plotDir"] + "/"
-            jobs[job]["grandStochtrackParams"]["params"]["outputfilename"] = jobs[job]["resultsDir"] + "/map"
+            jobs[job]["grandStochtrackParams"]["params"]["outputfilename"] = jobs[job]["grandstochtrackOutputDir"] + "/map"
 #            jobs[job]["grandStochtrackParams"]["params"]["jobsFile"] = options.jobFile
             jobs[job]["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
             if not options.groupedPreprocessing:
                 jobs[job]["grandStochtrackParams"]["params"]["inmats"] = jobs[job]["preprocOutputDir"] + "/map"
-            jobs[job]["grandStochtrackParams"]["params"]["ofile"] = jobs[job]["resultsDir"] + "/bknd"
+            jobs[job]["grandStochtrackParams"]["params"]["ofile"] = jobs[job]["grandstochtrackOutputDir"] + "/bknd"
 
             # write start and end times
  #           jobs[job]["grandStochtrackParams"]["params"]["hstart"] =
@@ -733,7 +735,11 @@ if not quit_program:
 if not quit_program:
     # build submission file
     doGPU = jobs["constants"]["grandStochtrackParams"]["params"]["doGPU"]
-    create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, job_group_preproc = job_group_dict, no_job_retry = options.no_job_retry)
+    if doGPU and not options.burstegard:
+        extract_from_gpu = True
+    else:
+        extract_from_gpu = False
+    create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, matlabMatrixExtractionExectuable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, job_group_preproc = job_group_dict, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu)
 
 print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
 

@@ -152,14 +152,16 @@ def nested_dict_entry(dictionary, entry, value, delimeter = "."):
         return dictionary
 
 # Helper funciton to find frames of specified type during specified time
-def create_frame_file_list(frame_type, start_time, end_time, observatory, \
-                           quit_program):
+def create_frame_file_list(frame_type, start_time, end_time, observatory, quit_program):
     if quit_program:
         return None, quit_program
     # search for file location for a given frame type during specified times
-    data_find = ['ligo_data_find','-s', start_time, '-e', end_time, '-o',
+    data_find = ['gw_data_find','-s', start_time, '-e', end_time, '-o',
                  observatory, '--url-type', 'file', '--lal-cache', '--type',
                  frame_type]
+    #data_find = ['ligo_data_find','-s', start_time, '-e', end_time, '-o',
+    #             observatory, '--url-type', 'file', '--lal-cache', '--type',
+    #             frame_type]
     #print(" ".join(str(x) for x in data_find))
     frame_locations_raw = subprocess.Popen(data_find, stdout = subprocess.PIPE, stderr=subprocess.PIPE).communicate()#[0]
     if frame_locations_raw[1]:
