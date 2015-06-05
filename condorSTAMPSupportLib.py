@@ -287,7 +287,7 @@ def create_matlab_mat_file_extraction_jobs(job_number, job_dictionary, matlab_ma
         return job_relationship, job_number, output_string
 
 # create preproc dag submission files
-def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_executable, matlab_matrix_extraction_executable, dag_dir, shell_path, quit_program, use_gpu = False, restrict_cpus = False, max_preproc_jobs = 20, max_gs_jobs = 100, max_extract_jobs = 100, job_order = None, job_group_preproc = None, no_job_retry = False, extract_from_gpu = False):
+def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_executable, matlab_matrix_extraction_executable, dag_dir, shell_path, quit_program, use_gpu = False, restrict_cpus = False, max_preproc_jobs = 20, max_gs_jobs = 100, max_extract_jobs = 100, job_order = None, job_group_preproc = None, no_job_retry = False, extract_from_gpu = False, alternate_preproc_dir = False):
     if not quit_program:
         preproc_category = "PREPROC"
         gs_category = "GRANDSTOCKTRACK"
@@ -303,7 +303,8 @@ def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_exec
         job_number = 0
         job_tracker = []
         # create preproc jobs
-        job_relationship_preproc, job_number, dag_string = write_preproc_jobs(job_number, job_dictionary,
+        if not alternate_preproc_dir:
+            job_relationship_preproc, job_number, dag_string = write_preproc_jobs(job_number, job_dictionary,
                                                                  job_tracker, preproc_sub_filename, dag_string, preproc_category, job_order, job_group_preproc, no_job_retry = no_job_retry)
         # create grand stochtrack jobs
         job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, quit_program, use_gpu = use_gpu, restrict_cpus = restrict_cpus, job_order = job_order, gs_category = gs_category, no_job_retry = no_job_retry)
@@ -315,10 +316,12 @@ def create_preproc_dag(job_dictionary, preproc_executable, grand_stochtrack_exec
         print("add test job(s) to check if frame type exists")
         # create test jobs if searching frames
             # create job hierarchy
-        print(dag_string)
-        print(job_order)
-        print(job_relationship_preproc)
-        job_orderings = [[job_relationship_preproc[job],job_relationship_gs[job]] for job in job_order if job != "constants"]
+        #print(dag_string)
+        #print(job_order)
+        #print(job_relationship_preproc)
+        job_orderings = []
+        if not alternate_preproc_dir:
+            job_orderings = [[job_relationship_preproc[job],job_relationship_gs[job]] for job in job_order if job != "constants"]
         if extract_from_gpu:
             job_orderings += [[job_relationship_gs[job],job_relationship_extraction[job]] for job in job_order if job != "constants"]
         #job_orderings = [[[job_relationship_preproc[job]],[job_relationship_gs[job]]] for job in job_order if job != "constants"]
