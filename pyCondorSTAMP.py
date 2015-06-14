@@ -35,6 +35,9 @@ parser.add_option("-d", "--dir", dest = "outputDir",
                   help = "Path to directory to hold analysis output (a new directory \
 will be created with appropriate subdirectories to hold analysis)",
                   metavar = "DIRECTORY")
+parser.add_option("-p", "--preprocDir", dest = "preprocDir",
+                  help = "(Optional) Path to directory holding previous analysis output that contains preproccessed data to use",
+                  metavar = "DIRECTORY")
 parser.add_option("-v", action="store_true", dest="verbose")
 parser.add_option("-g", action="store_false", dest="groupedPreprocessing")
 parser.add_option("-r", action="store_true", dest="restrict_cpus")
@@ -464,6 +467,8 @@ if not quit_program:
 
     # create directory to host all of the jobs. maybe drop the cachefiles in here too?
     jobsBaseDir = create_dir(baseDir + "/jobs")
+    if options.preprocDir:
+        difPreprocJobBaseDir = options.preprocDir + "/jobs"
 
     # create cachefile directory
     print(job) # to figure out what I thought I was doing here.
@@ -479,6 +484,8 @@ if not quit_program:
             # stochtrack_day_job_num (injection? gps time?)
             #jobs[job]["jobDir"] = create_dir(baseDir + "/" + job)
             jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + jobs[job]["job_group"] + "/" + job)
+            if options.preprocDir:
+                difPreprocJobDir = difPreprocJobBaseDir + "/" + "job_group_" + jobs[job]["job_group"] + "/" + job
             jobs[job]["jobDir"] = jobDir
 
 #			README.txt with job information? json maybe? job type
@@ -488,6 +495,8 @@ if not quit_program:
                 jobs[job]["preprocInputDir"] = preprocInputDir
                 preprocOutputDir = create_dir(jobDir + "/preprocOutput")
                 jobs[job]["preprocOutputDir"] = preprocOutputDir
+                if options.preprocDir:
+                    jobs[job]["difPreprocOutputDir"] = difPreprocJobDir + "/preprocOutput"
 
             # output directory for preproc dictionary
                 jobs[job]["preprocParams"]["outputfiledir"] = preprocOutputDir + "/" #jobs[job]["preprocInputDir"]
@@ -622,8 +631,12 @@ if not quit_program:
     # create jobGroup preproc director if needed
     if options.groupedPreprocessing:
         jobGroupsPreprocDir = create_dir(baseDir + "/preprocessingJobs")
+        if options.preprocDir:
+            difPreprocJobGroupsPreprocDir = options.preprocDir + "/preprocessingJobs"
         for job_group_temp in job_group_dict:
             job_group_dir = create_dir(jobGroupsPreprocDir + "/job_group_" + job_group_temp)
+            if options.preprocDir:
+                difPreproc_job_group_dir = difPreprocJobGroupsPreprocDir + "/job_group_" + job_group_temp
             #print("\n\n\ntest0\n\n\n")
             #print(job_group_dict[job_group_temp].keys())
             for preproc_job in job_group_dict[job_group_temp]:
@@ -637,6 +650,9 @@ if not quit_program:
                 preprocInputDir = create_dir(preproc_job_dir + "/preprocInput")
                 job_group_dict[job_group_temp][preproc_job]["preprocInputDir"] = preprocInputDir
                 preprocOutputDir = create_dir(preproc_job_dir + "/preprocOutput")
+                if options.preprocDir:
+                    difPreprocJobDir = difPreproc_job_group_dir + "/preproc_job_" + str(preproc_job)
+                    difPreprocOutputDir = difPreprocJobDir + "/preprocOutput"
                 job_group_dict[job_group_temp][preproc_job]["preprocParams"]["outputfiledir"] = preprocOutputDir + "/"
                 print("Fix line below, redundant with above line")
                 job_group_dict[job_group_temp][preproc_job]["outputfiledir"] = preprocOutputDir
@@ -652,6 +668,8 @@ if not quit_program:
                 #print(job_group_dict[job_group_temp][preproc_job]["jobs"])
                 for job in job_group_dict[job_group_temp][preproc_job]["jobs"]:
                     jobs[job]["grandStochtrackParams"]["params"]["inmats"] = preprocOutputDir + "/map"
+                    if options.preprocDir:
+                        jobs[job]["grandStochtrackParams"]["params"]["inmats"] = difPreprocOutputDir + "/map"
                     preprocJobDict[job] = [job_group_temp, preproc_job]
         job_group_dict["job_tracker"] = preprocJobDict
 
@@ -678,6 +696,8 @@ if not quit_program:
             jobs[job]["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
             if not options.groupedPreprocessing:
                 jobs[job]["grandStochtrackParams"]["params"]["inmats"] = jobs[job]["preprocOutputDir"] + "/map"
+                if options.preprocDir:
+                    jobs[job]["grandStochtrackParams"]["params"]["inmats"] = jobs[job]["difPreprocOutputDir"] + "/map"
             jobs[job]["grandStochtrackParams"]["params"]["ofile"] = jobs[job]["grandstochtrackOutputDir"] + "/bknd"
 
             # write start and end times
@@ -739,7 +759,7 @@ if not quit_program:
         extract_from_gpu = True
     else:
         extract_from_gpu = False
-    create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, matlabMatrixExtractionExectuable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, job_group_preproc = job_group_dict, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu)
+    create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, matlabMatrixExtractionExectuable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, job_group_preproc = job_group_dict, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
 
 print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
 
