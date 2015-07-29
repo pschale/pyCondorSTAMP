@@ -25,6 +25,7 @@ parser.set_defaults(burstegard = False)
 parser.set_defaults(all_clusters = False)
 parser.set_defaults(archived_frames_okay = False)
 parser.set_defaults(no_job_retry = False)
+parser.set_defaults(extract_from_gpu = False)
 parser.add_option("-c", "--conf", dest = "configFile",
                   help = "Path to config file detailing analysis for preproc and grand_stochtrack executables (preproc job options can have multiple jobs if separated by a \",\" [may be a good idea to switch to a single directory all preproc jobs are dumped, however this would require them to share many of the same parameters, or not, just don't overlap in time at all, something to think about])",
                   metavar = "FILE")
@@ -45,6 +46,7 @@ parser.add_option("-b", action="store_true", dest="burstegard")
 parser.add_option("-a", action="store_true", dest="all_clusters")
 parser.add_option("-f", action="store_true", dest="archived_frames_okay")
 parser.add_option("-q", action="store_true", dest="no_job_retry")
+parser.add_option("-e", action="store_true", dest="extract_from_gpu")
 
 
 # MAYBE maxjobs will be useful.
@@ -98,9 +100,10 @@ shellPath = "#!/bin/bash"
 #preprocExecutable = "/home/quitzow/STAMP/stamp2/test/condorTesting/preprocDir/preproc"
 #grandStochtrackExecutable = "/home/quitzow/STAMP/stamp2/test/condorTesting/grand_stochtrack"
 preprocExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/preproc/preproc"
-grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
+#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
 #preprocExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/preproc/preproc"
 #grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
+grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
 
 matlabMatrixExtractionExectuable = "/home/quitzow/GIT/Development_Branches/MatlabExecutableDuctTape/getSNRandCluster"
 
@@ -343,6 +346,7 @@ if jobDuplicates and not quit_program:
 
 # check for and find real data if applicable
 realDataJobs = {}
+cacheFilesPrepped = {}
 # check if real data is default
 if "doDetectorNoiseSim" in jobs["constants"]["preprocParams"]:
     if jobs["constants"]["preprocParams"]["doDetectorNoiseSim"].lower() == "false":
@@ -398,6 +402,7 @@ for job in jobs:
             #endTime = float(jobData[index][2])
         else:
             jobTimes = defaultTimes[:]
+            jobNumber = defaultJobNumber
             #startTime = defaultStartTime
             #endTime = defaultEndTime
 #        startTime = jobs[job]["preprocParams"]["hstart"]
@@ -423,10 +428,18 @@ for job in jobs:
             segmentJob = timeSegment[0]
             temp_frame_list_1 = []
             temp_frame_list_2 = []
-##3            temp_frame_list_1, quit_program = create_frame_file_list(frameType1, str(startTime), str(endTime), realDataJobs[job]["observatory1"], quit_program)
-##3            temp_frame_list_2, quit_program = create_frame_file_list(frameType2, str(startTime), str(endTime), realDataJobs[job]["observatory2"], quit_program)
-            realDataJobs[job]["frame_file_list1"][segmentJob] = temp_frame_list_1
-            realDataJobs[job]["frame_file_list2"][segmentJob] = temp_frame_list_2
+            if jobNumber not in cacheFilesPrepped:
+                temp_frame_list_1, quit_program = create_frame_file_list(frameType1, str(startTime), str(endTime), realDataJobs[job]["observatory1"], quit_program)
+                temp_frame_list_2, quit_program = create_frame_file_list(frameType2, str(startTime), str(endTime), realDataJobs[job]["observatory2"], quit_program)
+                cacheFilesPrepped[jobNumber] = {}
+                cacheFilesPrepped[jobNumber][segmentJob] = {}
+                cacheFilesPrepped[jobNumber][segmentJob]["frame_file_list1"] = temp_frame_list_1
+                cacheFilesPrepped[jobNumber][segmentJob]["frame_file_list2"] = temp_frame_list_2
+                realDataJobs[job]["frame_file_list1"][segmentJob] = temp_frame_list_1
+                realDataJobs[job]["frame_file_list2"][segmentJob] = temp_frame_list_2
+            else:
+                realDataJobs[job]["frame_file_list1"][segmentJob] = cacheFilesPrepped[jobNumber][segmentJob]["frame_file_list1"]
+                realDataJobs[job]["frame_file_list2"][segmentJob] = cacheFilesPrepped[jobNumber][segmentJob]["frame_file_list2"]
 
 # update default dictionary
 #print(jobs['constants'].keys())
@@ -448,13 +461,15 @@ defaultDictionary = load_default_dict(jobs['constants']['grandStochtrackParams']
 #				some other thing?
 #				plotDir
 
+cacheFilesCreated = []
+
 if not quit_program:
     # Build base analysis directory
     # stochtrack_condor_job_group_num
     if options.outputDir[-1] == "/":
-        baseDir = dated_dir(options.outputDir + "stamp_analysis")
+        baseDir = dated_dir(options.outputDir + "stamp_analysis_anteproc")
     else:
-        baseDir = dated_dir(options.outputDir + "/stamp_analysis")
+        baseDir = dated_dir(options.outputDir + "/stamp_analysis_anteproc")
     print(baseDir)#debug
 
     # copy input parameter file and jobs file into a support directory here
@@ -519,8 +534,10 @@ if not quit_program:
                 #else:
                 #    jobNum = jobs["constants"]["preprocJobs"]
                 for tempJob in realDataJobs[job]["frame_file_list1"]:
-                    quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list1"][tempJob],realDataJobs[job]["observatory1"],int(tempJob),cacheDir,quit_program, archived_frames_okay = options.archived_frames_okay)
-                    quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list2"][tempJob],realDataJobs[job]["observatory2"],int(tempJob),cacheDir,quit_program, archived_frames_okay = options.archived_frames_okay)
+                    if tempJob not in cacheFilesCreated:
+                        cacheFilesCreated += [tempJob]
+                        quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list1"][tempJob],realDataJobs[job]["observatory1"],int(tempJob),cacheDir,quit_program, archived_frames_okay = options.archived_frames_okay)
+                        quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list2"][tempJob],realDataJobs[job]["observatory2"],int(tempJob),cacheDir,quit_program, archived_frames_okay = options.archived_frames_okay)
                 # add to parameters
                 jobs[job]["preprocParams"]["gpsTimesPath1"] = cacheDir
                 jobs[job]["preprocParams"]["gpsTimesPath2"] = cacheDir
@@ -759,6 +776,7 @@ if not quit_program:
         extract_from_gpu = True
     else:
         extract_from_gpu = False
+    extract_from_gpu = options.extract_from_gpu
     create_anteproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, matlabMatrixExtractionExectuable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, job_group_preproc = job_group_dict, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
 
 print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
