@@ -137,19 +137,14 @@ else:
 # load info from config file
 if not quit_program:
     rawData = read_text_file(configPath, ' ')
-#    print(read_text_file(options.configFile," "))
 else:
     rawData = []
-
-#print(options.configFile)
-#print(rawData)
 
 # load info from job file
 if not quit_program:
     jobData = read_text_file(jobPath, ' ')
     jobNumbers = [line[0] for line in jobData]
     jobData = [[load_if_number(item) for item in line] for line in jobData]
-#    print(read_text_file(options.configFile," "))
 else:
     jobData = []
 
@@ -165,7 +160,6 @@ else:
 # load data from jobFile
 if not quit_program:
     with open(jobPath, "r") as infile:
-        #jobFileData = [x.split() for x in infile]
         jobDataDict = dict((x.split()[0], x.split()[1:]) for x in infile)
 else:
     jobDataDict = {}
@@ -184,7 +178,6 @@ for job in jobs:
                 job_group_iterator += 1
             jobs[job]["job_group"] = str(job_group_iterator)
             job_groups += [str(job_group_iterator)]
-#        job_group_iterator += 1
 
 anteproc_grand_stochtrack_values = {"anteproc.loadFiles": True,
                                     "anteproc.timeShift1": 0,
@@ -220,15 +213,11 @@ if not (options.anteproc_mode or anteproc_grand_stochtrack_values["anteproc.jobF
 if commentsToPrintIfVerbose and options.verbose:
     print(commentsToPrintIfVerbose)
 
-#print(jobs.keys())
-
 # TODO: Warnings and error catching involving default job number and undefined job numbers
 print("\n\nRemember: Finish this part.\n\n")
 
 if jobDuplicates and not quit_program:
     quit_program = not ask_yes_no_bool("Duplicate jobs exist. Continue? (y/n)\n")
-#print(quit_program)
-#dict()
 
 # update default dictionary
 defaultDictionary = load_default_dict(jobs['constants']['grandStochtrackParams']['params'] , defaultDictionary)
@@ -255,9 +244,6 @@ with open(anteprocDefault, 'r') as infile:
 
 cacheFilesCreated = []
 
-#anteprocSimulatedJobs = {}
-#anteprocSimulatedJobs["H1"] = {}
-#anteprocSimulatedJobs["L1"] = {}
 anteprocJobs = {}
 anteprocJobs["H1"] = {}
 anteprocJobs["L1"] = {}
@@ -378,13 +364,6 @@ if not quit_program:
     logDir = create_dir(dagLogDir + "/logs")
 else:
     baseDir = None
-#    supportDir = None
-#    frameListDir = None
-#    frameDir = None
-#    plotDir = None
-
-#print(jobs.keys())
-#print(jobs["constants"].keys())
 
 # create grandstochtrack execution script
 
@@ -431,35 +410,16 @@ if not quit_program:
             # put output directories in grand_stochtrack dictionary
             jobs[job]["grandStochtrackParams"]["params"]["plotdir"] = jobs[job]["plotDir"] + "/"
             jobs[job]["grandStochtrackParams"]["params"]["outputfilename"] = jobs[job]["grandstochtrackOutputDir"] + "/map"
-#            jobs[job]["grandStochtrackParams"]["params"]["jobsFile"] = options.jobFile
             jobs[job]["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
             jobs[job]["grandStochtrackParams"]["params"]["ofile"] = jobs[job]["grandstochtrackOutputDir"] + "/bknd"
 
-            # write start and end times
- #           jobs[job]["grandStochtrackParams"]["params"]["hstart"] =
-#            jobs[job]["grandStochtrackParams"]["params"]["hend"] =
-
             # write stochtrack parameter files for each job
-            #jobDictionary = load_default_dict(jobs[job]['params'] , defaultDictionary)
-            #print(jobs[job]['grandStochtrackParams']['params']['anteproc'].keys())
-            #print(jobs[job]['grandStochtrackParams']['params']['anteproc']['inmats1'])
             jobs[job]['grandStochtrackParams']['params'] = load_default_dict(jobs[job]['grandStochtrackParams']['params'] , defaultDictionary)
-            #print(jobs[job]['grandStochtrackParams']['params']['anteproc']['inmats1'])
             # the way this following line is done needs to be reviewed.
             jobs[job]['grandStochtrackParams'] = load_default_dict(jobs[job]['grandStochtrackParams'], jobs["constants"]['grandStochtrackParams'])
-            #print(jobs[job]['grandStochtrackParams']['params']['anteproc']['inmats1'])
-            # write matrix file
-            #print(jobs[job].keys())
-            #for key in jobs[job]:
-            #    if isinstance(jobs[job][key], dict):
-            #        print("dictionary found")
-            #        print(key)
-            #        print(jobs[job][key].keys())
-#                    print(jobs[job][key])
             sio.savemat(jobs[job]["stochtrackInputDir"] + "/" + "params.mat", jobs[job]["grandStochtrackParams"])
 
 # order plots by job
-#jobDirs = [job for job in jobs]
 
 jobTempDict = dict((int(job[job.index("_")+1:]),{"job" : job, "job dir" : "job_group_" + jobs[job]["job_group"] + "/" + job}) for job in [x for x in jobs if x != "constants"])
 
@@ -477,7 +437,6 @@ outFile = "pageDisplayTest.html"
 
 jobNumOrder = [jobNum for jobNum in jobTempDict]
 jobNumOrder.sort()
-#jobOrder = [jobTempDict[jobNum] for jobNum in jobNumOrder]
 jobOrder = [jobTempDict[jobNum]["job"] for jobNum in jobNumOrder]
 jobOrderWeb = [jobTempDict[jobNum]["job dir"] for jobNum in jobNumOrder]
 
@@ -497,28 +456,10 @@ if not quit_program:
     else:
         extract_from_gpu = False
     extract_from_gpu = options.extract_from_gpu
-    #create_anteproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, matlabMatrixExtractionExectuable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, job_group_preproc = job_group_dict, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
-    #create_anteproc_dag_v2(jobs, grandStochtrackExecutable, matlabMatrixExtractionExectuable, anteprocExecutable, dagDir, shellPath, newJobPath, H1_jobs, L1_jobs, anteproc_H_name, anteproc_L_name, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
-    #create_anteproc_dag_v2(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable, anteprocExecutable, dagDir, shellPath, newJobPath, H1_jobs, L1_jobs, anteproc_H_name, anteproc_L_name, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
-    #create_anteproc_dag_v2(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable, dagDir, shellPath, newJobPath, H1_jobs, L1_jobs, anteproc_H_name, anteproc_L_name, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
     print("Creating dag and sub files")
-
-#    if jobs["constants"]["anteprocParamsH"]["doDetectorNoiseSim"] == "true":
-        #create_anteproc_dag_v3(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, shellPath, newJobPath, H1_jobs, L1_jobs, anteprocSimulatedJobs, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
-     #   create_anteproc_dag_v5(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, shellPath, newJobPath, H1_jobs, L1_jobs, anteprocJobs, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
- #   else:
-        #create_anteproc_dag_v2(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, shellPath, newJobPath, H1_jobs, L1_jobs, anteproc_H_name, anteproc_L_name, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
-  #      create_anteproc_dag_v4(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, shellPath, newJobPath, H1_jobs, L1_jobs, anteprocJobs, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
     create_anteproc_dag_v5(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, shellPath, newJobPath, H1_jobs, L1_jobs, anteprocJobs, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
 
 print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
-
-"""if options.groupedPreprocessing:
-    print("Saving preproc job dictionary.")
-
-    with open(baseDir + "/preprocJobTracker.txt", "w") as outfile:
-        output_text = json.dumps(job_group_dict["job_tracker"], sort_keys = True, indent = 4)
-        outfile.write(output_text)"""
 
 # create webpage
 
