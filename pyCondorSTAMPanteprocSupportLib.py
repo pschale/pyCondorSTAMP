@@ -4,12 +4,16 @@ from grandStochtrackSupportLib import load_if_number
 
 def parse_jobs(raw_data, quit_program):
     'Helper function to parse jobs for STAMP'
+    print("Fix this (grand_stochtrack selection) part to handle numbers properly! And less jumbled if possible!")
     jobs = {}
     commentsToPrintIfVerbose = []
     job_groups = []
     jobDuplicates = False
     anteproc_jobs_1 = []
     anteproc_jobs_2 = []
+    seeds = []
+    #waveforms = {'default':None}
+    waveforms = {}
     if not quit_program:
         for line in raw_data:
             temp = line[0].lower()
@@ -22,11 +26,32 @@ def parse_jobs(raw_data, quit_program):
                     jobs[job_key]["preprocParams"] = {}
                 if "anteprocParamsH" not in jobs[job_key]:
                     jobs[job_key]["anteprocParamsH"] = {}
+                if "anteprocHjob_seeds" not in jobs[job_key]:
+                    jobs[job_key]["anteprocHjob_seeds"] = {}
+                if "anteprocH_parameters" not in jobs[job_key]:
+                    jobs[job_key]["anteprocH_parameters"] = {}
+                if "anteprocH_waveforms" not in jobs[job_key]:
+                    jobs[job_key]["anteprocH_waveforms"] = {}
                 if "anteprocParamsL" not in jobs[job_key]:
                     jobs[job_key]["anteprocParamsL"] = {}
+                if "anteprocLjob_seeds" not in jobs[job_key]:
+                    jobs[job_key]["anteprocLjob_seeds"] = {}
+                if "anteprocL_parameters" not in jobs[job_key]:
+                    jobs[job_key]["anteprocL_parameters"] = {}
+                if "anteprocL_waveforms" not in jobs[job_key]:
+                    jobs[job_key]["anteprocL_waveforms"] = {}
                 if "grandStochtrackParams" not in jobs[job_key]:
                     jobs[job_key]["grandStochtrackParams"] = {}
                     jobs[job_key]["grandStochtrackParams"]["params"] = {}
+            elif temp == 'waveform':
+                if len(line) != 3:
+                    print("Alert, the following line contains a different number of entries than 3:")
+                    print(line)
+                    quit_program = True
+                else:
+                    wave_id = line[1]
+                    wave_file_path = line[2]
+                    waveforms[wave_id] = wave_file_path
             # job specific settings
             elif temp == 'job':
                 job_key = temp + "_" + line[1]
@@ -91,6 +116,48 @@ def parse_jobs(raw_data, quit_program):
                     else:
                         jobNumber = line[2]
                         jobs[job_key]["preprocJobs"] = jobNumber
+                elif line[1] == "job_seed":
+                    if len(line) != 4:
+                        print("Alert, the following line contains a different number of entries than 4:")
+                        print(line)
+                        quit_program = True
+                    elif line[2] in jobs['constants']["anteprocHjob_seeds"]:
+                        print("Alert, the seed for job " + line[2] + " is already recorded. Quiting program.")
+                        quit_program = True
+                    elif line[3] in seeds:
+                        print("Alert, the seed " + line[3] + " has already been used in another job. Quiting program.")
+                        quit_program = True
+                    else:
+                        jobNumber = int(line[2])
+                        seed = int(line[3])
+                        jobs['constants']["anteprocHjob_seeds"][jobNumber] = seed
+                        seeds += [seed]
+                elif line[1] == "anteproc_param":
+                    if len(line) != 5:
+                        print("Alert, the following line contains a different number of entries than 5:")
+                        print(line)
+                        quit_program = True
+                    else:
+                        jobNumber = int(line[2])
+                        parameter = line[3]
+                        value = load_if_number(line[4])
+                        if jobNumber not in jobs['constants']["anteprocH_parameters"]:
+                            jobs['constants']["anteprocH_parameters"][jobNumber] = {}
+                        jobs['constants']["anteprocH_parameters"][jobNumber][parameter] = value
+                elif line[1] == "anteproc_injection":
+                    if len(line) <4:
+                        print("Alert, the following line contains less than 4:")
+                        print(line)
+                        quit_program = True
+                    else:
+                        jobNumber = int(line[2])
+                        wave_ids = [x.strip("[]") for group in line[3:] for x in group.split(',')]
+                        if jobNumber not in jobs['constants']["anteprocH_waveforms"]:
+                            jobs['constants']["anteprocH_waveforms"][jobNumber] = wave_ids
+                        else:
+                            print("Duplicate waveform assignment line:")
+                            print(line)
+                            quit_program = True
                 else:
                     if len(line) != 3:
                         print("Alert, the following line contains a different number of entries than 3:")
@@ -107,6 +174,48 @@ def parse_jobs(raw_data, quit_program):
                     else:
                         jobNumber = line[2]
                         jobs[job_key]["preprocJobs"] = jobNumber
+                elif line[1] == "job_seed":
+                    if len(line) != 4:
+                        print("Alert, the following line contains a different number of entries than 4:")
+                        print(line)
+                        quit_program = True
+                    elif line[2] in jobs['constants']["anteprocLjob_seeds"]:
+                        print("Alert, the seed for job " + line[2] + " is already recorded. Quiting program.")
+                        quit_program = True
+                    elif line[3] in seeds:
+                        print("Alert, the seed " + line[3] + " has already been used in another job. Quiting program.")
+                        quit_program = True
+                    else:
+                        jobNumber = int(line[2])
+                        seed = int(line[3])
+                        jobs['constants']["anteprocLjob_seeds"][jobNumber] = seed
+                        seeds += [seed]
+                elif line[1] == "anteproc_param":
+                    if len(line) != 5:
+                        print("Alert, the following line contains a different number of entries than 5:")
+                        print(line)
+                        quit_program = True
+                    else:
+                        jobNumber = int(line[2])
+                        parameter = line[3]
+                        value = load_if_number(line[4])
+                        if jobNumber not in jobs['constants']["anteprocL_parameters"]:
+                            jobs['constants']["anteprocL_parameters"][jobNumber] = {}
+                        jobs['constants']["anteprocL_parameters"][jobNumber][parameter] = value
+                elif line[1] == "anteproc_injection":
+                    if len(line) <4:
+                        print("Alert, the following line contains less than 4:")
+                        print(line)
+                        quit_program = True
+                    else:
+                        jobNumber = int(line[2])
+                        wave_ids = [x.strip("[]") for group in line[3:] for x in group.split(',')]
+                        if jobNumber not in jobs['constants']["anteprocL_waveforms"]:
+                            jobs['constants']["anteprocL_waveforms"][jobNumber] = wave_ids
+                        else:
+                            print("Duplicate waveform assignment line:")
+                            print(line)
+                            quit_program = True
                 else:
                     if len(line) != 3:
                         print("Alert, the following line contains a different number of entries than 3:")
@@ -114,8 +223,16 @@ def parse_jobs(raw_data, quit_program):
                         quit_program = True
                     else:
                         jobs[job_key]["anteprocParamsL"][line[1]] = line[2]
+            elif temp == "injection_tag":
+                if len(line) != 2:
+                    print("Alert, the following line contains a different number of entries than 2:")
+                    print(line)
+                    quit_program = True
+                else:
+                    #wave_ids = [x.strip("[]") for group in line[1:] for x in group.split(',')]
+                    jobs[job_key]["injection_tags"] = line[1]
             elif temp == "grandstochtrack":
-                print("Fix this part to handle numbers properly! And less jumbled if possible!")
+                #print("Fix this part to handle numbers properly! And less jumbled if possible!")
                 if line[1] == "StampFreqsToRemove":
                     rawFreqs = [x.split(",") for x in line[2:]] # this part actually just strips the comma. The really frequency splitting is actually due to the list comprehension itself, or rather this part: line[2:]. Since the frequencies were already split in an earlier line.
                     # not a terrible check to have, just in case commas are used and spaces forgotten
@@ -123,8 +240,8 @@ def parse_jobs(raw_data, quit_program):
                     rawFreqs = [x.replace("[", "") if "[" in x else x for x in rawFreqs]
                     rawFreqs = [x.replace("]", "") if "]" in x else x for x in rawFreqs]
                     freqList = [float(x) for x in rawFreqs if x]#[load_number(x) for x in rawFreqs if x]
-                    print("StampFreqsToRemove")
-                    print(freqList)
+                    #print("StampFreqsToRemove")
+                    #print(freqList)
                     jobs[job_key]["grandStochtrackParams"]["params"][line[1]] = freqList
                 elif line[1] == "doGPU" and job_key != "constants":
                     print("Current job: " + job_key)
@@ -160,18 +277,22 @@ def parse_jobs(raw_data, quit_program):
             jobs['constants']["preprocParams"] = {}
             jobs['constants']["grandStochtrackParams"] = {}
             jobs['constants']["grandStochtrackParams"]["params"] = {}
-    return quit_program, jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, anteproc_jobs_1, anteproc_jobs_2
+    return quit_program, jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, anteproc_jobs_1, anteproc_jobs_2, waveforms
 
 def anteproc_setup(anteproc_directory, anteproc_default_data, job_dictionary, cache_directory):
     anteproc_H = dict((x[0], x[1]) if len(x) > 1 else (x[0], "") for x in anteproc_default_data)
     anteproc_L = dict((x[0], x[1]) if len(x) > 1 else (x[0], "") for x in anteproc_default_data)
-    if "doDetectorNoiseSim" in job_dictionary["constants"]["anteprocParamsH"]:
+    for temp_param in job_dictionary["constants"]["anteprocParamsH"]:
+        anteproc_H[temp_param] = job_dictionary["constants"]["anteprocParamsH"][temp_param]
+    for temp_param in job_dictionary["constants"]["anteprocParamsL"]:
+        anteproc_L[temp_param] = job_dictionary["constants"]["anteprocParamsL"][temp_param]
+    """if "doDetectorNoiseSim" in job_dictionary["constants"]["anteprocParamsH"]:
         simulated = job_dictionary["constants"]["anteprocParamsH"]["doDetectorNoiseSim"]
         anteproc_H["doDetectorNoiseSim"] = simulated
-        anteproc_L["doDetectorNoiseSim"] = simulated
+        anteproc_L["doDetectorNoiseSim"] = simulated #"""
     anteproc_H["outputfiledir"] = anteproc_directory + "/"
     anteproc_L["outputfiledir"] = anteproc_directory + "/"
-    if "DetectorNoiseFile" in job_dictionary["constants"]["anteprocParamsH"]:
+    """if "DetectorNoiseFile" in job_dictionary["constants"]["anteprocParamsH"]:
         anteproc_H["DetectorNoiseFile"] = job_dictionary["constants"]["anteprocParamsH"]["DetectorNoiseFile"]
     if "DetectorNoiseFile" in job_dictionary["constants"]["anteprocParamsL"]:
         anteproc_L["DetectorNoiseFile"] = job_dictionary["constants"]["anteprocParamsL"]["DetectorNoiseFile"]
@@ -179,7 +300,7 @@ def anteproc_setup(anteproc_directory, anteproc_default_data, job_dictionary, ca
     if "segmentDuration" in job_dictionary["constants"]["anteprocParamsH"]:
         anteproc_H["segmentDuration"] = job_dictionary["constants"]["anteprocParamsH"]["segmentDuration"]
     if "segmentDuration" in job_dictionary["constants"]["anteprocParamsL"]:
-        anteproc_L["segmentDuration"] = job_dictionary["constants"]["anteprocParamsL"]["segmentDuration"]
+        anteproc_L["segmentDuration"] = job_dictionary["constants"]["anteprocParamsL"]["segmentDuration"] #"""
     anteproc_H["gpsTimesPath1"] = cache_directory
     anteproc_H["frameCachePath1"] = cache_directory
     anteproc_L["gpsTimesPath1"] = cache_directory
@@ -194,6 +315,7 @@ def anteproc_setup(anteproc_directory, anteproc_default_data, job_dictionary, ca
     return anteproc_H, anteproc_L
 
 def save_anteproc_paramfile(anteproc_dict, anteproc_name, anteproc_default_data):
+    print("Saving anteproc parameter file...")
     default_keys = [x[0] for x in anteproc_default_data]
     output_string = "\n".join(str(key) + " " + str(anteproc_dict[key]) for key in default_keys)
     output_string += "\n" + "\n".join(str(key) + " " + str(anteproc_dict[key]) for key in anteproc_dict if key not in default_keys)
@@ -230,3 +352,50 @@ def adjust_job_file(filePath, outputDirectory, job_dictionary):
     with open(outputPath,"w") as outfile:
         outfile.write(text)
     return outputPath
+
+def handle_injections_and_save_anteproc_paramfile(multiple_waveforms, waveform_bank, anteproc_dict, anteproc_file_name, anteproc_default_data, quit_program):
+    anteproc_file_names = []
+    if multiple_waveforms:
+        print("Handling multiple waveform injection preprocessing...")
+        base_output_file_name = anteproc_dict["outputfilename"]
+        for waveform_key in waveform_bank:
+            if waveform_bank[waveform_key]:
+                temp_anteproc_name = anteproc_file_name[:anteproc_file_name.rindex(".")] + "_" + waveform_key + ".txt"
+                anteproc_dict["stamp.file"] = waveform_bank[waveform_key]
+                anteproc_dict["outputfilename"] = base_output_file_name + "_" + waveform_key
+                save_anteproc_paramfile(anteproc_dict, temp_anteproc_name, anteproc_default_data)
+                anteproc_file_names += [temp_anteproc_name]
+            else:
+                print("Warning! No waveform in selected waveform key!")
+                quit_program = True
+        anteproc_dict["outputfilename"] = base_output_file_name
+    else:
+        save_anteproc_paramfile(anteproc_dict, anteproc_file_name, anteproc_default_data)
+        anteproc_file_names += [anteproc_file_name]
+    return anteproc_file_names, quit_program
+
+def anteproc_job_specific_setup(job_list, ifo, anteproc_directory, job_dictionary, anteproc_dict, used_seed_tracker, organized_seeds, multiple_waveforms, waveform_bank, anteproc_default_data, anteproc_jobs, quit_program):
+
+    for temp_job in job_list:
+            anteproc_H_name_temp = anteproc_directory + "/" + ifo + "-anteproc_params_" + str(temp_job) + ".txt"
+
+            if job_dictionary["constants"]["anteprocParamsH"]["doDetectorNoiseSim"] == "true":
+
+                if temp_job in job_dictionary["constants"]["anteprocHjob_seeds"]:
+                    temp_seed = job_dictionary["constants"]["anteprocHjob_seeds"][temp_job]
+                    anteproc_dict["pp_seed"] = temp_seed
+                else:
+                    temp_seed = random.randint(0,2**32-1)
+                    while temp_seed in used_seed_tracker:
+                        temp_seed = random.randint(0,2**32-1)
+                    used_seed_tracker += [temp_seed]
+                    anteproc_dict["pp_seed"] = temp_seed
+                organized_seeds[ifo][temp_job] = temp_seed
+
+            if temp_job in job_dictionary['constants']["anteprocH_parameters"]:
+                for temp_param in job_dictionary['constants']["anteprocH_parameters"][temp_job]:
+                    anteproc_dict[temp_param] = job_dictionary['constants']["anteprocH_parameters"][temp_job][temp_param]
+
+            anteproc_jobs[ifo][temp_job], quit_program = handle_injections_and_save_anteproc_paramfile(multiple_waveforms, waveform_bank, anteproc_dict,
+                                                anteproc_H_name_temp, anteproc_default_data, quit_program)
+    return anteproc_jobs, used_seed_tracker, organized_seeds, quit_program

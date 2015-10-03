@@ -513,3 +513,282 @@ ulimit -v """ + str(memory_limit) + """
 """ + executable + """ $1 $2 $3"""
     with open(file_name, "w") as outfile:
         outfile.write(output_string)
+
+# create grandstochtrack jobs
+def create_anteproc_jobs_v2(job_number, condor_sub_loc, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_filename_dictionary, dag_dir, output_string, quit_program, anteproc_category = None, no_job_retry = False):
+    if not quit_program:
+        # create grand_stochtrack executable submit file
+        dag_string = ""
+        #job_number = 0
+        job_listings = []
+        # create jobs for H1
+        for job in set(H1_job_numbers):
+            job_listings += [job_number]
+            vars_entries = [anteproc_filename_dictionary["H1"][job], post_processing_job_file, str(job)]
+            argList = ["paramFile", "jobFile", "jobNum"]
+            if no_job_retry:
+                job_number, dag_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
+                                                        argList, dag_string, restrictCat = anteproc_category, retry = None)
+            else:
+                job_number, dag_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
+                                                        argList, dag_string, restrictCat = anteproc_category)
+        # create jobs for L1
+        for job in set(L1_job_numbers):
+            job_listings += [job_number]
+            vars_entries = [anteproc_filename_dictionary["L1"][job], post_processing_job_file, str(job)]
+            argList = ["paramFile", "jobFile", "jobNum"]
+            if no_job_retry:
+                job_number, dag_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
+                                                        argList, dag_string, restrictCat = anteproc_category, retry = None)
+            else:
+                job_number, dag_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
+                                                        argList, dag_string, restrictCat = anteproc_category)
+
+        output_string += dag_string
+        return job_listings, job_number, output_string
+
+# create preproc dag submission files
+def create_anteproc_dag_v3(job_dictionary, grand_stochtrack_executable, matlab_matrix_extraction_executable, anteproc_executable, dag_dir, shell_path, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_filename_dictionary, quit_program, use_gpu = False, restrict_cpus = False, max_anteproc_jobs = 20, max_gs_jobs = 100, max_extract_jobs = 100, job_order = None, no_job_retry = False, extract_from_gpu = False, alternate_preproc_dir = False):
+    if not quit_program:
+        anteproc_category = "ANTEPROC"
+        gs_category = "GRANDSTOCKTRACK"
+        matrix_extraction_category = "GPUARRAY_TO_ARRAY"
+        # order jobs alphanumerically (this will also help with parent child relationships later)
+        if not job_order:
+            job_order = job_dictionary.keys()
+            job_order.sort()
+        # create anteroc submit file
+        anteproc_sub_filename = write_sub_file("anteproc", anteproc_executable, dag_dir, "$(paramFile) $(jobFile) $(jobNum)", 2048)
+        # create preproc executable submit file
+        #preproc_sub_filename = write_sub_file("preproc", preproc_executable, dag_dir, "$(paramFile) $(jobFile) $(jobNum)", 2048)
+        filename = dag_dir + "/stampAnalysis.dag"
+        dag_string = ""
+        job_number = 0
+        job_tracker = []
+        # create preproc jobs
+        anteproc_job_listing, job_number, dag_string = create_anteproc_jobs_v2(job_number, anteproc_sub_filename, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_filename_dictionary, dag_dir, dag_string, quit_program, anteproc_category = anteproc_category, no_job_retry = no_job_retry)
+        #if not alternate_preproc_dir:
+        #    job_relationship_preproc, job_number, dag_string = write_preproc_jobs(job_number, job_dictionary,
+        #                                                         job_tracker, preproc_sub_filename, dag_string, preproc_category, job_order, job_group_preproc, no_job_retry = no_job_retry)
+        # create grand stochtrack jobs
+        job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, quit_program, use_gpu = use_gpu, restrict_cpus = restrict_cpus, job_order = job_order, gs_category = gs_category, no_job_retry = no_job_retry)
+        gs_job_listing = [x for key in job_relationship_gs for x in job_relationship_gs[key]]
+        gs_job_listing.sort()
+        # create matrix extraction jobs
+        if extract_from_gpu:
+            job_relationship_extraction, job_number, dag_string = create_matlab_mat_file_extraction_jobs(job_number, job_dictionary, matlab_matrix_extraction_executable, dag_dir, dag_string, quit_program, job_order = job_order, matrix_extraction_category = matrix_extraction_category, no_job_retry = no_job_retry)
+
+        # to add!
+        print("add test job(s) to check if frame type exists")
+        # create test jobs if searching frames
+            # create job hierarchy
+        #print(dag_string)
+        #print(job_order)
+        #print(job_relationship_preproc)
+        job_orderings = []
+        #if not alternate_preproc_dir:
+            #job_orderings = [[job_relationship_preproc[job],job_relationship_gs[job]] for job in job_order if job != "constants"]
+        if extract_from_gpu:
+            job_orderings += [[job_relationship_gs[job],job_relationship_extraction[job]] for job in job_order if job != "constants"]
+        #job_orderings = [[[job_relationship_preproc[job]],[job_relationship_gs[job]]] for job in job_order if job != "constants"]
+        dag_string =  job_heirarchy_from_listing(anteproc_job_listing, gs_job_listing, dag_string)
+        dag_string = job_heirarchy_v2(job_orderings, dag_string)
+
+        # write preproc job category restriction
+        dag_string += "\nMAXJOBS " + anteproc_category + " " + str(max_anteproc_jobs)
+        dag_string += "\nMAXJOBS " + gs_category + " " + str(max_gs_jobs)
+        if extract_from_gpu:
+            dag_string += "\nMAXJOBS " + matrix_extraction_category + " " + str(max_extract_jobs)
+
+        #dagfile.close()
+        with open(filename, "w") as outfile:
+            outfile.write(dag_string)
+        return filename
+
+# create grandstochtrack jobs
+#def create_anteproc_jobs_v3(job_number, condor_sub_loc, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_H_filename, anteproc_L_filename, dag_dir, output_string, quit_program, anteproc_category = None, no_job_retry = False):
+def create_anteproc_jobs_v3(job_number, condor_sub_loc, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_name_dict, dag_dir, output_string, quit_program, anteproc_category = None, no_job_retry = False):
+    if not quit_program:
+        # create grand_stochtrack executable submit file
+        dag_string = ""
+        #job_number = 0
+        job_listings = []
+        # create jobs for H1
+        for job in set(H1_job_numbers):
+            for anteproc_H_filename in anteproc_name_dict["H1"]:
+                job_listings += [job_number]
+                vars_entries = [anteproc_H_filename, post_processing_job_file, str(job)]
+                argList = ["paramFile", "jobFile", "jobNum"]
+                if no_job_retry:
+                    job_number, dag_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
+                                                            argList, dag_string, restrictCat = anteproc_category, retry = None)
+                else:
+                    job_number, dag_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
+                                                            argList, dag_string, restrictCat = anteproc_category)
+        # create jobs for L1
+        for job in set(L1_job_numbers):
+            for anteproc_L_filename in anteproc_name_dict["H1"]:
+                job_listings += [job_number]
+                vars_entries = [anteproc_L_filename, post_processing_job_file, str(job)]
+                argList = ["paramFile", "jobFile", "jobNum"]
+                if no_job_retry:
+                    job_number, dag_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
+                                                            argList, dag_string, restrictCat = anteproc_category, retry = None)
+                else:
+                    job_number, dag_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
+                                                            argList, dag_string, restrictCat = anteproc_category)
+
+        output_string += dag_string
+        return job_listings, job_number, output_string
+
+# create preproc dag submission files
+#def create_anteproc_dag_v4(job_dictionary, grand_stochtrack_executable, matlab_matrix_extraction_executable, anteproc_executable, dag_dir, shell_path, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_H_filename, anteproc_L_filename, quit_program, use_gpu = False, restrict_cpus = False, max_anteproc_jobs = 20, max_gs_jobs = 100, max_extract_jobs = 100, job_order = None, no_job_retry = False, extract_from_gpu = False, alternate_preproc_dir = False):
+def create_anteproc_dag_v4(job_dictionary, grand_stochtrack_executable, matlab_matrix_extraction_executable, anteproc_executable, dag_dir, shell_path, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_name_dict, quit_program, use_gpu = False, restrict_cpus = False, max_anteproc_jobs = 20, max_gs_jobs = 100, max_extract_jobs = 100, job_order = None, no_job_retry = False, extract_from_gpu = False, alternate_preproc_dir = False):
+    if not quit_program:
+        anteproc_category = "ANTEPROC"
+        gs_category = "GRANDSTOCKTRACK"
+        matrix_extraction_category = "GPUARRAY_TO_ARRAY"
+        # order jobs alphanumerically (this will also help with parent child relationships later)
+        if not job_order:
+            job_order = job_dictionary.keys()
+            job_order.sort()
+        # create anteroc submit file
+        anteproc_sub_filename = write_sub_file("anteproc", anteproc_executable, dag_dir, "$(paramFile) $(jobFile) $(jobNum)", 2048)
+        # create preproc executable submit file
+        #preproc_sub_filename = write_sub_file("preproc", preproc_executable, dag_dir, "$(paramFile) $(jobFile) $(jobNum)", 2048)
+        filename = dag_dir + "/stampAnalysis.dag"
+        dag_string = ""
+        job_number = 0
+        job_tracker = []
+        # create preproc jobs
+        anteproc_job_listing, job_number, dag_string = create_anteproc_jobs_v3(job_number, anteproc_sub_filename, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_name_dict, dag_dir, dag_string, quit_program, anteproc_category = anteproc_category, no_job_retry = no_job_retry)
+        #if not alternate_preproc_dir:
+        #    job_relationship_preproc, job_number, dag_string = write_preproc_jobs(job_number, job_dictionary,
+        #                                                         job_tracker, preproc_sub_filename, dag_string, preproc_category, job_order, job_group_preproc, no_job_retry = no_job_retry)
+        # create grand stochtrack jobs
+        job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, quit_program, use_gpu = use_gpu, restrict_cpus = restrict_cpus, job_order = job_order, gs_category = gs_category, no_job_retry = no_job_retry)
+        gs_job_listing = [x for key in job_relationship_gs for x in job_relationship_gs[key]]
+        gs_job_listing.sort()
+        # create matrix extraction jobs
+        if extract_from_gpu:
+            job_relationship_extraction, job_number, dag_string = create_matlab_mat_file_extraction_jobs(job_number, job_dictionary, matlab_matrix_extraction_executable, dag_dir, dag_string, quit_program, job_order = job_order, matrix_extraction_category = matrix_extraction_category, no_job_retry = no_job_retry)
+
+        # to add!
+        print("add test job(s) to check if frame type exists")
+        # create test jobs if searching frames
+            # create job hierarchy
+        #print(dag_string)
+        #print(job_order)
+        #print(job_relationship_preproc)
+        job_orderings = []
+        #if not alternate_preproc_dir:
+            #job_orderings = [[job_relationship_preproc[job],job_relationship_gs[job]] for job in job_order if job != "constants"]
+        if extract_from_gpu:
+            job_orderings += [[job_relationship_gs[job],job_relationship_extraction[job]] for job in job_order if job != "constants"]
+        #job_orderings = [[[job_relationship_preproc[job]],[job_relationship_gs[job]]] for job in job_order if job != "constants"]
+        dag_string =  job_heirarchy_from_listing(anteproc_job_listing, gs_job_listing, dag_string)
+        dag_string = job_heirarchy_v2(job_orderings, dag_string)
+
+        # write preproc job category restriction
+        dag_string += "\nMAXJOBS " + anteproc_category + " " + str(max_anteproc_jobs)
+        dag_string += "\nMAXJOBS " + gs_category + " " + str(max_gs_jobs)
+        if extract_from_gpu:
+            dag_string += "\nMAXJOBS " + matrix_extraction_category + " " + str(max_extract_jobs)
+
+        #dagfile.close()
+        with open(filename, "w") as outfile:
+            outfile.write(dag_string)
+        return filename
+
+# create grandstochtrack jobs
+def create_anteproc_jobs_v4(job_number, condor_sub_loc, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_filename_dictionary, dag_dir, output_string, quit_program, anteproc_category = None, no_job_retry = False):
+    if not quit_program:
+        # create grand_stochtrack executable submit file
+        dag_string = ""
+        #job_number = 0
+        job_listings = []
+        # create jobs for H1
+        for job in set(H1_job_numbers):
+            for anteproc_H_filename in anteproc_filename_dictionary["H1"][job]:
+                job_listings += [job_number]
+                vars_entries = [anteproc_H_filename, post_processing_job_file, str(job)]
+                argList = ["paramFile", "jobFile", "jobNum"]
+                if no_job_retry:
+                    job_number, dag_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
+                                                            argList, dag_string, restrictCat = anteproc_category, retry = None)
+                else:
+                    job_number, dag_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
+                                                            argList, dag_string, restrictCat = anteproc_category)
+        # create jobs for L1
+        for job in set(L1_job_numbers):
+            for anteproc_L_filename in anteproc_filename_dictionary["L1"][job]:
+                job_listings += [job_number]
+                vars_entries = [anteproc_L_filename, post_processing_job_file, str(job)]
+                argList = ["paramFile", "jobFile", "jobNum"]
+                if no_job_retry:
+                    job_number, dag_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
+                                                            argList, dag_string, restrictCat = anteproc_category, retry = None)
+                else:
+                    job_number, dag_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
+                                                            argList, dag_string, restrictCat = anteproc_category)
+
+        output_string += dag_string
+        return job_listings, job_number, output_string
+
+# create preproc dag submission files
+def create_anteproc_dag_v5(job_dictionary, grand_stochtrack_executable, matlab_matrix_extraction_executable, anteproc_executable, dag_dir, shell_path, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_filename_dictionary, quit_program, use_gpu = False, restrict_cpus = False, max_anteproc_jobs = 20, max_gs_jobs = 100, max_extract_jobs = 100, job_order = None, no_job_retry = False, extract_from_gpu = False, alternate_preproc_dir = False):
+    if not quit_program:
+        anteproc_category = "ANTEPROC"
+        gs_category = "GRANDSTOCKTRACK"
+        matrix_extraction_category = "GPUARRAY_TO_ARRAY"
+        # order jobs alphanumerically (this will also help with parent child relationships later)
+        if not job_order:
+            job_order = job_dictionary.keys()
+            job_order.sort()
+        # create anteroc submit file
+        anteproc_sub_filename = write_sub_file("anteproc", anteproc_executable, dag_dir, "$(paramFile) $(jobFile) $(jobNum)", 2048)
+        # create preproc executable submit file
+        #preproc_sub_filename = write_sub_file("preproc", preproc_executable, dag_dir, "$(paramFile) $(jobFile) $(jobNum)", 2048)
+        filename = dag_dir + "/stampAnalysis.dag"
+        dag_string = ""
+        job_number = 0
+        job_tracker = []
+        # create preproc jobs
+        anteproc_job_listing, job_number, dag_string = create_anteproc_jobs_v4(job_number, anteproc_sub_filename, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_filename_dictionary, dag_dir, dag_string, quit_program, anteproc_category = anteproc_category, no_job_retry = no_job_retry)
+        #if not alternate_preproc_dir:
+        #    job_relationship_preproc, job_number, dag_string = write_preproc_jobs(job_number, job_dictionary,
+        #                                                         job_tracker, preproc_sub_filename, dag_string, preproc_category, job_order, job_group_preproc, no_job_retry = no_job_retry)
+        # create grand stochtrack jobs
+        job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, quit_program, use_gpu = use_gpu, restrict_cpus = restrict_cpus, job_order = job_order, gs_category = gs_category, no_job_retry = no_job_retry)
+        gs_job_listing = [x for key in job_relationship_gs for x in job_relationship_gs[key]]
+        gs_job_listing.sort()
+        # create matrix extraction jobs
+        if extract_from_gpu:
+            job_relationship_extraction, job_number, dag_string = create_matlab_mat_file_extraction_jobs(job_number, job_dictionary, matlab_matrix_extraction_executable, dag_dir, dag_string, quit_program, job_order = job_order, matrix_extraction_category = matrix_extraction_category, no_job_retry = no_job_retry)
+
+        # to add!
+        print("add test job(s) to check if frame type exists")
+        # create test jobs if searching frames
+            # create job hierarchy
+        #print(dag_string)
+        #print(job_order)
+        #print(job_relationship_preproc)
+        job_orderings = []
+        #if not alternate_preproc_dir:
+            #job_orderings = [[job_relationship_preproc[job],job_relationship_gs[job]] for job in job_order if job != "constants"]
+        if extract_from_gpu:
+            job_orderings += [[job_relationship_gs[job],job_relationship_extraction[job]] for job in job_order if job != "constants"]
+        #job_orderings = [[[job_relationship_preproc[job]],[job_relationship_gs[job]]] for job in job_order if job != "constants"]
+        dag_string =  job_heirarchy_from_listing(anteproc_job_listing, gs_job_listing, dag_string)
+        dag_string = job_heirarchy_v2(job_orderings, dag_string)
+
+        # write preproc job category restriction
+        dag_string += "\nMAXJOBS " + anteproc_category + " " + str(max_anteproc_jobs)
+        dag_string += "\nMAXJOBS " + gs_category + " " + str(max_gs_jobs)
+        if extract_from_gpu:
+            dag_string += "\nMAXJOBS " + matrix_extraction_category + " " + str(max_extract_jobs)
+
+        #dagfile.close()
+        with open(filename, "w") as outfile:
+            outfile.write(dag_string)
+        return filename
