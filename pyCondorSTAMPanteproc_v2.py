@@ -10,6 +10,8 @@ import scipy.io as sio
 import json
 import random
 
+print("\nPlease note: Recurring parameters in the input parameter file for the same job or for 'constants' will be overwritten with the last lines value for that job. There likely will NOT be a warning that this is what is happening.\n")
+
 #print("WARNING: code does not currently lock the seed record file. This can lead to a race condition if more than one process is expected to access this file. Only use this code with files that are only expected to
 print("Code not currently set up to handle a mix of gpu and non-gpu jobs. A future version should be able to address this.")
 print('DEPRECATED: "grandstochtrack job" option in parameter files is deprecated. Please use "preproc job" option istead or this program will fail.')

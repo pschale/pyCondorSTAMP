@@ -14,8 +14,8 @@ def parse_jobs(raw_data, quit_program):
     seeds = []
     #waveforms = {'default':None}
     waveforms = {}
-    varying_anteproc_variables = {"set": {}, "random": {}, "spaced": {}}
-    # set is a given set, random is from a uniform distribution, and spaced is evenly spaced as viewed on either a linear or logarithmic axis.
+    varying_anteproc_variables = {"set": {}, "random": {}, "num_space": {}}
+    # set is a given set, random is from a uniform distribution, and num_space is evenly spaced as viewed on either a linear or logarithmic axis.
     if not quit_program:
         for line in raw_data:
             temp = line[0].lower()
@@ -251,30 +251,41 @@ def parse_jobs(raw_data, quit_program):
                     varying_anteproc_variables["set"][temp_variable] = [x for x in line[3:]]
                 elif line[1] == "random":
                     distribution_type = line[3]
-                    if distribution_type != "linear" or distribution_type != "logarithmic":
-                        print("Alert, random varying parameters should either linear or logarithmic. Unrecognized option:")
+                    if distribution_type != "uniform":
+                        print("Alert, random varying parameters should be from uniform distribution. Other distributions not yet recognized. Unrecognized option:")
                         print(distribution_type)
                         quit_program = True
-                    elif distribution_type == "linear" and len(line) != 6:
+                    elif distribution_type == "uniform" and len(line) != 6:
                         print("Alert, the following line contains a different number of entries than 6:")
-                        print(line)
-                        quit_program = True
-                    elif distribution_type == "logarithmic" and (len(line) != 7 or len(line) != 8):
-                        print("Alert, the following line contains a different number of entries than 7 or 8:")
                         print(line)
                         quit_program = True
                     else:
                         lower_range = line[4]
                         upper_range = line[5]
                         distribution_info = [distribution_type, lower_range, upper_range]
-                        if distribution_type == "logarithmic":
-                            scale_factor = line[6]
-                            distribution_info += [scale_factor]
-                            if len(line) == 8:
-                                base = line[7]
-                                distribution_info += [base]
                         varying_anteproc_variables["random"][temp_variable] = distribution_info
-                #elif line[1] = "spaced":
+                elif line[1] = "num_space":
+                    distribution_type = line[3]
+                    if distribution_type != "linear" or distribution_type != "logarithmic":
+                        print("Alert, random varying parameters should be linear or logarithmic. Other distributions not yet recognized. Unrecognized option:")
+                        print(distribution_type)
+                        quit_program = True
+                    elif distribution_type == "linear" and len(line) != 6:
+                        print("Alert, the following line contains a different number of entries than 6:")
+                        print(line)
+                        quit_program = True
+                    elif distribution_type == "logarithmic" and (len(line) != 6 or len(line) != 7):
+                        print("Alert, the following line contains a different number of entries than 6 or 7:")
+                        print(line)
+                        quit_program = True
+                    else:
+                        lower_range = line[4]
+                        upper_range = line[5]
+                        distribution_info = [distribution_type, lower_range, upper_range]
+                        if distribution_type == "logarithmic" and if len(line) == 7:
+                            base = line[6]
+                            distribution_info += [base]
+                        varying_anteproc_variables["num_space"][temp_variable] = distribution_info
                 else:
                     print("Alert, the following line contains a non-recognized option for anteproc_varying_param:")
                     print(line)
@@ -415,6 +426,12 @@ def check_on_the_fly_injection(job_dictionary, quit_program, specific_job = "con
 
 varying_anteproc_variables
 
+def convert_cosiota_to_iota(temp_param, temp_val):
+    if temp_param == "stamp.iota":
+        print("\nWARNING: Parameter " + temp_param + " found. Special case to vary in cos(iota) instead of iota. Edit code to change this option.")
+        temp_val = np.arccos(temp_val)
+    return temp_val
+
 def handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variables, anteproc_dict, anteproc_file_name, anteproc_default_data, quit_program):
     "This one applies varying variables if needed"
     if "num_jobs_to_vary" in varying_anteproc_variables:
@@ -425,19 +442,41 @@ def handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variab
                 print("ERROR: Number of entries in set for parameter " + temp_param + " is not equal to chosen number of variation (" + str(num_variations) + "). Quitting program.")
                 quit_program = True
 
+        spaces = {}
+        for temp_param in varying_anteproc_variables["num_space"]:
+            temp_range = [load_number_pi(x) for x in varying_anteproc_variables["num_space"][temp_param][1:]]
+            distribution_type = varying_anteproc_variables["num_space"][temp_param][0]
+
+            if distribution_type == "linear":
+                spaces[temp_param] = np.linspace(temp_range[0], temp_range[1], num_variations)
+            elif distribution_type == "logarithmic":
+                if len(temp_range) == 3:
+                    temp_base = temp_range[2]
+                else:
+                    temp_base = np.e
+                spaces[temp_param] = np.logspace(temp_range[0], temp_range[1], num_variations, base = temp_base)
+
         for variation_index in range(0, num_variations):
             temp_number = variation_index + 1
+
             for temp_param in varying_anteproc_variables["set"]:
-                anteproc_dict[temp_param] = varying_anteproc_variables["set"][variation_index]
+                temp_val = load_number_pi(varying_anteproc_variables["set"][variation_index])
+                temp_val = convert_cosiota_to_iota(temp_param, temp_val)
+                anteproc_dict[temp_param] = temp_val
+
             for temp_param in varying_anteproc_variables["random"]:
-                if varying_anteproc_variables["random"][0] == "logarithmic":
-                    print("Option of logarithmic distribution currently not supported.")
-                    quit_program = True
-                elif varying_anteproc_variables["random"][0] == "linear":
-                    np.random.dfload_number_pi()
-                if temp_param == "stamp.iota":
-                    print("\nWARNING: Parameter " + temp_param + " found. Special case to vary in cos(iota) instead of iota. Edit code to change this option.")
-                anteproc_dict[temp_param] = varying_anteproc_variables["set"][variation_index]
+                temp_range = [load_number_pi(x) for x in varying_anteproc_variables["random"][temp_param][1:]]
+                if varying_anteproc_variables["random"][temp_param][0] == "uniform":
+                    temp_val = np.random.uniform(temp_range[0], temp_range[1])
+                temp_val = convert_cosiota_to_iota(temp_param, temp_val)
+                anteproc_dict[temp_param] = temp_val
+
+            for temp_param in varying_anteproc_variables["num_space"]:
+                temp_val = spaces[temp_param][variation_index]
+                temp_val = convert_cosiota_to_iota(temp_param, temp_val)
+                anteproc_dict[temp_param] = temp_val
+
+
 
             if waveform_bank[waveform_key]:
                 temp_anteproc_name = anteproc_file_name[:anteproc_file_name.rindex(".")] + "_" + waveform_key + ".txt"
