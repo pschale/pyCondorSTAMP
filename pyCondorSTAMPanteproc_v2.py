@@ -166,7 +166,7 @@ else:
 
 # parse jobs
 
-quit_program, jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms = parse_jobs(rawData, quit_program)
+quit_program, jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms, varyingAnteprocVariables = parse_jobs(rawData, quit_program)
 H1_jobs = set(H1_jobs)
 L1_jobs = set(L1_jobs)
 
@@ -315,6 +315,9 @@ if not quit_program:
         if jobs["constants"]["anteprocParamsH"]["doDetectorNoiseSim"] == "true" or jobs["constants"]["anteprocParamsL"]["doDetectorNoiseSim"] == "true":
             with open(anteproc_dir + "/seeds_for_simulated_data.txt", "w") as outfile:
                 json.dump(organizedSeeds, outfile, sort_keys = True, indent = 4)
+        if "num_jobs_to_vary" in varyingAnteprocVariables:
+            with open(anteproc_dir + "/varying_parameters_input_record.txt", "w") as outfile:
+                json.dump(varyingAnteprocVariables, outfile, sort_keys = True, indent = 4)
 
         anteproc_grand_stochtrack_values["anteproc.inmats1"] = anteproc_dir + "/H-H1_map"
         anteproc_grand_stochtrack_values["anteproc.inmats2"] = anteproc_dir + "/L-L1_map"

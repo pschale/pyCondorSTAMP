@@ -1,6 +1,6 @@
 from __future__ import division
 from pyCondorSTAMPLib import nested_dict_entry
-from grandStochtrackSupportLib import load_if_number
+from grandStochtrackSupportLib import load_if_number, load_number
 
 def parse_jobs(raw_data, quit_program):
     'Helper function to parse jobs for STAMP'
@@ -14,11 +14,19 @@ def parse_jobs(raw_data, quit_program):
     seeds = []
     #waveforms = {'default':None}
     waveforms = {}
+    varying_anteproc_variables = {"set": {}, "random": {}, "spaced": {}}
+    # set is a given set, random is from a uniform distribution, and spaced is evenly spaced as viewed on either a linear or logarithmic axis.
     if not quit_program:
         for line in raw_data:
             temp = line[0].lower()
+            if temp[0] in ["#", "%"]:
+                commentsToPrintIfVerbose.append(line)
+            elif len(line) == 1:
+                print("Warning, line contains only 1 entry:")
+                print(line)
+                quit_program = True
             # user set defaults
-            if temp == 'constants': # make this 'general' instead at some point
+            elif temp == 'constants': # make this 'general' instead at some point
                 job_key = temp
                 if job_key not in jobs:
                     jobs[job_key] = {}
@@ -231,6 +239,46 @@ def parse_jobs(raw_data, quit_program):
                 else:
                     #wave_ids = [x.strip("[]") for group in line[1:] for x in group.split(',')]
                     jobs[job_key]["injection_tags"] = line[1]
+            elif temp == "anteproc_varying_param":
+                temp_variable = line[2]
+                if line[1] == "num_jobs_to_vary":
+                    if int(line[2]) != float(line[2]) or int(line[2]) <= 0:
+                        print("Error, please choose a positive integer value for 'num_jobs_to_vary'. Value chosen was:")
+                        print(line[2])
+                        quit_program = True
+                    varying_anteproc_variables["num_jobs_to_vary"] = int(line[2])
+                elif line[1] == "set":
+                    varying_anteproc_variables["set"][temp_variable] = [x for x in line[3:]]
+                elif line[1] == "random":
+                    distribution_type = line[3]
+                    if distribution_type != "linear" or distribution_type != "logarithmic":
+                        print("Alert, random varying parameters should either linear or logarithmic. Unrecognized option:")
+                        print(distribution_type)
+                        quit_program = True
+                    elif distribution_type == "linear" and len(line) != 6:
+                        print("Alert, the following line contains a different number of entries than 6:")
+                        print(line)
+                        quit_program = True
+                    elif distribution_type == "logarithmic" and (len(line) != 7 or len(line) != 8):
+                        print("Alert, the following line contains a different number of entries than 7 or 8:")
+                        print(line)
+                        quit_program = True
+                    else:
+                        lower_range = line[4]
+                        upper_range = line[5]
+                        distribution_info = [distribution_type, lower_range, upper_range]
+                        if distribution_type == "logarithmic":
+                            scale_factor = line[6]
+                            distribution_info += [scale_factor]
+                            if len(line) == 8:
+                                base = line[7]
+                                distribution_info += [base]
+                        varying_anteproc_variables["random"][temp_variable] = distribution_info
+                #elif line[1] = "spaced":
+                else:
+                    print("Alert, the following line contains a non-recognized option for anteproc_varying_param:")
+                    print(line)
+                    quit_program = True
             elif temp == "grandstochtrack":
                 #print("Fix this part to handle numbers properly! And less jumbled if possible!")
                 if line[1] == "StampFreqsToRemove":
@@ -267,8 +315,6 @@ def parse_jobs(raw_data, quit_program):
                     if line[1] == "anteproc.jobNum2":
                         anteproc_jobs_2 += [int(line[2])]
                     jobs[job_key]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[job_key]["grandStochtrackParams"]["params"], line[1], load_if_number(line[2]))
-            elif temp[0] in ["#", "%"]:
-                commentsToPrintIfVerbose.append(line)
             else:
                 print("WARNING: Error in config file. Option " + temp + " not recognized. Quitting program.")
                 quit_program = True
@@ -277,7 +323,7 @@ def parse_jobs(raw_data, quit_program):
             jobs['constants']["preprocParams"] = {}
             jobs['constants']["grandStochtrackParams"] = {}
             jobs['constants']["grandStochtrackParams"]["params"] = {}
-    return quit_program, jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, anteproc_jobs_1, anteproc_jobs_2, waveforms
+    return quit_program, jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, anteproc_jobs_1, anteproc_jobs_2, waveforms, varying_anteproc_variables
 
 def anteproc_setup(anteproc_directory, anteproc_default_data, job_dictionary, cache_directory):
     anteproc_H = dict((x[0], x[1]) if len(x) > 1 else (x[0], "") for x in anteproc_default_data)
@@ -353,28 +399,102 @@ def adjust_job_file(filePath, outputDirectory, job_dictionary):
         outfile.write(text)
     return outputPath
 
-def handle_injections_and_save_anteproc_paramfile(multiple_waveforms, waveform_bank, anteproc_dict, anteproc_file_name, anteproc_default_data, quit_program):
-    anteproc_file_names = []
-    if multiple_waveforms:
-        print("Handling multiple waveform injection preprocessing...")
+#def check_on_the_fly_injection(anteproc_dict, job_dictionary, quit_program, specific_job = "constants"):
+def check_on_the_fly_injection(job_dictionary, quit_program, specific_job = "constants"):
+    on_the_fly_bool = False # When true, this will ignore an waveforms in the waveform bank and use on the fly instead
+    if ("stamp.inj_type" in job_dictionary[specific_job]["anteprocParamsH"] or "stamp.inj_type" in job_dictionary[specific_job]["anteprocParamsL"])
+    and not ("stamp.inj_type" in job_dictionary[specific_job]["anteprocParamsH"] and "stamp.inj_type" in job_dictionary[specific_job]["anteprocParamsL"]):
+        print("WARNING: injection type set in one but not both detectors. Quitting program.")
+        quit_program = True
+    elif job_dictionary[specific_job]["anteprocParamsH"]["stamp.inj_type"] != "half_sg" and job_dictionary[specific_job]["anteprocParamsL"]["stamp.inj_type"] == "half_sg":
+        print("WARNING: injection type not the same in both detectors. Quitting program.")
+        quit_program = True
+    elif job_dictionary[specific_job]["anteprocParamsH"]["stamp.inj_type"] == "half_sg" and job_dictionary[specific_job]["anteprocParamsL"]["stamp.inj_type"] == "half_sg":
+        on_the_fly_bool = True
+    return on_the_fly_bool, quit_program
+
+varying_anteproc_variables
+
+def handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variables, anteproc_dict, anteproc_file_name, anteproc_default_data, quit_program):
+    "This one applies varying variables if needed"
+    if "num_jobs_to_vary" in varying_anteproc_variables:
         base_output_file_name = anteproc_dict["outputfilename"]
-        for waveform_key in waveform_bank:
+        num_variations = varying_anteproc_variables["num_jobs_to_vary"]
+        for temp_param in varying_anteproc_variables["set"]:
+            if len(varying_anteproc_variables["set"][temp_param]) != num_variations:
+                print("ERROR: Number of entries in set for parameter " + temp_param + " is not equal to chosen number of variation (" + str(num_variations) + "). Quitting program.")
+                quit_program = True
+
+        for variation_index in range(0, num_variations):
+            temp_number = variation_index + 1
+            for temp_param in varying_anteproc_variables["set"]:
+                anteproc_dict[temp_param] = varying_anteproc_variables["set"][variation_index]
+            for temp_param in varying_anteproc_variables["random"]:
+                if varying_anteproc_variables["random"][0] == "logarithmic":
+                    print("Option of logarithmic distribution currently not supported.")
+                    quit_program = True
+                elif varying_anteproc_variables["random"][0] == "linear":
+                    np.random.dfload_number_pi()
+                if temp_param == "stamp.iota":
+                    print("\nWARNING: Parameter " + temp_param + " found. Special case to vary in cos(iota) instead of iota. Edit code to change this option.")
+                anteproc_dict[temp_param] = varying_anteproc_variables["set"][variation_index]
+
             if waveform_bank[waveform_key]:
                 temp_anteproc_name = anteproc_file_name[:anteproc_file_name.rindex(".")] + "_" + waveform_key + ".txt"
                 anteproc_dict["stamp.file"] = waveform_bank[waveform_key]
                 anteproc_dict["outputfilename"] = base_output_file_name + "_" + waveform_key
-                save_anteproc_paramfile(anteproc_dict, temp_anteproc_name, anteproc_default_data)
-                anteproc_file_names += [temp_anteproc_name]
+                #save_anteproc_paramfile(anteproc_dict, temp_anteproc_name, anteproc_default_data)
+                #anteproc_file_names += [temp_anteproc_name]
+                anteproc_file_names, quit_program = handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variables, anteproc_dict, anteproc_file_name, anteproc_default_data)
+            else:
+                print("Warning! No waveform in selected waveform key!")
+                quit_program = True"""
+                ldkfjasdkl;fjadkls;fjadkls;"""
+
+        anteproc_dict["outputfilename"] = base_output_file_name
+    else:
+
+        save_anteproc_paramfile(anteproc_dict, anteproc_file_name, anteproc_default_data)
+        anteproc_file_names += [anteproc_file_name]
+
+    return anteproc_file_names, quit_program
+
+def handle_injections_and_save_anteproc_paramfile(multiple_waveforms, waveform_bank, varying_anteproc_variables, anteproc_dict, anteproc_file_name, anteproc_default_data, quit_program):
+
+    anteproc_file_names = []
+
+    if multiple_waveforms and not on_the_fly_bool:
+        print("Handling multiple waveform injection preprocessing...")
+        base_output_file_name = anteproc_dict["outputfilename"]
+
+        for waveform_key in waveform_bank:
+
+            if waveform_bank[waveform_key]:
+                temp_anteproc_name = anteproc_file_name[:anteproc_file_name.rindex(".")] + "_" + waveform_key + ".txt"
+                anteproc_dict["stamp.file"] = waveform_bank[waveform_key]
+                anteproc_dict["outputfilename"] = base_output_file_name + "_" + waveform_key
+                #save_anteproc_paramfile(anteproc_dict, temp_anteproc_name, anteproc_default_data)
+                #anteproc_file_names += [temp_anteproc_name]
+                anteproc_file_names, quit_program = handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variables, anteproc_dict, anteproc_file_name, anteproc_default_data)
             else:
                 print("Warning! No waveform in selected waveform key!")
                 quit_program = True
+
         anteproc_dict["outputfilename"] = base_output_file_name
+
     else:
-        save_anteproc_paramfile(anteproc_dict, anteproc_file_name, anteproc_default_data)
-        anteproc_file_names += [anteproc_file_name]
+        if on_the_fly_bool:
+            print("\nSet for on the fly injections.\n\nNOTE: This code is currently not set up to properly handle multiple on the fly injections while varying other parameters unless every injected waveform is expected to be unique.\n")
+        #save_anteproc_paramfile(anteproc_dict, anteproc_file_name, anteproc_default_data)
+        #anteproc_file_names += [anteproc_file_name]
+        anteproc_file_names, quit_program = handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variables, anteproc_dict, anteproc_file_name, anteproc_default_data)
+
     return anteproc_file_names, quit_program
 
 def anteproc_job_specific_setup(job_list, ifo, anteproc_directory, job_dictionary, anteproc_dict, used_seed_tracker, organized_seeds, multiple_waveforms, waveform_bank, anteproc_default_data, anteproc_jobs, quit_program):
+
+    on_the_fly_bool, quit_program = check_on_the_fly_injection(job_dictionary, quit_program)
+    need to have the code switch to on the fly production instead of the waveform stuff. in this case, can set anteproc stamp.file parameter to FAKE_WAVEFORM_FILE or something.
 
     for temp_job in job_list:
             anteproc_H_name_temp = anteproc_directory + "/" + ifo + "-anteproc_params_" + str(temp_job) + ".txt"
@@ -399,3 +519,15 @@ def anteproc_job_specific_setup(job_list, ifo, anteproc_directory, job_dictionar
             anteproc_jobs[ifo][temp_job], quit_program = handle_injections_and_save_anteproc_paramfile(multiple_waveforms, waveform_bank, anteproc_dict,
                                                 anteproc_H_name_temp, anteproc_default_data, quit_program)
     return anteproc_jobs, used_seed_tracker, organized_seeds, quit_program
+
+load_number_pi(number):
+    if "pi" in number:
+        multiply = 1
+        divide = 1
+        if "*" in number:
+            multiply = load_number(number[:number.index["*"]])
+        if "/" in number:
+            divide = load_number(number[number.index["/"]+1:])
+        return multiply*np.pi/divide
+    else:
+        return load_number(number)
