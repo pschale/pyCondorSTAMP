@@ -2,7 +2,6 @@ from __future__ import division
 from pyCondorSTAMPLib import nested_dict_entry, create_dir
 from grandStochtrackSupportLib import load_if_number, load_number
 import numpy as np
-import random
 
 def parse_jobs(raw_data, quit_program):
     'Helper function to parse jobs for STAMP'
@@ -276,7 +275,7 @@ def parse_jobs(raw_data, quit_program):
                         print("Alert, the following line contains a different number of entries than 6:")
                         print(line)
                         quit_program = True
-                    elif distribution_type in ["logarithmic", "logarithmic_sqrt"] and (len(line) != 6 and len(line) != 7):
+                    elif distribution_type in ["logarithmic", "logarithmic_sqrt"] and (len(line) != 6 or len(line) != 7):
                         print("Alert, the following line contains a different number of entries than 6 or 7:")
                         print(line)
                         quit_program = True
@@ -292,6 +291,19 @@ def parse_jobs(raw_data, quit_program):
                     print("Alert, the following line contains a non-recognized option for anteproc_varying_param:")
                     print(line)
                     quit_program = True
+            elif temp == "job_anteproc_job_pair":
+                if len(line) != 3:
+                    print("Alert, the following line contains a different number of entries than 3:")
+                    print(line)
+                    quit_program = True
+                elif line[1] == "anteproc_1":
+                    jobs[job_key]["anteproc_job_1"] = line[2]
+                elif line[1] == "anteproc_2":
+                    jobs[job_key]["anteproc_job_2"] = line[2]
+                else:
+                    print("Second option in line not currently supported:")
+                    print(line)
+                    print(quit_program)
             elif temp == "grandstochtrack":
                 #print("Fix this part to handle numbers properly! And less jumbled if possible!")
                 if line[1] == "StampFreqsToRemove":
@@ -429,20 +441,8 @@ def check_on_the_fly_injection(job_dictionary, quit_program, specific_job = "con
 def convert_cosiota_to_iota(temp_param, temp_val):
     if temp_param == "stamp.iota":
         print("\nWARNING: Parameter " + temp_param + " found. Special case to vary in cos(iota) instead of iota. Edit code to change this option.")
-        temp_val = np.degrees(np.arccos(temp_val))
+        temp_val = np.arccos(temp_val)
     return temp_val
-
-def space_in_log_space(low, high, number, base = 10):
-    if base == 10:
-        loglow = np.log10(low)
-        loghigh = np.log10(high)
-    else:
-        loglow = np.log(low)/np.log(base)
-        loghigh = np.log(high)/np.log(base)
-    temp_space = np.linspace(loglow, loghigh, number)
-    temp_space = base**temp_space
-    return temp_space
-
 
 def handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variables, anteproc_dict, anteproc_file_name, anteproc_file_names, anteproc_default_data, quit_program):
     "This one applies varying variables if needed"
@@ -461,8 +461,7 @@ def handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variab
             if len(temp_range) == 3:
                 temp_base = temp_range[2]
             else:
-                #temp_base = np.e
-                temp_base = 10
+                temp_base = np.e
 
             if distribution_type == "linear":
                 temp_space = np.linspace(temp_range[0], temp_range[1], num_variations)
@@ -470,9 +469,9 @@ def handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variab
                 temp_space = np.array([x**2 for x in np.linspace(np.sqrt(temp_range[0]), np.sqrt(temp_range[1]), num_variations)])
                 spaces[temp_param] = temp_space
             elif distribution_type == "logarithmic":
-                temp_space = space_in_log_space(temp_range[0], temp_range[1], num_variations, base = temp_base)
+                temp_space = np.logspace(temp_range[0], temp_range[1], num_variations, base = temp_base)
             elif distribution_type == "logarithmic_sqrt":
-                temp_space = space_in_log_space(np.sqrt(temp_range[0]), np.sqrt(temp_range[1]), num_variations, base = temp_base)**2
+                temp_space = np.array([x**2 for x in np.logspace(np.sqrt(temp_range[0]), np.sqrt(temp_range[1]), num_variations, base = temp_base)])
             temp_space[0] = temp_range[0]
             temp_space[-1] = temp_range[1]
             spaces[temp_param] = temp_space
@@ -483,24 +482,20 @@ def handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variab
 
             for temp_param in varying_anteproc_variables["set"]:
                 temp_val = load_number_pi(varying_anteproc_variables["set"][temp_param][variation_index])
-                temp_val = convert_cosiota_to_iota(temp_param, temp_val)
-                anteproc_dict[temp_param] = temp_val
 
             for temp_param in varying_anteproc_variables["random"]:
-                distribution_type = varying_anteproc_variables["random"][temp_param][0]
                 temp_range = [load_number_pi(x) for x in varying_anteproc_variables["random"][temp_param][1:]]
                 if distribution_type == "uniform":
                     temp_val = np.random.uniform(temp_range[0], temp_range[1])
                 else:
                     print("Distribution type not recognized.")
                     quit_program = True
-                temp_val = convert_cosiota_to_iota(temp_param, temp_val)
-                anteproc_dict[temp_param] = temp_val
 
             for temp_param in varying_anteproc_variables["num_space"]:
                 temp_val = spaces[temp_param][variation_index]
-                temp_val = convert_cosiota_to_iota(temp_param, temp_val)
-                anteproc_dict[temp_param] = temp_val
+
+            temp_val = convert_cosiota_to_iota(temp_param, temp_val)
+            anteproc_dict[temp_param] = temp_val
 
             temp_anteproc_name = anteproc_file_name[:anteproc_file_name.rindex(".")] + file_name_modifer + ".txt"
             anteproc_dict["outputfilename"] = base_output_file_name + file_name_modifer
@@ -550,7 +545,7 @@ def handle_injections_and_save_anteproc_paramfile(multiple_waveforms, waveform_b
 
     return anteproc_file_names, quit_program
 
-def job_specific_parameters(job_dictionary, ifo, anteproc_dict, used_seed_tracker, organized_seeds, temp_job):
+"""def job_specific_parameters(job_dictionary, ifo, anteproc_dict, used_seed_tracker, organized_seeds, temp_job):
 
     if job_dictionary["constants"]["anteprocParams"+ifo[0]]["doDetectorNoiseSim"] == "true":
 
@@ -569,7 +564,7 @@ def job_specific_parameters(job_dictionary, ifo, anteproc_dict, used_seed_tracke
         for temp_param in job_dictionary['constants']["anteproc"+ifo[0]+"_parameters"][temp_job]:
             anteproc_dict[temp_param] = job_dictionary['constants']["anteproc"+ifo[0]+"_parameters"][temp_job][temp_param]
 
-    return anteproc_dict, used_seed_tracker, organized_seeds
+    return anteproc_dict, used_seed_tracker, organized_seeds"""
 
 def anteproc_job_specific_setup(job_list, ifo, anteproc_directory, job_dictionary, anteproc_dict, used_seed_tracker, organized_seeds, multiple_waveforms, waveform_bank, anteproc_default_data, anteproc_jobs, varying_anteproc_variables, quit_program):
 

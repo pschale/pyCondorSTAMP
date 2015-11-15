@@ -1,7 +1,7 @@
 from __future__ import division
 from optparse import OptionParser
 from pyCondorSTAMPLib import *
-from pyCondorSTAMPanteprocSupportLib import *
+from pyCondorSTAMPanteprocUpperLimitsSupportLib import *
 from preprocSupportLib import *
 from grandStochtrackSupportLib import *
 from condorSTAMPSupportLib import *
@@ -115,8 +115,7 @@ shellPath = "#!/bin/bash"
 #anteprocExecutable = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/anteproc/anteproc"
 #anteprocExecutable = "/home/quitzow/STAMP/STAMP_8_11_2015/stamp2/compiledScripts/anteproc/anteproc"
 #anteprocExecutable = "/home/quitzow/STAMP/STAMP_9_14_2015/stamp2/compiledScripts/anteproc/anteproc"
-#anteprocExecutable = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/compiledScripts/anteproc/anteproc"
-anteprocExecutable = "/home/quitzow/STAMP/STAMP_rough_working_version/stamp2/compiledScripts/anteproc/anteproc"
+anteprocExecutable = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/compiledScripts/anteproc/anteproc"
 #grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
 #grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
 #grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
@@ -124,10 +123,8 @@ anteprocExecutable = "/home/quitzow/STAMP/STAMP_rough_working_version/stamp2/com
 #grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_8_11_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
 #grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_9_14_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
 #grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_9_14_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
-#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
-#grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
-grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_rough_working_version/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
-grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_rough_working_version/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
+grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
+grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
 
 matlabMatrixExtractionExectuable = "/home/quitzow/GIT/Development_Branches/MatlabExecutableDuctTape/getSNRandCluster"
 
@@ -450,10 +447,6 @@ if not quit_program:
                 jobs[job]["grandStochtrackParams"]["params"]["plotdir"] = jobs[job]["plotDir"][temp_index] + "/"
                 jobs[job]["grandStochtrackParams"]["params"]["outputfilename"] = jobs[job]["grandstochtrackOutputDir"][temp_index] + "/map"
                 jobs[job]["grandStochtrackParams"]["params"]["ofile"] = jobs[job]["grandstochtrackOutputDir"][temp_index] + "/bknd"
-                if "lonetrack" in jobs["constants"]["grandStochtrackParams"]["params"]["stochtrack"]:
-                    if jobs["constants"]["grandStochtrackParams"]["params"]["stochtrack"]["lonetrack"] == 1:
-                        temp_directory = create_dir(jobs[job]["grandStochtrackParams"]["params"]["plotdir"]+"tmp")
-                        jobs[job]["grandStochtrackParams"]["params"]["lonetrackdir"] = temp_directory + "/"
 
                 if multiple_job_group_version:
                     base_inmat1 = jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats1"]
@@ -517,12 +510,8 @@ if not quit_program:
     else:
         extract_from_gpu = False
     extract_from_gpu = options.extract_from_gpu
-    if "singletrack" in jobs["constants"]["grandStochtrackParams"]["params"]["stochtrack"]:
-        do_singletrack = jobs["constants"]["grandStochtrackParams"]["params"]["stochtrack"]["singletrack"]["doSingletrack"]
-    else:
-        do_singletrack = False
     print("Creating dag and sub files")
-    create_anteproc_dag_v6(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, shellPath, newJobPath, H1_jobs, L1_jobs, anteprocJobs, multiple_job_group_version, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir, do_singletrack = do_singletrack)
+    create_anteproc_dag_v6(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, shellPath, newJobPath, H1_jobs, L1_jobs, anteprocJobs, multiple_job_group_version, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
 
 print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
 

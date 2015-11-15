@@ -2,6 +2,7 @@ from __future__ import division, print_function
 #from __future__ import print_function
 from sys import hexversion
 import datetime, os, subprocess
+import numpy as np
 
 # Helper function to create name for new copy of input parameter file
 # stop gap measure to make the dags to be written depend upon the new file location
@@ -146,7 +147,15 @@ def nested_dict_entry(dictionary, entry, value, delimeter = "."):
         dictionary[base_entry] = nested_dict_entry(dictionary[base_entry], new_entry, value, delimeter)
         return dictionary
     else:
-        dictionary[entry] = value
+        if entry == 'trackInputFiles':
+            value_list = value.split(',')
+            value_len = len(value_list)
+            string_array = np.zeros(value_len, dtype=np.object)
+            for num in range(value_len):
+                string_array[num] = value_list[num]
+            dictionary[entry] = string_array
+        else:
+            dictionary[entry] = value
  #       print(entry)
 #        print(value)
         return dictionary
