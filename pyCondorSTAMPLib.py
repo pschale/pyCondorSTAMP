@@ -2,6 +2,7 @@ from __future__ import division, print_function
 #from __future__ import print_function
 from sys import hexversion
 import datetime, os, subprocess
+import numpy as np
 
 # Helper function to create name for new copy of input parameter file
 # stop gap measure to make the dags to be written depend upon the new file location
@@ -146,20 +147,31 @@ def nested_dict_entry(dictionary, entry, value, delimeter = "."):
         dictionary[base_entry] = nested_dict_entry(dictionary[base_entry], new_entry, value, delimeter)
         return dictionary
     else:
-        dictionary[entry] = value
+        if entry == 'trackInputFiles':
+            value_list = value.split(',')
+            value_len = len(value_list)
+            string_array = np.zeros(value_len, dtype=np.object)
+            for num in range(value_len):
+                string_array[num] = value_list[num]
+            dictionary[entry] = string_array
+        else:
+            dictionary[entry] = value
  #       print(entry)
 #        print(value)
         return dictionary
 
-# Helper funciton to find frames of specified type during specified time
-def create_frame_file_list(frame_type, start_time, end_time, observatory, \
-                           quit_program):
+# Helper function to find frames of specified type during specified time
+def create_frame_file_list(frame_type, start_time, end_time, observatory, quit_program):
     if quit_program:
         return None, quit_program
     # search for file location for a given frame type during specified times
-    data_find = ['ligo_data_find','-s', start_time, '-e', end_time, '-o',
+    data_find = ['gw_data_find','-s', start_time, '-e', end_time, '-o',
                  observatory, '--url-type', 'file', '--lal-cache', '--type',
                  frame_type]
+    #print(data_find) #debug
+    #data_find = ['ligo_data_find','-s', start_time, '-e', end_time, '-o',
+    #             observatory, '--url-type', 'file', '--lal-cache', '--type',
+    #             frame_type]
     #print(" ".join(str(x) for x in data_find))
     frame_locations_raw = subprocess.Popen(data_find, stdout = subprocess.PIPE, stderr=subprocess.PIPE).communicate()#[0]
     if frame_locations_raw[1]:
@@ -170,7 +182,7 @@ def create_frame_file_list(frame_type, start_time, end_time, observatory, \
         quit_program = True
     #frame_locations = frame_locations_raw.split("\n")
     #print(frame_locations_raw)
-    frame_locations = [x[x.find("localhost") + len("localhost"):] for x in frame_locations_raw[0].split("\n")]
+    frame_locations = [x[x.find("localhost") + len("localhost"):] for x in frame_locations_raw[0].split("\n") if x]
     """
     frame_file_list = []
     all_found = False
@@ -211,7 +223,7 @@ def frame_start_time(frame_path):
     return frame_time
 
 # Helper function to create a file from the list of frame file locations
-def create_cache_and_time_file(frame_list,observatory,jobNumber,jobCacheDir,quit_program):
+def create_cache_and_time_file(frame_list,observatory,jobNumber,jobCacheDir,quit_program, archived_frames_okay = False):
     if quit_program:
         return quit_program
     # make list of times
@@ -234,19 +246,23 @@ def create_cache_and_time_file(frame_list,observatory,jobNumber,jobCacheDir,quit
 
     # check data for possibly archived data
     if archived:
-        display_files = ask_yes_no("Some frame files during the time \
+        if archived_frames_okay:
+            for line in archived:
+                print(line)
+        else:
+            display_files = ask_yes_no("Some frame files during the time \
 specified may have to be loaded from tape. Display frame files in 'archive' \
 directory? ('y' or 'n'): ")
 
-        if display_files == 'y':
-            for line in archived:
-                print(line)
+            if display_files == 'y':
+                for line in archived:
+                    print(line)
 
-        continue_program = ask_yes_no("Continue program? ('y' or 'n'): ")
+            continue_program = ask_yes_no("Continue program? ('y' or 'n'): ")
 
-        if continue_program == 'n':
-            quit_program = True
-            version_input("\n\nPress 'enter' to end program. ")
+            if continue_program == 'n':
+                quit_program = True
+                version_input("\n\nPress 'enter' to end program. ")
 
     # create file
     if not quit_program:
@@ -286,7 +302,7 @@ def create_fake_cache_and_time_file(start_time, end_time, observatory, jobNumber
     if quit_program:
         return quit_program
     # calculate job duration
-    tempJobDur = str(int(end_time - start_time))
+    tempJobDur = str(int(float(end_time) - float(start_time)))
     # create fake frame name and string to write to channel
     output_string = "/FAKEDATA/" + observatory + "-FAKE-" + str(int(start_time)) + "-" + tempJobDur + ".gwf\n"
     time_string = str(int(start_time)) + "\n"

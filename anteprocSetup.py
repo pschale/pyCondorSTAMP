@@ -98,9 +98,7 @@ shellPath = "#!/bin/bash"
 #preprocExecutable = "/home/quitzow/STAMP/stamp2/test/condorTesting/preprocDir/preproc"
 #grandStochtrackExecutable = "/home/quitzow/STAMP/stamp2/test/condorTesting/grand_stochtrack"
 preprocExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/preproc/preproc"
-#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
-#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
-grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
+grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
 #preprocExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/preproc/preproc"
 #grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
 
@@ -117,19 +115,14 @@ else:
 # load info from config file
 if not quit_program:
     rawData = read_text_file(configPath, ' ')
-#    print(read_text_file(options.configFile," "))
 else:
     rawData = []
-
-#print(options.configFile)
-#print(rawData)
 
 # load info from job file
 if not quit_program:
     jobData = read_text_file(jobPath, ' ')
     jobNumbers = [line[0] for line in jobData]
     jobData = [[load_if_number(item) for item in line] for line in jobData]
-#    print(read_text_file(options.configFile," "))
 else:
     jobData = []
 
@@ -145,7 +138,6 @@ else:
 # load data from jobFile
 if not quit_program:
     with open(jobPath, "r") as infile:
-        #jobFileData = [x.split() for x in infile]
         jobDataDict = dict((x.split()[0], x.split()[1:]) for x in infile)
 else:
     jobDataDict = {}
@@ -172,7 +164,7 @@ if not quit_program:
                 jobs[jobKey]["grandStochtrackParams"] = {}
                 jobs[jobKey]["grandStochtrackParams"]["params"] = {}
         # job specific settings
-        elif temp == 'job':
+        elif temp == 'anteproc_job':
             jobKey = temp + "_" + line[1]
             tempKey = jobKey
             tempNum = 1
@@ -195,106 +187,25 @@ if not quit_program:
                 # see note on line above
                 jobs[jobKey] = {}
             jobs[jobKey]["jobNum"] = line[1]
-            if "preprocParams" not in jobs[jobKey]:
-                jobs[jobKey]["preprocParams"] = {}
-            if "grandStochtrackParams" not in jobs[jobKey]:
-                jobs[jobKey]["grandStochtrackParams"] = {}
-                jobs[jobKey]["grandStochtrackParams"]["params"] = {}
-            if "job_group" not in jobs[jobKey]:
-                jobs[jobKey]["job_group"] = None
-        # job_group
-        elif temp == "job_group":
-            jobs[jobKey]["job_group"] = line[1]
-            job_groups += [line[1]]
-        # preproc settings
-        elif temp == "preproc":
-            if line[1].lower() == "job":
+            if "anteprocParams" not in jobs[jobKey]:
+                jobs[jobKey]["anteprocParams"] = {}
+        # anteproc settings
+        elif temp == "anteproc":
+            if line[1].lower() == "job_num":
                 if len(line) != 3:
                     print("Alert, the following line contains a different number of entries than 3:")
                     print(line)
                     quit_program = True
                 else:
                     jobNumber = line[2]
-                    jobs[jobKey]["preprocJobs"] = jobNumber
-                    #jobs[jobKey]["preprocJobs"] = int(jobNumber)
-                    #jobs[jobKey]["grandStochtrackParams"]["jobsFile"] = jobPath
-
-                    # find job duration for given job number (currently rounding to indices, but will change to
-                    # handle floats as well in the future)
-                    #index = jobNumbers.index(jobNumber)
-                    #debug removal#jobDuration = load_number(jobData[index][3])
-
-                    #print("DEBUG: why not use load number?")
-                    #if not bool(checkEssentialParameter(jobs[jobKey]["grandStochtrackParams"]["params"], "hstart")):
-                    #    jobs[jobKey]["grandStochtrackParams"]["params"]["hstart"] = float(jobData[index][1])#load_number(jobData[index][1])
-                    #if not bool(checkEssentialParameter(jobs[jobKey]["grandStochtrackParams"]["params"], "hstop")):
-                    #    jobs[jobKey]["grandStochtrackParams"]["params"]["hstop"] = float(jobData[index][2])#load_number(jobData[index][2])
-
-                    #jobs[jobKey]["grandStochtrackParams"]["jobdur"] = float(jobData[index][2]) - float(jobData[index][1])#load_number(jobData[index][2]) - load_number(jobData[index][1])#jobDuration
-                    # TODO: fix this part to handle floats
-
-                    #debug removal#jobs[jobKey]["grandStochtrackParams"]["h"] = jobData
+                    jobs[jobKey]["job_nums"] = jobNumber
             else:
                 if len(line) != 3:
                     print("Alert, the following line contains a different number of entries than 3:")
                     print(line)
                     quit_program = True
                 else:
-                    jobs[jobKey]["preprocParams"][line[1]] = line[2]
-                #jobs[jobKey]["preprocParams"] = nested_dict_entry(jobs[jobKey]["preprocParams"], line[1], line[2])
-        # grand_stochtrack settings
-        elif temp == "grandstochtrack":
-            print("Fix this part to handle numbers properly! And less jumbled if possible!")
-            #jobs[jobKey]["grandStochtrackParams"]["params"][line[1]] = load_if_number(line[2])
-            if line[1] == "StampFreqsToRemove":
-                rawFreqs = [x.split(",") for x in line[2:]] # this part actually just strips the comma. The really frequency splitting is actually due to the list comprehension itself, or rather this part: line[2:]. Since the frequencies were already split in an earlier line.
-                # not a terrible check to have, just in case commas are used and spaces forgotten
-                print(rawFreqs)
-                rawFreqs = [item for sublist in rawFreqs for item in sublist]
-                print(rawFreqs)
-#                    rawFreqs = [x.replace(item, "") for item in ["[","]"] if item in x else x for x in rawFreqs]
-#                    rawFreqs = [x.replace(item, "") if item in x else x for item in ["[","]"] for x in rawFreqs]
-                rawFreqs = [x.replace("[", "") if "[" in x else x for x in rawFreqs]
-                print(rawFreqs)
-                rawFreqs = [x.replace("]", "") if "]" in x else x for x in rawFreqs]
-                print(rawFreqs)
-                freqList = [float(x) for x in rawFreqs if x]#[load_number(x) for x in rawFreqs if x]
-                print("StampFreqsToRemove")
-                print(line)
-                print(freqList)
-#                    print(jobs[jobKey].keys())
-                jobs[jobKey]["grandStochtrackParams"]["params"][line[1]] = freqList
-            elif line[1] == "doGPU" and jobKey != "constants":
-                print("Current job: " + jobKey)
-                quit_program = True
-                print("WARNING: non-default value for 'doGPU' detected. This functionality is not currently supported but may be supported in a future version. Quitting script. \n\nPress enter to exit.")
-                version_input("")
-            elif len(line) != 3:
-                print("Alert, the following line contains a different number of entries than 3:")
-                print(line)
-                quit_program = True
-                # if statements to catch if attribute is boolean. This may need to be handled another way, but
-                # check in the created .mat file to see if this successfully sets the variables to booleans.
-            elif line[2].lower() == "true":
-                jobs[jobKey]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[jobKey]["grandStochtrackParams"]["params"], line[1], True)
-            elif line[2].lower() == "false":
-                jobs[jobKey]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[jobKey]["grandStochtrackParams"]["params"], line[1], False)
-                # maybe place here if statments to catch if the start and end times are being set, and if so
-                # inform the user that this will overwite the times from the job files and prompt user for input
-                # on whether this is okay. If not, quit program so user can fix input file.
-            else:
-                jobs[jobKey]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[jobKey]["grandStochtrackParams"]["params"], line[1], load_if_number(line[2]))
-                '''if line[1] == "StampFreqsToRemove":
-                    freqList = [load_number(x) for x in line[2:]]
-                    print("StampFreqsToRemove")
-                    print(line)
-                    print(freqList)
-#                    print(jobs[jobKey].keys())
-                    jobs[jobKey]["grandStochtrackParams"]["params"][line[1]] = freqList
-                elif len(line) != 3:
-                    print("Alert, the following line contains a different number of entries than 3:")
-                    print(line)
-                    quit_program = True'''
+                    jobs[jobKey]["anteprocParams"][line[1]] = line[2]
         elif temp[0] in ["#", "%"]:
             commentsToPrintIfVerbose.append(line)
         else:
@@ -302,95 +213,56 @@ if not quit_program:
             quit_program = True
     if 'constants' not in jobs:
         jobs['constants'] = {}
-        jobs['constants']["preprocParams"] = {}
-        jobs['constants']["grandStochtrackParams"] = {}
-        jobs['constants']["grandStochtrackParams"]["params"] = {}
-
-job_group_iterator = 1
-for job in jobs:
-    if job != "constants":
-        if not jobs[job]["job_group"]:
-            while str(job_group_iterator) in job_groups:
-                job_group_iterator += 1
-            jobs[job]["job_group"] = str(job_group_iterator)
-            job_groups += [str(job_group_iterator)]
-#        job_group_iterator += 1
-
-# set job durations
-print("Code currently not set up to handle 'hstart' or 'hstop' individually without the other in specific jobs or 'constants'.")
-for job in jobs:
-    if (not bool(checkEssentialParameter(jobs[jobKey]["grandStochtrackParams"]["params"], "jobdur"))) and bool(checkEssentialParameter(jobs[jobKey]["grandStochtrackParams"]["params"], "hstart")) and bool(checkEssentialParameter(jobs[jobKey]["grandStochtrackParams"]["params"], "hstop")):
-        startTime = float(jobs[jobKey]["grandStochtrackParams"]["params"]["hstart"])
-        jobs[jobKey]["grandStochtrackParams"]["params"]["hstart"] = startTime
-        endTime = float(jobs[jobKey]["grandStochtrackParams"]["params"]["hstop"])
-        jobs[jobKey]["grandStochtrackParams"]["params"]["hstop"] = endTime
-
-        jobs[job]["grandStochtrackParams"]["jobdur"] = endTime - startTime
-    if bool(checkEssentialParameter(jobs[jobKey]["grandStochtrackParams"]["params"], "jobdur")):
-        jobs[job]["grandStochtrackParams"]["jobdur"] = float(jobs[job]["grandStochtrackParams"]["jobdur"])
-print("Got a lot of float checks here. May want to either have all the float checks occur here, or maybe make them as the data is loaded.")
+        jobs['constants']["anteprocParams"] = {}
 
 if commentsToPrintIfVerbose and options.verbose:
     print(commentsToPrintIfVerbose)
-
-print(jobs.keys())
 
 # TODO: Warnings and error catching involving default job number and undefined job numbers
 print("\n\nRemember: Finish this part.\n\n")
 
 if jobDuplicates and not quit_program:
     quit_program = not ask_yes_no_bool("Duplicate jobs exist. Continue? (y/n)\n")
-#print(quit_program)
-#dict()
 
 # check for and find real data if applicable
 realDataJobs = {}
+realJobCaches = {}
+fakeJobCaches = {}
 # check if real data is default
-if "doDetectorNoiseSim" in jobs["constants"]["preprocParams"]:
-    if jobs["constants"]["preprocParams"]["doDetectorNoiseSim"].lower() == "false":
+if "doDetectorNoiseSim" in jobs["constants"]["anteprocParams"]:
+    if jobs["constants"]["anteprocParams"]["doDetectorNoiseSim"].lower() == "false":
         real_data_default = True
-    elif jobs["constants"]["preprocParams"]["doDetectorNoiseSim"].lower() == "true":
+    elif jobs["constants"]["anteprocParams"]["doDetectorNoiseSim"].lower() == "true":
         real_data_default = False
     else:
         quit_program = True
         print("Error in 'constants': 'doDetectorNoiseSim' value is not boolean. please fix.\n\nPress enter to quit.")
         version_input("")
-    defaultJobNumber = checkEssentialParameter(jobs["constants"], "preprocJobs")
+    defaultJobNumber = checkEssentialParameter(jobs["constants"], "job_nums")
     if defaultJobNumber:
-#        print(defaultJobNumber)
-#        print(type(defaultJobNumber))
-#        print(len(jobNumbers))
-        #index = jobNumbers.index(str(defaultJobNumber))
         defaultTimes = [[jobData[jobNumbers.index(str(tempJob))][0], float(jobData[jobNumbers.index(str(tempJob))][1]), float(jobData[jobNumbers.index(str(tempJob))][2])] for tempJob in defaultJobNumber.split(",")]
-        #defaultStartTime = float(jobData[index][1])
-        #defaultEndTime = float(jobData[index][2])
     else:
         defaultTimes = None
-        #defaultStartTime = None
-        #defaultEndTime = None
     print("must be a more robust way to do this, but for now take the first char of the observatory string")
-    defaultObservatory1 = checkEssentialParameter(jobs["constants"]["preprocParams"], "ifo1")[0]
-    defaultObservatory2 = checkEssentialParameter(jobs["constants"]["preprocParams"], "ifo2")[0]
-    defaultFrameType1 = checkEssentialParameter(jobs["constants"]["preprocParams"], "frameType1")
-    defaultFrameType2 = checkEssentialParameter(jobs["constants"]["preprocParams"], "frameType2")
+    defaultObservatory1 = checkEssentialParameter(jobs["constants"]["anteprocParams"], "ifo1")[0]
+    defaultObservatory2 = checkEssentialParameter(jobs["constants"]["anteprocParams"], "ifo2")[0]
+    defaultFrameType1 = checkEssentialParameter(jobs["constants"]["anteprocParams"], "frameType1")
+    defaultFrameType2 = checkEssentialParameter(jobs["constants"]["anteprocParams"], "frameType2")
 for job in jobs:
     # make sure to handle the default case as well
     real_data = real_data_default
-#    if "doDetectorNoiseSim" in jobs[job]["preprocParams"]: and jobs[job]["preprocParams"]["doDetectorNoiseSim"].lower() == "false":
-    if "doDetectorNoiseSim" in jobs[job]["preprocParams"]:
-        if jobs[job]["preprocParams"]["doDetectorNoiseSim"].lower() == "false":
+    if "doDetectorNoiseSim" in jobs[job]["anteprocParams"]:
+        if jobs[job]["anteprocParams"]["doDetectorNoiseSim"].lower() == "false":
             real_data = True
-        elif jobs[job]["preprocParams"]["doDetectorNoiseSim"].lower() == "true":
+        elif jobs[job]["anteprocParams"]["doDetectorNoiseSim"].lower() == "true":
             real_data = False
         else:
             quit_program = True
             print("Error in '" + job + "': 'doDetectorNoiseSim' value is not boolean. please fix.\n\nPress enter to quit.")
             version_input("")
     if real_data:
-#        print(job)
         realDataJobs[job] = {}
         # check for needed entries
-        #startTime, quit_program = getEssentialParameter(jobs[job]["preprocParams"], "hstart", job, quit_program)
         jobNumber = checkEssentialParameter(jobs[job], "preprocJobs")
         print("Finding frames for " + job)
         if jobNumber:
@@ -425,13 +297,13 @@ for job in jobs:
             segmentJob = timeSegment[0]
             temp_frame_list_1 = []
             temp_frame_list_2 = []
-            temp_frame_list_1, quit_program = create_frame_file_list(frameType1, str(startTime), str(endTime), realDataJobs[job]["observatory1"], quit_program)
-            temp_frame_list_2, quit_program = create_frame_file_list(frameType2, str(startTime), str(endTime), realDataJobs[job]["observatory2"], quit_program)
+##3            temp_frame_list_1, quit_program = create_frame_file_list(frameType1, str(startTime), str(endTime), realDataJobs[job]["observatory1"], quit_program)
+##3            temp_frame_list_2, quit_program = create_frame_file_list(frameType2, str(startTime), str(endTime), realDataJobs[job]["observatory2"], quit_program)
             realDataJobs[job]["frame_file_list1"][segmentJob] = temp_frame_list_1
             realDataJobs[job]["frame_file_list2"][segmentJob] = temp_frame_list_2
 
 # update default dictionary
-print(jobs['constants'].keys())
+#print(jobs['constants'].keys())
 defaultDictionary = load_default_dict(jobs['constants']['grandStochtrackParams']['params'] , defaultDictionary)
 
 # create directory structure
@@ -568,8 +440,8 @@ else:
 #    frameDir = None
 #    plotDir = None
 
-print(jobs.keys())
-print(jobs["constants"].keys())
+#print(jobs.keys())
+#print(jobs["constants"].keys())
 
 # If relative injection value set, override any existing injection time with calculated relative injection time.
 if not quit_program:
@@ -585,7 +457,7 @@ if not quit_program:
             jobs[job]["preprocParams"] = dict((key, jobs[job]["preprocParams"][key]) for key in jobs[job]["preprocParams"] if key != "relativeInjectionStart")
         else:
             rel_inj_time = default_rel_inj_time
-        print(job)
+        #print(job)
         if "stamp.startGPS" in jobs[job]["preprocParams"]:
             print(jobs[job]["preprocParams"]["stamp.startGPS"])
         if rel_inj_time:
@@ -724,22 +596,6 @@ if not quit_program:
                 quit_program = True
             sio.savemat(jobs[job]["stochtrackInputDir"] + "/" + "params.mat", jobs[job]["grandStochtrackParams"])
 
-# order plots by job
-#jobDirs = [job for job in jobs]
-
-jobTempDict = dict((int(job[job.index("_")+1:]),{"job" : job, "job dir" : "job_group_" + jobs[job]["job_group"] + "/" + job}) for job in [x for x in jobs if x != "constants"])
-
-if options.burstegard:
-    plotTypeList = ["SNR", "Largest Cluster", "All Clusters", "sig map", "y map", "Xi snr map"]
-    plotTypeDict = {"SNR" : "snr.png", "Largest Cluster" : "large_cluster.png", "All Clusters": "all_clusters.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
-elif options.all_clusters:
-    plotTypeList = ["SNR", "Loudest Cluster (stochtrack)", "Largest Cluster (burstegard)", "All Clusters (burstegard)", "sig map", "y map", "Xi snr map"]
-    plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster (stochtrack)" : "rmap.png", "Largest Cluster (burstegard)" : "large_cluster.png", "All Clusters (burstegard)": "all_clusters.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
-else:
-    plotTypeList = ["SNR", "Loudest Cluster", "sig map", "y map", "Xi snr map"]
-    plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster" : "rmap.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
-
-outFile = "pageDisplayTest.html"
 
 jobNumOrder = [jobNum for jobNum in jobTempDict]
 jobNumOrder.sort()
@@ -761,7 +617,7 @@ if not quit_program:
         extract_from_gpu = True
     else:
         extract_from_gpu = False
-    create_preproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, matlabMatrixExtractionExectuable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, job_group_preproc = job_group_dict, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
+    create_anteproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, matlabMatrixExtractionExectuable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, job_group_preproc = job_group_dict, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
 
 print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
 

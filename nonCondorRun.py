@@ -15,6 +15,9 @@ parser.add_option("-p", "--preproc", dest = "preproc",
 parser.add_option("-g", "--grand_stochtrack", dest = "grand_stochtrack",
                   help = "Path to grand_stochtrack submit file",
                   metavar = "FILE")
+parser.add_option("-m", "--matlab_matrix_extraction", dest = "matlab_matrix_extraction",
+                  help = "Path to matlab_matrix_extraction submit file",
+                  metavar = "FILE")
 parser.add_option("-o", "--output_dir", dest = "output_dir",
                   help = "Path to directory to save standard output from executables called by this script",
                   metavar = "DIRECTORY")
@@ -29,6 +32,9 @@ preprocExecutable = [x for x in preprocInfo if x[0] == "executable"][-1][-1]
 
 gsInfo = read_text_file(options.grand_stochtrack, None)
 gsExecutable = [x for x in gsInfo if x[0] == "executable"][-1][-1]
+
+gsInfo = read_text_file(options.matlab_matrix_extraction, None)
+mmeExecutable = [x for x in gsInfo if x[0] == "executable"][-1][-1]
 
 jobs = {}
 job_order = []
@@ -57,6 +63,8 @@ for job in job_order:
         command = [preprocExecutable, pullFromQuotes(variables[3]), pullFromQuotes(variables[4]), pullFromQuotes(variables[5])]
     elif jobs[job]["CATEGORY"] == "GRANDSTOCKTRACK":
         command = [gsExecutable, pullFromQuotes(variables[3]), pullFromQuotes(variables[4])]
+    elif jobs[job]["CATEGORY"] == "GPUARRAY_TO_ARRAY":
+        command = [mmeExecutable, pullFromQuotes(variables[3]), pullFromQuotes(variables[4])]
     if command:
         print(command)
         command_output = subprocess.Popen(command, stdout = subprocess.PIPE, stderr=subprocess.PIPE).communicate()#[0]
