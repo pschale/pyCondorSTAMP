@@ -8,9 +8,14 @@ from condorSTAMPSupportLib import *
 import webpageGenerateLib as webGen
 import scipy.io as sio
 import json
+import random
 
+print("\nPlease note: Recurring parameters in the input parameter file for the same job or for 'constants' will be overwritten with the last lines value for that job. There likely will NOT be a warning that this is what is happening.\n")
+
+#print("WARNING: code does not currently lock the seed record file. This can lead to a race condition if more than one process is expected to access this file. Only use this code with files that are only expected to
 print("Code not currently set up to handle a mix of gpu and non-gpu jobs. A future version should be able to address this.")
 print('DEPRECATED: "grandstochtrack job" option in parameter files is deprecated. Please use "preproc job" option istead or this program will fail.')
+print("WARNING: if using anteproc, code currently set up to handle H1 as ifo1 and H2 as ifo2. Change in future version")
 
 #### REMINDER: Edit the grand_stochtrack parameter reader such that "." will
 # allow easy access to subdirectories in the grand_stochtrack parameter matrix
@@ -27,6 +32,7 @@ parser.set_defaults(all_clusters = False)
 parser.set_defaults(archived_frames_okay = False)
 parser.set_defaults(no_job_retry = False)
 parser.set_defaults(extract_from_gpu = False)
+parser.set_defaults(anteproc_mode = False)
 parser.add_option("-c", "--conf", dest = "configFile",
                   help = "Path to config file detailing analysis for preproc and grand_stochtrack executables (preproc job options can have multiple jobs if separated by a \",\" [may be a good idea to switch to a single directory all preproc jobs are dumped, however this would require them to share many of the same parameters, or not, just don't overlap in time at all, something to think about])",
                   metavar = "FILE")
@@ -48,6 +54,7 @@ parser.add_option("-a", action="store_true", dest="all_clusters")
 parser.add_option("-f", action="store_true", dest="archived_frames_okay")
 parser.add_option("-q", action="store_true", dest="no_job_retry")
 parser.add_option("-e", action="store_true", dest="extract_from_gpu")
+parser.add_option("-A", action="store_true", dest="anteproc_mode")
 
 
 # MAYBE maxjobs will be useful.
@@ -89,22 +96,39 @@ configPath = options.configFile
 jobPath = options.jobFile
 #preprocJobPath = options.preprocJobFile
 # default dictionary json path
-#defaultDictionaryPath = "/home/quitzow/STAMP/stamp2/test/condorTesting/pythonWrapper/default/defaultStochtrack.json"
-#defaultDictionaryPath = "/home/quitzow/STAMP/STAMP_4_2_2015/defaults/defaultStochtrack.json"
 defaultDictionaryPath = "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/defaultStochtrack.json"
+anteprocDefault = "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/anteproc_defaults.txt"
+#STAMP_setup_script = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/test/stamp_setup.sh"
+#STAMP_setup_script = "/home/quitzow/STAMP/STAMP_8_11_2015/stamp2/test/stamp_setup.sh"
+#STAMP_setup_script = "/home/quitzow/STAMP/STAMP_9_14_2015/stamp2/test/stamp_setup.sh"
+#STAMP_setup_script = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/test/stamp_setup.sh"
+STAMP_setup_script = "/home/quitzow/STAMP/STAMP_rough_working_version/stamp2/test/stamp_setup.sh"
 # set other defaults this way too instead of definining them inside the preprocSupportLib.py file
 
 #defaultDictionaryPath = "/Users/Quitzow/Desktop/Magnetar Research/STAMP Condor Related/PythonWrapper/defaultBase3.txt"
 shellPath = "#!/bin/bash"
 
 # paths to executables
-#preprocExecutable = "/home/quitzow/STAMP/stamp2/test/condorTesting/preprocDir/preproc"
-#grandStochtrackExecutable = "/home/quitzow/STAMP/stamp2/test/condorTesting/grand_stochtrack"
-preprocExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/preproc/preproc"
+#preprocExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/preproc/preproc"
 #grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
 #preprocExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/preproc/preproc"
 #grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
-grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
+#anteprocExecutable = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/anteproc/anteproc"
+#anteprocExecutable = "/home/quitzow/STAMP/STAMP_8_11_2015/stamp2/compiledScripts/anteproc/anteproc"
+#anteprocExecutable = "/home/quitzow/STAMP/STAMP_9_14_2015/stamp2/compiledScripts/anteproc/anteproc"
+#anteprocExecutable = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/compiledScripts/anteproc/anteproc"
+anteprocExecutable = "/home/quitzow/STAMP/STAMP_rough_working_version/stamp2/compiledScripts/anteproc/anteproc"
+#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
+#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
+#grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
+#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_8_11_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
+#grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_8_11_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
+#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_9_14_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
+#grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_9_14_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
+#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
+#grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
+grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_rough_working_version/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
+grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_rough_working_version/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
 
 matlabMatrixExtractionExectuable = "/home/quitzow/GIT/Development_Branches/MatlabExecutableDuctTape/getSNRandCluster"
 
@@ -119,19 +143,14 @@ else:
 # load info from config file
 if not quit_program:
     rawData = read_text_file(configPath, ' ')
-#    print(read_text_file(options.configFile," "))
 else:
     rawData = []
-
-#print(options.configFile)
-#print(rawData)
 
 # load info from job file
 if not quit_program:
     jobData = read_text_file(jobPath, ' ')
     jobNumbers = [line[0] for line in jobData]
     jobData = [[load_if_number(item) for item in line] for line in jobData]
-#    print(read_text_file(options.configFile," "))
 else:
     jobData = []
 
@@ -147,14 +166,15 @@ else:
 # load data from jobFile
 if not quit_program:
     with open(jobPath, "r") as infile:
-        #jobFileData = [x.split() for x in infile]
         jobDataDict = dict((x.split()[0], x.split()[1:]) for x in infile)
 else:
     jobDataDict = {}
 
 # parse jobs
 
-quit_program, jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates = parse_jobs(rawData, quit_program)
+quit_program, jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms, varyingAnteprocVariables = parse_jobs(rawData, quit_program)
+H1_jobs = set(H1_jobs)
+L1_jobs = set(L1_jobs)
 
 job_group_iterator = 1
 for job in jobs:
@@ -164,135 +184,53 @@ for job in jobs:
                 job_group_iterator += 1
             jobs[job]["job_group"] = str(job_group_iterator)
             job_groups += [str(job_group_iterator)]
-#        job_group_iterator += 1
+
+anteproc_grand_stochtrack_values = {"anteproc.loadFiles": True,
+                                    "anteproc.timeShift1": 0,
+                                    "anteproc.timeShift2": 0,
+                                    "anteproc.jobFileTimeShift": True,
+                                    "anteproc.bkndstudy": False,
+                                    "anteproc.bkndstudydur": 100}
+anteprocOrder = ["anteproc.loadFiles",
+                 "anteproc.timeShift1",
+                 "anteproc.timeShift2",
+                 "anteproc.jobFileTimeShift",
+                 "anteproc.bkndstudy",
+                 "anteproc.bkndstudydur",
+                 "anteproc.inmats1",
+                 "anteproc.inmats2",
+                 "anteproc.jobfile"]
 
 # set job durations
 print("Code currently not set up to handle 'hstart' or 'hstop' individually without the other in specific jobs or 'constants'.")
-for job in jobs:
-    if (not bool(checkEssentialParameter(jobs[job]["grandStochtrackParams"]["params"], "jobdur"))) and bool(checkEssentialParameter(jobs[job]["grandStochtrackParams"]["params"], "hstart")) and bool(checkEssentialParameter(jobs[job]["grandStochtrackParams"]["params"], "hstop")):
-        startTime = float(jobs[job]["grandStochtrackParams"]["params"]["hstart"])
-        jobs[job]["grandStochtrackParams"]["params"]["hstart"] = startTime
-        endTime = float(jobs[job]["grandStochtrackParams"]["params"]["hstop"])
-        jobs[job]["grandStochtrackParams"]["params"]["hstop"] = endTime
+if not (options.anteproc_mode or anteproc_grand_stochtrack_values["anteproc.jobFileTimeShift"]):
+    for job in jobs:
+        if (not bool(checkEssentialParameter(jobs[job]["grandStochtrackParams"]["params"], "jobdur"))) and bool(checkEssentialParameter(jobs[job]["grandStochtrackParams"]["params"], "hstart")) and bool(checkEssentialParameter(jobs[job]["grandStochtrackParams"]["params"], "hstop")):
+            startTime = float(jobs[job]["grandStochtrackParams"]["params"]["hstart"])
+            jobs[job]["grandStochtrackParams"]["params"]["hstart"] = startTime
+            endTime = float(jobs[job]["grandStochtrackParams"]["params"]["hstop"])
+            jobs[job]["grandStochtrackParams"]["params"]["hstop"] = endTime
 
-        jobs[job]["grandStochtrackParams"]["jobdur"] = endTime - startTime
-    if bool(checkEssentialParameter(jobs[job]["grandStochtrackParams"]["params"], "jobdur")):
-        jobs[job]["grandStochtrackParams"]["jobdur"] = float(jobs[job]["grandStochtrackParams"]["jobdur"])
-print("Got a lot of float checks here. May want to either have all the float checks occur here, or maybe make them as the data is loaded.")
+            jobs[job]["grandStochtrackParams"]["jobdur"] = endTime - startTime
+        if bool(checkEssentialParameter(jobs[job]["grandStochtrackParams"]["params"], "jobdur")):
+            jobs[job]["grandStochtrackParams"]["jobdur"] = float(jobs[job]["grandStochtrackParams"]["jobdur"])
+    print("Got a lot of float checks here. May want to either have all the float checks occur here, or maybe make them as the data is loaded.")
 
 if commentsToPrintIfVerbose and options.verbose:
     print(commentsToPrintIfVerbose)
-
-#print(jobs.keys())
 
 # TODO: Warnings and error catching involving default job number and undefined job numbers
 print("\n\nRemember: Finish this part.\n\n")
 
 if jobDuplicates and not quit_program:
     quit_program = not ask_yes_no_bool("Duplicate jobs exist. Continue? (y/n)\n")
-#print(quit_program)
-#dict()
-
-# check for and find real data if applicable
-realDataJobs = {}
-cacheFilesPrepped = {}
-# check if real data is default
-if "doDetectorNoiseSim" in jobs["constants"]["preprocParams"]:
-    if jobs["constants"]["preprocParams"]["doDetectorNoiseSim"].lower() == "false":
-        real_data_default = True
-    elif jobs["constants"]["preprocParams"]["doDetectorNoiseSim"].lower() == "true":
-        real_data_default = False
-    else:
-        quit_program = True
-        print("Error in 'constants': 'doDetectorNoiseSim' value is not boolean. please fix.\n\nPress enter to quit.")
-        version_input("")
-    defaultJobNumber = checkEssentialParameter(jobs["constants"], "preprocJobs")
-    if defaultJobNumber:
-#        print(defaultJobNumber)
-#        print(type(defaultJobNumber))
-#        print(len(jobNumbers))
-        #index = jobNumbers.index(str(defaultJobNumber))
-        defaultTimes = [[jobData[jobNumbers.index(str(tempJob))][0], float(jobData[jobNumbers.index(str(tempJob))][1]), float(jobData[jobNumbers.index(str(tempJob))][2])] for tempJob in defaultJobNumber.split(",")]
-        #defaultStartTime = float(jobData[index][1])
-        #defaultEndTime = float(jobData[index][2])
-    else:
-        defaultTimes = None
-        #defaultStartTime = None
-        #defaultEndTime = None
-    print("must be a more robust way to do this, but for now take the first char of the observatory string")
-    defaultObservatory1 = checkEssentialParameter(jobs["constants"]["preprocParams"], "ifo1")[0]
-    defaultObservatory2 = checkEssentialParameter(jobs["constants"]["preprocParams"], "ifo2")[0]
-    defaultFrameType1 = checkEssentialParameter(jobs["constants"]["preprocParams"], "frameType1")
-    defaultFrameType2 = checkEssentialParameter(jobs["constants"]["preprocParams"], "frameType2")
-for job in jobs:
-    # make sure to handle the default case as well
-    real_data = real_data_default
-#    if "doDetectorNoiseSim" in jobs[job]["preprocParams"]: and jobs[job]["preprocParams"]["doDetectorNoiseSim"].lower() == "false":
-    if "doDetectorNoiseSim" in jobs[job]["preprocParams"]:
-        if jobs[job]["preprocParams"]["doDetectorNoiseSim"].lower() == "false":
-            real_data = True
-        elif jobs[job]["preprocParams"]["doDetectorNoiseSim"].lower() == "true":
-            real_data = False
-        else:
-            quit_program = True
-            print("Error in '" + job + "': 'doDetectorNoiseSim' value is not boolean. please fix.\n\nPress enter to quit.")
-            version_input("")
-    if real_data:
-#        print(job)
-        realDataJobs[job] = {}
-        # check for needed entries
-        #startTime, quit_program = getEssentialParameter(jobs[job]["preprocParams"], "hstart", job, quit_program)
-        jobNumber = checkEssentialParameter(jobs[job], "preprocJobs")
-        print("Finding frames for " + job)
-        if jobNumber:
-            jobTimes = [[jobData[jobNumbers.index(str(tempJob))][0], float(jobData[jobNumbers.index(str(tempJob))][1]), float(jobData[jobNumbers.index(str(tempJob))][2])] for tempJob in jobNumber.split(",")]
-            #index = jobNumbers.index(str(jobNumber))
-            #startTime = float(jobData[index][1])#load_number(jobData[index][1])
-            #endTime = float(jobData[index][2])
-        else:
-            jobTimes = defaultTimes[:]
-            jobNumber = defaultJobNumber
-            #startTime = defaultStartTime
-            #endTime = defaultEndTime
-#        startTime = jobs[job]["preprocParams"]["hstart"]
-        #endTime, quit_program = getEssentialParameter(jobs[job]["preprocParams"], "hstop", job, quit_program)
-#        endTime = jobs[job]["preprocParams"]["hstop"]
-        observatoryTemp1, quit_program = getEssentialParameter(jobs[job]["preprocParams"], "ifo1", job, quit_program, defaultObservatory1)
-        realDataJobs[job]["observatory1"] = observatoryTemp1[0]
-#        observatory1 = jobs[job]["preprocParams"]["ifo1"]
-        observatoryTemp2, quit_program = getEssentialParameter(jobs[job]["preprocParams"], "ifo2", job, quit_program, defaultObservatory2)
-        realDataJobs[job]["observatory2"] = observatoryTemp2[0]
-#        observatory2 = jobs[job]["preprocParams"]["ifo2"]
-        frameType1, quit_program = getEssentialParameter(jobs[job]["preprocParams"], "frameType1", job, quit_program, defaultFrameType1)
-#        frameType1 = jobs[job]["preprocParams"]["frameType1"]
-        frameType2, quit_program = getEssentialParameter(jobs[job]["preprocParams"], "frameType2", job, quit_program, defaultFrameType2)
-#        frameType2 = jobs[job]["preprocParams"]["frameType2"]
-        # create gps time file and frame cache file
-        #print([frameType1, startTime, endTime, realDataJobs[job]["observatory1"], quit_program])
-        realDataJobs[job]["frame_file_list1"] = {}
-        realDataJobs[job]["frame_file_list2"] = {}
-        for timeSegment in jobTimes:
-            startTime = timeSegment[1]
-            endTime = timeSegment[2]
-            segmentJob = timeSegment[0]
-            temp_frame_list_1 = []
-            temp_frame_list_2 = []
-            if jobNumber not in cacheFilesPrepped:
-                temp_frame_list_1, quit_program = create_frame_file_list(frameType1, str(startTime), str(endTime), realDataJobs[job]["observatory1"], quit_program)
-                temp_frame_list_2, quit_program = create_frame_file_list(frameType2, str(startTime), str(endTime), realDataJobs[job]["observatory2"], quit_program)
-                cacheFilesPrepped[jobNumber] = {}
-                cacheFilesPrepped[jobNumber][segmentJob] = {}
-                cacheFilesPrepped[jobNumber][segmentJob]["frame_file_list1"] = temp_frame_list_1
-                cacheFilesPrepped[jobNumber][segmentJob]["frame_file_list2"] = temp_frame_list_2
-                realDataJobs[job]["frame_file_list1"][segmentJob] = temp_frame_list_1
-                realDataJobs[job]["frame_file_list2"][segmentJob] = temp_frame_list_2
-            else:
-                realDataJobs[job]["frame_file_list1"][segmentJob] = cacheFilesPrepped[jobNumber][segmentJob]["frame_file_list1"]
-                realDataJobs[job]["frame_file_list2"][segmentJob] = cacheFilesPrepped[jobNumber][segmentJob]["frame_file_list2"]
 
 # update default dictionary
-#print(jobs['constants'].keys())
 defaultDictionary = load_default_dict(jobs['constants']['grandStochtrackParams']['params'] , defaultDictionary)
+
+# load default anteproc
+with open(anteprocDefault, 'r') as infile:
+    anteprocDefaultData = [line.split() for line in infile]
 
 # create directory structure
 # Build file system
@@ -310,8 +248,21 @@ defaultDictionary = load_default_dict(jobs['constants']['grandStochtrackParams']
 #				some other thing?
 #				plotDir
 
+if "num_jobs_to_vary" in varyingAnteprocVariables:
+    multiple_job_group_version = True
+else:
+    multiple_job_group_version = False
+
 cacheFilesCreated = []
 
+anteprocJobs = {}
+anteprocJobs["H1"] = {}
+anteprocJobs["L1"] = {}
+organizedSeeds = {}
+organizedSeeds["H1"] = {}
+organizedSeeds["L1"] = {}
+used_seeds = [jobs["constants"]["anteprocHjob_seeds"][x] for x in jobs["constants"]["anteprocHjob_seeds"]]
+used_seeds += [jobs["constants"]["anteprocLjob_seeds"][x] for x in jobs["constants"]["anteprocLjob_seeds"]]
 if not quit_program:
     # Build base analysis directory
     # stochtrack_condor_job_group_num
@@ -319,6 +270,7 @@ if not quit_program:
         baseDir = dated_dir(options.outputDir + "stamp_analysis_anteproc")
     else:
         baseDir = dated_dir(options.outputDir + "/stamp_analysis_anteproc")
+    print("Files to run analysis will be saved in:")
     print(baseDir)#debug
 
     # copy input parameter file and jobs file into a support directory here
@@ -327,43 +279,101 @@ if not quit_program:
     # copy input files to this directory
     copy_input_file(options.configFile, supportDir)#, options.configFile)
     newJobPath = copy_input_file(options.jobFile, supportDir)#, options.jobFile)
-    #print(newJobPath)
+    if options.anteproc_mode:
+        newAdjustedJobPath = adjust_job_file(options.jobFile, supportDir, jobs)
 
     # create directory to host all of the jobs. maybe drop the cachefiles in here too?
     jobsBaseDir = create_dir(baseDir + "/jobs")
-    if options.preprocDir:
-        difPreprocJobBaseDir = options.preprocDir + "/jobs"
 
     # create cachefile directory
-    print(job) # to figure out what I thought I was doing here.
-    #if job in realDataJobs:
-    if len(realDataJobs) > 0:
+    print("Creating cache directory")
+
+    if jobs["constants"]["anteprocParamsH"]["doDetectorNoiseSim"] == "false":
         cacheDir = create_dir(baseDir + "/cache_files") + "/"
-    if not all(key in realDataJobs for key in jobs):
+        fakeCacheDir = None
+    else:
         fakeCacheDir = create_dir(baseDir + "/fake_cache_files") + "/"
+        cacheDir = None
+
+    if options.anteproc_mode:
+        print("Creating anteproc directory and input files")
+        anteproc_dir = create_dir(baseDir + "/anteproc_data")
+
+        if cacheDir:
+            anteproc_H, anteproc_L = anteproc_setup(anteproc_dir, anteprocDefaultData, jobs, cacheDir)
+        else:
+            anteproc_H, anteproc_L = anteproc_setup(anteproc_dir, anteprocDefaultData, jobs, fakeCacheDir)
+        multiple_waveforms = False
+
+        if "stampinj" in anteproc_H and "stampinj" in anteproc_L:
+            if len(waveforms) > 0:
+                multiple_waveforms = True
+            if anteproc_H["stampinj"] != anteproc_L["stampinj"]:
+                print("Warning, injections settings in detectors do not match, one has 'stampinj = true' and one has 'stampinj = false'. Please edit code for further capabilities of this behavior is intentional.")
+                quit_program = True
+        elif "stampinj" in anteproc_H or "stampinj" in anteproc_L:
+            print("Warning, injections settings in detectors do not match, one has 'stampinj' and one does not. Please edit code for further capabilities of this behavior is intentional.")
+            quit_program = True
+
+        anteprocJobDictTracker = createPreprocessingJobDependentDict(jobs)
+        if "varying_injection_start" in jobs["constants"]:
+            frontStartTime = jobs["constants"]["varying_injection_start"][0]
+            backStartTime = jobs["constants"]["varying_injection_start"][1]
+            injectionStartTimes = generate_random_start_times(jobs, varyingAnteprocVariables, frontStartTime, backStartTime)
+        else:
+            injectionStartTimes = None
+
+        anteprocJobs, used_seeds, organizedSeeds, quit_program = anteproc_job_specific_setup(H1_jobs, "H1",
+            anteproc_dir, jobs, anteproc_H, used_seeds, organizedSeeds, multiple_waveforms, waveforms, anteprocDefaultData,
+            anteprocJobs, varyingAnteprocVariables, quit_program, anteprocJobDictTracker, injectionStartTimes)
+
+        anteprocJobs, used_seeds, organizedSeeds, quit_program = anteproc_job_specific_setup(L1_jobs, "L1",
+            anteproc_dir, jobs, anteproc_L, used_seeds, organizedSeeds, multiple_waveforms, waveforms, anteprocDefaultData,
+            anteprocJobs, varyingAnteprocVariables, quit_program, anteprocJobDictTracker, injectionStartTimes)
+
+        if jobs["constants"]["anteprocParamsH"]["doDetectorNoiseSim"] == "true" or jobs["constants"]["anteprocParamsL"]["doDetectorNoiseSim"] == "true":
+            with open(anteproc_dir + "/seeds_for_simulated_data.txt", "w") as outfile:
+                json.dump(organizedSeeds, outfile, sort_keys = True, indent = 4)
+        if "num_jobs_to_vary" in varyingAnteprocVariables:
+            print("\nVariable parameter option active.\n")
+            with open(anteproc_dir + "/varying_parameters_input_record.txt", "w") as outfile:
+                json.dump(varyingAnteprocVariables, outfile, sort_keys = True, indent = 4)
+        else:
+            print("\nVariable parameter option not active.\nIf it's supposed to be active, add 'anteproc_varying_param num_jobs_to_vary' option to input parameter file.\n")
+
+        anteproc_grand_stochtrack_values["anteproc.inmats1"] = anteproc_dir + "/H-H1_map"
+        anteproc_grand_stochtrack_values["anteproc.inmats2"] = anteproc_dir + "/L-L1_map"
+        anteproc_grand_stochtrack_values["anteproc.jobfile"] = newAdjustedJobPath
+
+        for job in jobs:
+            #"adjust inmats entries here maybe if needed? yes."
+            for anteprocParameter in anteprocOrder:
+                if (anteprocParameter == "anteproc.inmats1" or anteprocParameter == "anteproc.inmats2") and "injection_tags" in jobs[job]:
+                    jobs[job]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[job]["grandStochtrackParams"]["params"], anteprocParameter, anteproc_grand_stochtrack_values[anteprocParameter] + "_" + jobs[job]["injection_tags"])
+                else:
+                    jobs[job]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[job]["grandStochtrackParams"]["params"], anteprocParameter, anteproc_grand_stochtrack_values[anteprocParameter])
+    else:
+        anteproc_dir = None
 
     # cycle through jobs
+    print("Creating job directories")
     for job in jobs:
         if job != "constants":
-            # stochtrack_day_job_num (injection? gps time?)
-            #jobs[job]["jobDir"] = create_dir(baseDir + "/" + job)
+            jobs[job]["jobDir"] = []
+            jobs[job]["stochtrackInputDir"] = []
+            jobs[job]["grandstochtrackOutputDir"] = []
+            jobs[job]["plotDir"] = []
+
+            if multiple_job_group_version:
+                for index in range(varyingAnteprocVariables["num_jobs_to_vary"]):
+                    temp_number = index + 1
+                    temp_suffix = "_v" + str(temp_number)
+                    jobs = create_job_directories(jobs, jobsBaseDir, job, temp_suffix)
+            else:
+                jobs = create_job_directories(jobs, jobsBaseDir, job)
+            """# stochtrack_day_job_num (injection? gps time?)
             jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + jobs[job]["job_group"] + "/" + job)
-            if options.preprocDir:
-                difPreprocJobDir = difPreprocJobBaseDir + "/" + "job_group_" + jobs[job]["job_group"] + "/" + job
             jobs[job]["jobDir"] = jobDir
-
-#			README.txt with job information? json maybe? job type
-#			preproc inputs
-            if not options.groupedPreprocessing:
-                preprocInputDir = create_dir(jobDir + "/preprocInput")
-                jobs[job]["preprocInputDir"] = preprocInputDir
-                preprocOutputDir = create_dir(jobDir + "/preprocOutput")
-                jobs[job]["preprocOutputDir"] = preprocOutputDir
-                if options.preprocDir:
-                    jobs[job]["difPreprocOutputDir"] = difPreprocJobDir + "/preprocOutput"
-
-            # output directory for preproc dictionary
-                jobs[job]["preprocParams"]["outputfiledir"] = preprocOutputDir + "/" #jobs[job]["preprocInputDir"]
 
 #			inputs for stochtrack clustermap in text file (put this here or in the "/params" directory)
 #			grand_stochtrack inputs
@@ -376,43 +386,7 @@ if not quit_program:
 #				some other thing?
 #				plotDir
             plotDir = create_dir(grandstochtrackOutputDir + "/plots")
-            jobs[job]["plotDir"] = plotDir
-            if job in realDataJobs:
-                #if "preprocJobs" in jobs[job]:
-                #    jobNum = jobs[job]["preprocJobs"]
-                #else:
-                #    jobNum = jobs["constants"]["preprocJobs"]
-                for tempJob in realDataJobs[job]["frame_file_list1"]:
-                    if tempJob not in cacheFilesCreated:
-                        cacheFilesCreated += [tempJob]
-                        quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list1"][tempJob],realDataJobs[job]["observatory1"],int(tempJob),cacheDir,quit_program, archived_frames_okay = options.archived_frames_okay)
-                        quit_program = create_cache_and_time_file(realDataJobs[job]["frame_file_list2"][tempJob],realDataJobs[job]["observatory2"],int(tempJob),cacheDir,quit_program, archived_frames_okay = options.archived_frames_okay)
-                # add to parameters
-                jobs[job]["preprocParams"]["gpsTimesPath1"] = cacheDir
-                jobs[job]["preprocParams"]["gpsTimesPath2"] = cacheDir
-                jobs[job]["preprocParams"]["frameCachePath1"] = cacheDir
-                jobs[job]["preprocParams"]["frameCachePath2"] = cacheDir
-            else:
-                # point to fake cache directory
-                #jobNumber = checkEssentialParameter(jobs[job]["grandStochtrackParams"], "job")
-                jobNumber, quit_program = getEssentialParameter(jobs[job], "preprocJobs", job, quit_program, defaultJobNumber)
-                jobTimes = [[jobData[jobNumbers.index(str(tempJob))][0], float(jobData[jobNumbers.index(str(tempJob))][1]), float(jobData[jobNumbers.index(str(tempJob))][2])] for tempJob in jobNumber.split(",")]
-                #index = jobNumbers.index(str(jobNumber))
-                #startTime = float(jobData[index][1])#load_number(jobData[index][1])
-                #endTime = float(jobData[index][2])
-                observatoryTemp1, quit_program = getEssentialParameter(jobs[job]["preprocParams"], "ifo1", job, quit_program, defaultObservatory1)
-                observatoryTemp2, quit_program = getEssentialParameter(jobs[job]["preprocParams"], "ifo2", job, quit_program, defaultObservatory2)
-                for segment in jobTimes:
-                    segmentJob = int(segment[0])
-                    startTime = segment[1]
-                    endTime = segment[2]
-                    quit_program = create_fake_cache_and_time_file(startTime, endTime, observatoryTemp1, segmentJob, fakeCacheDir, quit_program)
-                    quit_program = create_fake_cache_and_time_file(startTime, endTime, observatoryTemp2, segmentJob, fakeCacheDir, quit_program)
-                # add to parameters
-                jobs[job]["preprocParams"]["gpsTimesPath1"] = fakeCacheDir
-                jobs[job]["preprocParams"]["gpsTimesPath2"] = fakeCacheDir
-                jobs[job]["preprocParams"]["frameCachePath1"] = fakeCacheDir
-                jobs[job]["preprocParams"]["frameCachePath2"] = fakeCacheDir
+            jobs[job]["plotDir"] = plotDir"""
 
         # NOTE: recording any directories other than the base job directory may not have any value
         # because the internal structure of each job is identical.
@@ -427,170 +401,99 @@ if not quit_program:
     logDir = create_dir(dagLogDir + "/logs")
 else:
     baseDir = None
-#    supportDir = None
-#    frameListDir = None
-#    frameDir = None
-#    plotDir = None
 
-#print(jobs.keys())
-#print(jobs["constants"].keys())
+# create grandstochtrack execution script
+
+print("Creating shell scripts")
+grandStochtrack_script_file = dagDir + "/grand_stochtrack.sh"
+if jobs['constants']['grandStochtrackParams']['params']['savePlots']:
+    write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutable, STAMP_setup_script)
+else:
+    write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutableNoPlots, STAMP_setup_script)
+os.chmod(grandStochtrack_script_file, 0744)
+
+matlabMatrixExtractionExectuable_script_file = dagDir + "/matlab_matrix_extraction.sh"
+write_grandstochtrack_bash_script(matlabMatrixExtractionExectuable_script_file, matlabMatrixExtractionExectuable, STAMP_setup_script)
+os.chmod(matlabMatrixExtractionExectuable_script_file, 0744)
+
+anteprocExecutable_script_file = dagDir + "/anteproc.sh"
+write_anteproc_bash_script(anteprocExecutable_script_file, anteprocExecutable, STAMP_setup_script)
+os.chmod(anteprocExecutable_script_file, 0744)
 
 # If relative injection value set, override any existing injection time with calculated relative injection time.
-if not quit_program:
-    default_rel_inj_time = None
-    if "relativeInjectionStart" in jobs["constants"]["preprocParams"]:
-        default_rel_inj_time = int(jobs["constants"]["preprocParams"]["relativeInjectionStart"])
-        #print(jobs["constants"]["preprocParams"])
-        jobs["constants"]["preprocParams"] = dict((key, jobs["constants"]["preprocParams"][key]) for key in jobs["constants"]["preprocParams"] if key != "relativeInjectionStart")
-    for job in jobs:
-        rel_inj_time = None
-        if "relativeInjectionStart" in jobs[job]["preprocParams"]:
-            rel_inj_time = int(jobs[job]["preprocParams"]["relativeInjectionStart"])
-            jobs[job]["preprocParams"] = dict((key, jobs[job]["preprocParams"][key]) for key in jobs[job]["preprocParams"] if key != "relativeInjectionStart")
-        else:
-            rel_inj_time = default_rel_inj_time
-        #print(job)
-        if "stamp.startGPS" in jobs[job]["preprocParams"]:
-            print(jobs[job]["preprocParams"]["stamp.startGPS"])
-        if rel_inj_time:
-            jobs[job]["preprocParams"]["stamp.startGPS"] = str(int(jobs[job]["grandStochtrackParams"]["params"]["hstart"]) + rel_inj_time)
-            print(jobs[job]["preprocParams"]["stamp.startGPS"])
 
-def load_job_group(job_group_dict, job_group, job_dict, preprocJobCount, jobKey):
-    job_group_dict[job_group][preprocJobCount] = {}
-    job_group_dict[job_group][preprocJobCount]["preprocParams"] = {}
-    job_group_dict[job_group][preprocJobCount]["jobs"] = [jobKey]
-    job_group_dict[job_group][preprocJobCount]["preprocParams"].update(job_dict[jobKey]["preprocParams"])
-    job_group_dict[job_group][preprocJobCount]["preprocJobs"] = job_preproc_num
-    return job_group_dict
-
-if not quit_program:
-    # set up group job preprocessing
-    job_group_dict = None
-    if options.groupedPreprocessing:
-        #preprocJobCount = 1
-        job_group_dict = {}
-        for job in jobs:
-            if job != "constants":
-                temp_job_group = jobs[job]["job_group"]
-                job_preproc_num = jobs[job]["preprocJobs"]
-                preprocJobCount = 1
-                if temp_job_group not in job_group_dict:
-                    job_group_dict[temp_job_group] = {}
-                    job_group_dict = load_job_group(job_group_dict, temp_job_group, jobs, preprocJobCount, job)
-                else:
-                    quit_loop = False
-                    while not quit_loop:
-                        if preprocJobCount not in job_group_dict[temp_job_group]:
-                            job_group_dict = load_job_group(job_group_dict, temp_job_group, jobs, preprocJobCount, job)
-                            quit_loop = True
-                        elif job_group_dict[temp_job_group][preprocJobCount]["preprocParams"] != jobs[job]["preprocParams"] or job_group_dict[temp_job_group][preprocJobCount]["preprocJobs"] != jobs[job]["preprocJobs"]:
-                            preprocJobCount += 1
-                        else:
-                            job_group_dict[temp_job_group][preprocJobCount]["jobs"] += [job]
-                            quit_loop = True
-                #print("\n\n\nFor job group " + str(temp_job_group))
-                #print("for preproc " + str(preprocJobCount))
-                #print(job_group_dict[temp_job_group][preprocJobCount]["jobs"])
-
-    preprocJobDict = {}
-    # create jobGroup preproc director if needed
-    if options.groupedPreprocessing:
-        jobGroupsPreprocDir = create_dir(baseDir + "/preprocessingJobs")
-        if options.preprocDir:
-            difPreprocJobGroupsPreprocDir = options.preprocDir + "/preprocessingJobs"
-        for job_group_temp in job_group_dict:
-            job_group_dir = create_dir(jobGroupsPreprocDir + "/job_group_" + job_group_temp)
-            if options.preprocDir:
-                difPreproc_job_group_dir = difPreprocJobGroupsPreprocDir + "/job_group_" + job_group_temp
-            #print("\n\n\ntest0\n\n\n")
-            #print(job_group_dict[job_group_temp].keys())
-            for preproc_job in job_group_dict[job_group_temp]:
-                #print("\n\n\ntest1\n\n\n")
-                #print("preproc_job")
-                #print(preproc_job)
-                #print("job_group")
-                #print(job_group_temp)
-                #print("test2")
-                preproc_job_dir = create_dir(job_group_dir + "/preproc_job_" + str(preproc_job))
-                preprocInputDir = create_dir(preproc_job_dir + "/preprocInput")
-                job_group_dict[job_group_temp][preproc_job]["preprocInputDir"] = preprocInputDir
-                preprocOutputDir = create_dir(preproc_job_dir + "/preprocOutput")
-                if options.preprocDir:
-                    difPreprocJobDir = difPreproc_job_group_dir + "/preproc_job_" + str(preproc_job)
-                    difPreprocOutputDir = difPreprocJobDir + "/preprocOutput"
-                job_group_dict[job_group_temp][preproc_job]["preprocParams"]["outputfiledir"] = preprocOutputDir + "/"
-                print("Fix line below, redundant with above line")
-                job_group_dict[job_group_temp][preproc_job]["outputfiledir"] = preprocOutputDir
-
-                # write preproc parameter files for job groups
-                tempDict = {}
-                tempDict = load_default_dict(tempDict, job_group_dict[job_group_temp][preproc_job]["preprocParams"])
-                if "constants" in jobs:
-                    tempDict = load_default_dict(tempDict, jobs["constants"]["preprocParams"])
-                outputName = "preprocParams.txt"
-                buildPreprocParamFile(tempDict, preprocInputDir + "/" + outputName)
-                #print("\n\n\nTracking job here\n\n\n")
-                #print(job_group_dict[job_group_temp][preproc_job]["jobs"])
-                for job in job_group_dict[job_group_temp][preproc_job]["jobs"]:
-                    jobs[job]["grandStochtrackParams"]["params"]["inmats"] = preprocOutputDir + "/map"
-                    if options.preprocDir:
-                        jobs[job]["grandStochtrackParams"]["params"]["inmats"] = difPreprocOutputDir + "/map"
-                    preprocJobDict[job] = [job_group_temp, preproc_job]
-        job_group_dict["job_tracker"] = preprocJobDict
-
+# find frame files
+for tempJob in set(H1_jobs):
+    print("Finding frames for job " + str(tempJob) + " for H1")
+    tempJobData = jobDataDict[str(tempJob)]
+    if anteproc_H["doDetectorNoiseSim"] == "false":
+        temp_frames, quit_program = create_frame_file_list("H1_LDAS_C02_L2", tempJobData[0], tempJobData[1], "H", quit_program)
+        quit_program = create_cache_and_time_file(temp_frames, "H",tempJob,cacheDir,quit_program, archived_frames_okay = options.archived_frames_okay)
+    else:
+        quit_program = create_fake_cache_and_time_file(tempJobData[0], tempJobData[1], "H", tempJob, fakeCacheDir, quit_program)
+for tempJob in set(L1_jobs):
+    print("Finding frames for job " + str(tempJob) + " for L1")
+    tempJobData = jobDataDict[str(tempJob)]
+    if anteproc_L["doDetectorNoiseSim"] == "false":
+        temp_frames, quit_program = create_frame_file_list("L1_LDAS_C02_L2", tempJobData[0], tempJobData[1], "L", quit_program)
+        quit_program = create_cache_and_time_file(temp_frames, "L",tempJob,cacheDir,quit_program, archived_frames_okay = options.archived_frames_okay)
+    else:
+        quit_program = create_fake_cache_and_time_file(tempJobData[0], tempJobData[1], "L", tempJob, fakeCacheDir, quit_program)
 # write preproc parameter files for each job
 if not quit_program:
+    print("Saving grand_stochtrack paramter files")
     for job in jobs:
         if job != "constants":
-            if not options.groupedPreprocessing:
-                tempDict = {}
-                #tempDict.update(jobs[job]["preprocParams"])
-                #if "constants" in jobs: # better way to handle this?
-                 #   tempDict.update(jobs["constants"]["preprocParams"])
-                #tempDict.update(jobs[job]["preprocParams"])
-                tempDict = load_default_dict(tempDict, jobs[job]["preprocParams"])
-                if "constants" in jobs:
-                    tempDict = load_default_dict(tempDict, jobs["constants"]["preprocParams"])
-                outputName = "preprocParams.txt"
-                buildPreprocParamFile(tempDict, jobs[job]["preprocInputDir"] + "/" + outputName)
+            jobs[job]["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
+            # write stochtrack parameter files for each job
+            jobs[job]['grandStochtrackParams']['params'] = load_default_dict(jobs[job]['grandStochtrackParams']['params'] , defaultDictionary)
+            print("The way this following line is done needs to be reviewed.")
+            jobs[job]['grandStochtrackParams'] = load_default_dict(jobs[job]['grandStochtrackParams'], jobs["constants"]['grandStochtrackParams'])
 
-            # put output directories in grand_stochtrack dictionary
+            # new for loop to handle possible multiple job group versions due to variable parameters
+            for temp_index in range(len(jobs[job]["plotDir"])):
+                temp_number = temp_index+1
+                if "varying_injection_start" in jobs["constants"]:
+                    temp_suffix = "_v" + str(temp_number) + "_" + job
+                else:
+                    temp_suffix = "_v" + str(temp_number)
+
+                # put output directories in grand_stochtrack dictionary
+                jobs[job]["grandStochtrackParams"]["params"]["plotdir"] = jobs[job]["plotDir"][temp_index] + "/"
+                jobs[job]["grandStochtrackParams"]["params"]["outputfilename"] = jobs[job]["grandstochtrackOutputDir"][temp_index] + "/map"
+                jobs[job]["grandStochtrackParams"]["params"]["ofile"] = jobs[job]["grandstochtrackOutputDir"][temp_index] + "/bknd"
+                if "lonetrack" in jobs["constants"]["grandStochtrackParams"]["params"]["stochtrack"]:
+                    if jobs["constants"]["grandStochtrackParams"]["params"]["stochtrack"]["lonetrack"] == 1:
+                        temp_directory = create_dir(jobs[job]["grandStochtrackParams"]["params"]["plotdir"]+"tmp")
+                        jobs[job]["grandStochtrackParams"]["params"]["lonetrackdir"] = temp_directory + "/"
+
+                if multiple_job_group_version:
+                    base_inmat1 = jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats1"]
+                    base_inmat2 = jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats2"]
+                    jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats1"] = base_inmat1 + temp_suffix
+                    jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats2"] = base_inmat2 + temp_suffix
+
+                sio.savemat(jobs[job]["stochtrackInputDir"][temp_index] + "/" + "params.mat", jobs[job]["grandStochtrackParams"])
+
+                if multiple_job_group_version:
+                    jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats1"] = base_inmat1
+                    jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats2"] = base_inmat2
+
+            """# put output directories in grand_stochtrack dictionary
             jobs[job]["grandStochtrackParams"]["params"]["plotdir"] = jobs[job]["plotDir"] + "/"
             jobs[job]["grandStochtrackParams"]["params"]["outputfilename"] = jobs[job]["grandstochtrackOutputDir"] + "/map"
-#            jobs[job]["grandStochtrackParams"]["params"]["jobsFile"] = options.jobFile
             jobs[job]["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
-            if not options.groupedPreprocessing:
-                jobs[job]["grandStochtrackParams"]["params"]["inmats"] = jobs[job]["preprocOutputDir"] + "/map"
-                if options.preprocDir:
-                    jobs[job]["grandStochtrackParams"]["params"]["inmats"] = jobs[job]["difPreprocOutputDir"] + "/map"
             jobs[job]["grandStochtrackParams"]["params"]["ofile"] = jobs[job]["grandstochtrackOutputDir"] + "/bknd"
 
-            # write start and end times
- #           jobs[job]["grandStochtrackParams"]["params"]["hstart"] =
-#            jobs[job]["grandStochtrackParams"]["params"]["hend"] =
-
             # write stochtrack parameter files for each job
-            #jobDictionary = load_default_dict(jobs[job]['params'] , defaultDictionary)
             jobs[job]['grandStochtrackParams']['params'] = load_default_dict(jobs[job]['grandStochtrackParams']['params'] , defaultDictionary)
             # the way this following line is done needs to be reviewed.
             jobs[job]['grandStochtrackParams'] = load_default_dict(jobs[job]['grandStochtrackParams'], jobs["constants"]['grandStochtrackParams'])
-            # write matrix file
-            #print(jobs[job].keys())
-            #for key in jobs[job]:
-            #    if isinstance(jobs[job][key], dict):
-            #        print("dictionary found")
-            #        print(key)
-            #        print(jobs[job][key].keys())
-#                    print(jobs[job][key])
-            if "preprocJobs" not in jobs[job]:
-                print("\nQuitting Program: 'job' not specified for " + job + ". Please specify job then try\nagain.\n\n")
-                quit_program = True
-            sio.savemat(jobs[job]["stochtrackInputDir"] + "/" + "params.mat", jobs[job]["grandStochtrackParams"])
+            sio.savemat(jobs[job]["stochtrackInputDir"] + "/" + "params.mat", jobs[job]["grandStochtrackParams"])"""
 
 # order plots by job
-#jobDirs = [job for job in jobs]
 
+# This line likely needs fixing if it's going to work with the variable parameters. otherwise it's fine.
 jobTempDict = dict((int(job[job.index("_")+1:]),{"job" : job, "job dir" : "job_group_" + jobs[job]["job_group"] + "/" + job}) for job in [x for x in jobs if x != "constants"])
 
 if options.burstegard:
@@ -607,13 +510,13 @@ outFile = "pageDisplayTest.html"
 
 jobNumOrder = [jobNum for jobNum in jobTempDict]
 jobNumOrder.sort()
-#jobOrder = [jobTempDict[jobNum] for jobNum in jobNumOrder]
 jobOrder = [jobTempDict[jobNum]["job"] for jobNum in jobNumOrder]
 jobOrderWeb = [jobTempDict[jobNum]["job dir"] for jobNum in jobNumOrder]
 
 #webGen.make_display_page(directory, saveDir, subDirList, subSubDir, plotTypeList, plotTypeDict, outputFileName)
 print('DEBUG NOTE: Maybe figure out how to variablize "grandstochtrackOutput/plots" in next line?')
 if not quit_program:
+    print("Creating webpage")
     webGen.make_display_page("jobs", baseDir, jobOrderWeb, "grandstochtrackOutput/plots", plotTypeList, plotTypeDict, outFile)
 
 # build DAGs
@@ -626,16 +529,14 @@ if not quit_program:
     else:
         extract_from_gpu = False
     extract_from_gpu = options.extract_from_gpu
-    create_anteproc_dag(jobs, preprocExecutable, grandStochtrackExecutable, matlabMatrixExtractionExectuable, dagDir, shellPath, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, job_group_preproc = job_group_dict, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir)
+    if "singletrack" in jobs["constants"]["grandStochtrackParams"]["params"]["stochtrack"]:
+        do_singletrack = jobs["constants"]["grandStochtrackParams"]["params"]["stochtrack"]["singletrack"]["doSingletrack"]
+    else:
+        do_singletrack = False
+    print("Creating dag and sub files")
+    create_anteproc_dag_v6(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, shellPath, newJobPath, H1_jobs, L1_jobs, anteprocJobs, multiple_job_group_version, quit_program, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir, do_singletrack = do_singletrack)
 
 print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
-
-if options.groupedPreprocessing:
-    print("Saving preproc job dictionary.")
-
-    with open(baseDir + "/preprocJobTracker.txt", "w") as outfile:
-        output_text = json.dumps(job_group_dict["job_tracker"], sort_keys = True, indent = 4)
-        outfile.write(output_text)
 
 # create webpage
 
