@@ -94,48 +94,27 @@ quit_program = False
 # can adjust path from relative to absolute here (done above?)
 configPath = options.configFile
 jobPath = options.jobFile
-#preprocJobPath = options.preprocJobFile
+
 # default dictionary json path
 defaultDictionaryPath = "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/defaultStochtrack.json"
-anteprocDefault = "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/anteproc_defaults.txt"
-#STAMP_setup_script = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/test/stamp_setup.sh"
-#STAMP_setup_script = "/home/quitzow/STAMP/STAMP_8_11_2015/stamp2/test/stamp_setup.sh"
-#STAMP_setup_script = "/home/quitzow/STAMP/STAMP_9_14_2015/stamp2/test/stamp_setup.sh"
-#STAMP_setup_script = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/test/stamp_setup.sh"
-STAMP_setup_script = "/home/quitzow/STAMP/STAMP_rough_working_version/stamp2/test/stamp_setup.sh"
-# set other defaults this way too instead of definining them inside the preprocSupportLib.py file
 
-#defaultDictionaryPath = "/Users/Quitzow/Desktop/Magnetar Research/STAMP Condor Related/PythonWrapper/defaultBase3.txt"
+# path to file with anteproc defaults
+anteprocDefault = "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/anteproc_defaults.txt"
+
+# STAMP Matlab path setup script
+STAMP_setup_script = "/home/quitzow/STAMP/STAMP_4_18_2016/stamp2/test/stamp_setup.sh"
 shellPath = "#!/bin/bash"
 
 # paths to executables
-#preprocExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/preproc/preproc"
-#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_2_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
-#preprocExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/preproc/preproc"
-#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_5_20_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
-#anteprocExecutable = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/anteproc/anteproc"
-#anteprocExecutable = "/home/quitzow/STAMP/STAMP_8_11_2015/stamp2/compiledScripts/anteproc/anteproc"
-#anteprocExecutable = "/home/quitzow/STAMP/STAMP_9_14_2015/stamp2/compiledScripts/anteproc/anteproc"
-#anteprocExecutable = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/compiledScripts/anteproc/anteproc"
-anteprocExecutable = "/home/quitzow/STAMP/STAMP_rough_working_version/stamp2/compiledScripts/anteproc/anteproc"
-#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/grand_stochtrack/grand_stochtrack"
-#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
-#grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_6_21_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
-#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_8_11_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
-#grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_8_11_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
-#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_9_14_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
-#grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_9_14_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
-#grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
-#grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_9_27_2015/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
-grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_rough_working_version/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
-grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_rough_working_version/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
-
+anteprocExecutable = "/home/quitzow/STAMP/STAMP_4_18_2016/stamp2/compiledScripts/anteproc/anteproc"
+grandStochtrackExecutable = "/home/quitzow/STAMP/STAMP_4_18_2016/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack"
+grandStochtrackExecutableNoPlots = "/home/quitzow/STAMP/STAMP_4_18_2016/stamp2/compiledScripts/grand_stochtrack_fast/grand_stochtrack_nojvm"
+# matlabMatrixExtractionExectuable can most likely be removed in a future version assuming newer versions of scipy are used which can properly parse .mat files
 matlabMatrixExtractionExectuable = "/home/quitzow/GIT/Development_Branches/MatlabExecutableDuctTape/getSNRandCluster"
 
 # check for minimum commands line arguments to function
 if not options.configFile or not options.outputDir or not options.jobFile:
-    print("\nMissing arguments: please specify at least a configuration file, a \
-job file and \nan output plot directory to run this program.\n\n")
+    print("\nMissing arguments: please specify at least a configuration file, a job file and \nan output plot directory to run this program.\n\n")
     quit_program = True
 else:
     quit_program = False
