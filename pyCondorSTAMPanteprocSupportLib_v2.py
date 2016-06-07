@@ -670,8 +670,8 @@ def make_file_path_absolute(file_path):
     
     if file_path[0:2] == "./":
         absolute_path = getcwd() + file_path[1:]
-    elif options.configFile[0] != "/":
-        absolute_path = getcwd() + "/" + file_path[1:]
+    elif file_path[0] != "/":
+        absolute_path = getcwd() + "/" + file_path
     else:
         absolute_path = file_path
     
