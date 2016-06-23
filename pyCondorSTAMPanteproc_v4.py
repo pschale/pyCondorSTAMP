@@ -343,15 +343,15 @@ if jobs['constants']['grandStochtrackParams']['params']['savePlots']:
     write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutable, STAMP_setup_script)
 else:
     write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutableNoPlots, STAMP_setup_script)
-os.chmod(grandStochtrack_script_file, 0744)
+os.chmod(grandStochtrack_script_file, 0o744)
 
 matlabMatrixExtractionExectuable_script_file = dagDir + "/matlab_matrix_extraction.sh"
 write_grandstochtrack_bash_script(matlabMatrixExtractionExectuable_script_file, matlabMatrixExtractionExectuable, STAMP_setup_script)
-os.chmod(matlabMatrixExtractionExectuable_script_file, 0744)
+os.chmod(matlabMatrixExtractionExectuable_script_file, 0o744)
 
 anteprocExecutable_script_file = dagDir + "/anteproc.sh"
 write_anteproc_bash_script(anteprocExecutable_script_file, anteprocExecutable, STAMP_setup_script)
-os.chmod(anteprocExecutable_script_file, 0744)
+os.chmod(anteprocExecutable_script_file, 0o744)
 
 # If relative injection value set, override any existing injection time with calculated relative injection time.
 
