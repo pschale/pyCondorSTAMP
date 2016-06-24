@@ -55,7 +55,7 @@ if not injection_bool:
 
 
 #load default file
-inputFileData = readFile(default_config_file)
+inputFileData = readFile(make_file_path_absolute(default_config_file))
 inputFileString = "\n".join(" ".join(x for x in line) for line in inputFileData)
 
 triggerIndex = triggers.index(triggerNumber)
