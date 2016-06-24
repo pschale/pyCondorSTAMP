@@ -58,13 +58,7 @@ if not injection_bool:
 inputFileData = readFile(make_file_path_absolute(default_config_file))
 inputFileString = "\n".join(" ".join(x for x in line) for line in inputFileData)
 
-triggerIndex = triggers.index(triggerNumber)
-triggerTime = triggerTimes[triggerIndex]
 
-
-#job file selection
-jobDirPath = job_dirs_dir + search_type
-jobFile = glueFileLocation(jobDirPath, "sgr_trigger_" + str(triggerNumber) + "_" + search_type + "_jobs.txt")
 
 times = [[int(y) for y in x] for x in readFile(jobFile)]
 
@@ -409,7 +403,7 @@ for [jobIndex1, jobIndex2] in sortedJobPairs:#[jobNum1, jobNum2] in sortedJobPai
         temp_output += "job_group " + str(job_group) + "\n"
         temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])
         text_output += "\n\n" + temp_output
-        
+ 
 saveText(glueFileLocation(outputDir, "config_file.txt"), text_output)
 
 
@@ -427,6 +421,14 @@ saveText(glueFileLocation(outputDir, "config_file.txt"), text_output)
 jobPath = make_file_path_absolute(jobFile)
 configPath = glueFileLocation(outputDir, "config_file.txt")
 outputDir = make_file_path_absolute(outputDir)
+
+verbose = False
+archived_frames_okay = True
+burstegard = False
+all_clusters = False
+restrict_cpus = True
+no_job_retry = False
+
 
 outputDir += "stamp_analysis_anteproc" if outputDir[-1] == "/" else "/stamp_analysis_anteproc"
 baseDir = dated_dir(outputDir)
@@ -483,20 +485,8 @@ anteprocOrder = ["anteproc.loadFiles",
 
 # set job durations
 print("Code currently not set up to handle 'hstart' or 'hstop' individually without the other in specific jobs or 'constants'.")
-if not (options.anteproc_mode or anteproc_grand_stochtrack_values["anteproc.jobFileTimeShift"]):
-    for job in jobs:
-        if (not bool(checkEssentialParameter(jobs[job]["grandStochtrackParams"]["params"], "jobdur"))) and bool(checkEssentialParameter(jobs[job]["grandStochtrackParams"]["params"], "hstart")) and bool(checkEssentialParameter(jobs[job]["grandStochtrackParams"]["params"], "hstop")):
-            startTime = float(jobs[job]["grandStochtrackParams"]["params"]["hstart"])
-            jobs[job]["grandStochtrackParams"]["params"]["hstart"] = startTime
-            endTime = float(jobs[job]["grandStochtrackParams"]["params"]["hstop"])
-            jobs[job]["grandStochtrackParams"]["params"]["hstop"] = endTime
 
-            jobs[job]["grandStochtrackParams"]["jobdur"] = endTime - startTime
-        if bool(checkEssentialParameter(jobs[job]["grandStochtrackParams"]["params"], "jobdur")):
-            jobs[job]["grandStochtrackParams"]["jobdur"] = float(jobs[job]["grandStochtrackParams"]["jobdur"])
-    print("Got a lot of float checks here. May want to either have all the float checks occur here, or maybe make them as the data is loaded.")
-
-if commentsToPrintIfVerbose and options.verbose:
+if commentsToPrintIfVerbose and verbose:
     print(commentsToPrintIfVerbose)
 
 # TODO: Warnings and error catching involving default job number and undefined job numbers
@@ -553,10 +543,10 @@ used_seeds += [jobs["constants"]["anteprocLjob_seeds"][x] for x in jobs["constan
     # support directory
 supportDir = create_dir(baseDir + "/input_files")
     # copy input files to this directory
-copy_input_file(options.configFile, supportDir)#, options.configFile)
-newJobPath = copy_input_file(options.jobFile, supportDir)#, options.jobFile)
-if options.anteproc_mode:
-    newAdjustedJobPath = adjust_job_file(options.jobFile, supportDir, jobs)
+copy_input_file(configPath, supportDir)
+newJobPath = copy_input_file(jobPath, supportDir)
+
+newAdjustedJobPath = adjust_job_file(jobPath, supportDir, jobs)
 
     # create directory to host all of the jobs. maybe drop the cachefiles in here too?
 jobsBaseDir = create_dir(baseDir + "/jobs")
@@ -571,62 +561,60 @@ else:
     fakeCacheDir = create_dir(baseDir + "/fake_cache_files") + "/"
     cacheDir = None
 
-if options.anteproc_mode:
-    print("Creating anteproc directory and input files")
-    anteproc_dir = create_dir(baseDir + "/anteproc_data")
+print("Creating anteproc directory and input files")
+anteproc_dir = create_dir(baseDir + "/anteproc_data")
 
-    if cacheDir:
-        anteproc_H, anteproc_L = anteproc_setup(anteproc_dir, anteprocDefaultData, jobs, cacheDir)
-    else:
-        anteproc_H, anteproc_L = anteproc_setup(anteproc_dir, anteprocDefaultData, jobs, fakeCacheDir)
-    multiple_waveforms = False
-
-    if "stampinj" in anteproc_H and "stampinj" in anteproc_L:
-        if len(waveforms) > 0:
-            multiple_waveforms = True
-        if anteproc_H["stampinj"] != anteproc_L["stampinj"]:
-            raise pyCondorSTAMPanteprocError("Warning, injections settings in detectors do not match, one has 'stampinj = true' and one has 'stampinj = false'. Please edit code for further capabilities of this behavior is intentional.")
-    elif "stampinj" in anteproc_H or "stampinj" in anteproc_L:
-        raise pyCondorSTAMPanteprocError("Warning, injections settings in detectors do not match, one has 'stampinj' and one does not. Please edit code for further capabilities of this behavior is intentional.")
-    anteprocJobDictTracker = createPreprocessingJobDependentDict(jobs)
-    if "varying_injection_start" in jobs["constants"]:
-        frontStartTime = jobs["constants"]["varying_injection_start"][0]
-        backStartTime = jobs["constants"]["varying_injection_start"][1]
-        injectionStartTimes = generate_random_start_times(jobs, varyingAnteprocVariables, frontStartTime, backStartTime)
-    else:
-        injectionStartTimes = None
-
-    anteprocJobs, used_seeds, organizedSeeds = anteproc_job_specific_setup(H1_jobs, "H1",
-            anteproc_dir, jobs, anteproc_H, used_seeds, organizedSeeds, multiple_waveforms, waveforms, anteprocDefaultData,
-            anteprocJobs, varyingAnteprocVariables, anteprocJobDictTracker = anteprocJobDictTracker, injectionStartTimes = injectionStartTimes)
-
-    anteprocJobs, used_seeds, organizedSeeds = anteproc_job_specific_setup(L1_jobs, "L1",
-            anteproc_dir, jobs, anteproc_L, used_seeds, organizedSeeds, multiple_waveforms, waveforms, anteprocDefaultData,
-            anteprocJobs, varyingAnteprocVariables, anteprocJobDictTracker = anteprocJobDictTracker, injectionStartTimes = injectionStartTimes)
-
-    if jobs["constants"]["anteprocParamsH"]["doDetectorNoiseSim"] == "true" or jobs["constants"]["anteprocParamsL"]["doDetectorNoiseSim"] == "true":
-        with open(anteproc_dir + "/seeds_for_simulated_data.txt", "w") as outfile:
-            json.dump(organizedSeeds, outfile, sort_keys = True, indent = 4)
-    if "num_jobs_to_vary" in varyingAnteprocVariables:
-        print("\nVariable parameter option active.\n")
-        with open(anteproc_dir + "/varying_parameters_input_record.txt", "w") as outfile:
-            json.dump(varyingAnteprocVariables, outfile, sort_keys = True, indent = 4)
-    else:
-        print("\nVariable parameter option not active.\nIf it's supposed to be active, add 'anteproc_varying_param num_jobs_to_vary' option to input parameter file.\n")
-
-    anteproc_grand_stochtrack_values["anteproc.inmats1"] = anteproc_dir + "/H-H1_map"
-    anteproc_grand_stochtrack_values["anteproc.inmats2"] = anteproc_dir + "/L-L1_map"
-    anteproc_grand_stochtrack_values["anteproc.jobfile"] = newAdjustedJobPath
-
-    for job in jobs:
-            #"adjust inmats entries here maybe if needed? yes."
-        for anteprocParameter in anteprocOrder:
-            if (anteprocParameter == "anteproc.inmats1" or anteprocParameter == "anteproc.inmats2") and "injection_tags" in jobs[job]:
-                jobs[job]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[job]["grandStochtrackParams"]["params"], anteprocParameter, anteproc_grand_stochtrack_values[anteprocParameter] + "_" + jobs[job]["injection_tags"])
-            else:
-                jobs[job]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[job]["grandStochtrackParams"]["params"], anteprocParameter, anteproc_grand_stochtrack_values[anteprocParameter])
+if cacheDir:
+    anteproc_H, anteproc_L = anteproc_setup(anteproc_dir, anteprocDefaultData, jobs, cacheDir)
 else:
-    anteproc_dir = None
+    anteproc_H, anteproc_L = anteproc_setup(anteproc_dir, anteprocDefaultData, jobs, fakeCacheDir)
+multiple_waveforms = False
+
+if "stampinj" in anteproc_H and "stampinj" in anteproc_L:
+    if len(waveforms) > 0:
+        multiple_waveforms = True
+    if anteproc_H["stampinj"] != anteproc_L["stampinj"]:
+        raise pyCondorSTAMPanteprocError("Warning, injections settings in detectors do not match, one has 'stampinj = true' and one has 'stampinj = false'. Please edit code for further capabilities of this behavior is intentional.")
+elif "stampinj" in anteproc_H or "stampinj" in anteproc_L:
+    raise pyCondorSTAMPanteprocError("Warning, injections settings in detectors do not match, one has 'stampinj' and one does not. Please edit code for further capabilities of this behavior is intentional.")
+anteprocJobDictTracker = createPreprocessingJobDependentDict(jobs)
+if "varying_injection_start" in jobs["constants"]:
+    frontStartTime = jobs["constants"]["varying_injection_start"][0]
+    backStartTime = jobs["constants"]["varying_injection_start"][1]
+    injectionStartTimes = generate_random_start_times(jobs, varyingAnteprocVariables, frontStartTime, backStartTime)
+else:
+    injectionStartTimes = None
+
+anteprocJobs, used_seeds, organizedSeeds = anteproc_job_specific_setup(H1_jobs, "H1",
+        anteproc_dir, jobs, anteproc_H, used_seeds, organizedSeeds, multiple_waveforms, waveforms, anteprocDefaultData,
+        anteprocJobs, varyingAnteprocVariables, anteprocJobDictTracker = anteprocJobDictTracker, injectionStartTimes = injectionStartTimes)
+
+anteprocJobs, used_seeds, organizedSeeds = anteproc_job_specific_setup(L1_jobs, "L1",
+        anteproc_dir, jobs, anteproc_L, used_seeds, organizedSeeds, multiple_waveforms, waveforms, anteprocDefaultData,
+        anteprocJobs, varyingAnteprocVariables, anteprocJobDictTracker = anteprocJobDictTracker, injectionStartTimes = injectionStartTimes)
+
+if jobs["constants"]["anteprocParamsH"]["doDetectorNoiseSim"] == "true" or jobs["constants"]["anteprocParamsL"]["doDetectorNoiseSim"] == "true":
+    with open(anteproc_dir + "/seeds_for_simulated_data.txt", "w") as outfile:
+        json.dump(organizedSeeds, outfile, sort_keys = True, indent = 4)
+if "num_jobs_to_vary" in varyingAnteprocVariables:
+    print("\nVariable parameter option active.\n")
+    with open(anteproc_dir + "/varying_parameters_input_record.txt", "w") as outfile:
+        json.dump(varyingAnteprocVariables, outfile, sort_keys = True, indent = 4)
+else:
+    print("\nVariable parameter option not active.\nIf it's supposed to be active, add 'anteproc_varying_param num_jobs_to_vary' option to input parameter file.\n")
+
+anteproc_grand_stochtrack_values["anteproc.inmats1"] = anteproc_dir + "/H-H1_map"
+anteproc_grand_stochtrack_values["anteproc.inmats2"] = anteproc_dir + "/L-L1_map"
+anteproc_grand_stochtrack_values["anteproc.jobfile"] = newAdjustedJobPath
+
+for job in jobs:
+        #"adjust inmats entries here maybe if needed? yes."
+    for anteprocParameter in anteprocOrder:
+        if (anteprocParameter == "anteproc.inmats1" or anteprocParameter == "anteproc.inmats2") and "injection_tags" in jobs[job]:
+            jobs[job]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[job]["grandStochtrackParams"]["params"], anteprocParameter, anteproc_grand_stochtrack_values[anteprocParameter] + "_" + jobs[job]["injection_tags"])
+        else:
+            jobs[job]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[job]["grandStochtrackParams"]["params"], anteprocParameter, anteproc_grand_stochtrack_values[anteprocParameter])
+
 
     # cycle through jobs
 print("Creating job directories")
@@ -700,7 +688,7 @@ for tempJob in set(H1_jobs):
     tempJobData = jobDataDict[str(tempJob)]
     if anteproc_H["doDetectorNoiseSim"] == "false":
         temp_frames = create_frame_file_list("H1_HOFT_C01", tempJobData[0], tempJobData[1], "H")
-        create_cache_and_time_file(temp_frames, "H",tempJob,cacheDir, archived_frames_okay = options.archived_frames_okay)
+        create_cache_and_time_file(temp_frames, "H",tempJob,cacheDir, archived_frames_okay = archived_frames_okay)
     else:
         create_fake_cache_and_time_file(tempJobData[0], tempJobData[1], "H", tempJob, fakeCacheDir)
 for tempJob in set(L1_jobs):
@@ -708,7 +696,7 @@ for tempJob in set(L1_jobs):
     tempJobData = jobDataDict[str(tempJob)]
     if anteproc_L["doDetectorNoiseSim"] == "false":
         temp_frames = create_frame_file_list("L1_HOFT_C01", tempJobData[0], tempJobData[1], "L")
-        create_cache_and_time_file(temp_frames, "L",tempJob,cacheDir, archived_frames_okay = options.archived_frames_okay)
+        create_cache_and_time_file(temp_frames, "L",tempJob,cacheDir, archived_frames_okay = archived_frames_okay)
     else:
         create_fake_cache_and_time_file(tempJobData[0], tempJobData[1], "L", tempJob, fakeCacheDir)
         
@@ -756,10 +744,10 @@ for job in jobs:
 # This line likely needs fixing if it's going to work with the variable parameters. otherwise it's fine.
 jobTempDict = dict((int(job[job.index("_")+1:]),{"job" : job, "job dir" : "job_group_" + jobs[job]["job_group"] + "/" + job}) for job in [x for x in jobs if x != "constants"])
 
-if options.burstegard:
+if burstegard:
     plotTypeList = ["SNR", "Largest Cluster", "All Clusters", "sig map", "y map", "Xi snr map"]
     plotTypeDict = {"SNR" : "snr.png", "Largest Cluster" : "large_cluster.png", "All Clusters": "all_clusters.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
-elif options.all_clusters:
+elif all_clusters:
     plotTypeList = ["SNR", "Loudest Cluster (stochtrack)", "Largest Cluster (burstegard)", "All Clusters (burstegard)", "sig map", "y map", "Xi snr map"]
     plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster (stochtrack)" : "rmap.png", "Largest Cluster (burstegard)" : "large_cluster.png", "All Clusters (burstegard)": "all_clusters.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
 else:
@@ -782,17 +770,16 @@ webGen.make_display_page("jobs", baseDir, jobOrderWeb, "grandstochtrackOutput/pl
 # preproc DAG
 # build submission file
 doGPU = jobs["constants"]["grandStochtrackParams"]["params"]["doGPU"]
-if doGPU and not options.burstegard:
+if doGPU and not burstegard:
     extract_from_gpu = True
 else:
     extract_from_gpu = False
-extract_from_gpu = options.extract_from_gpu
 if "singletrack" in jobs["constants"]["grandStochtrackParams"]["params"]["stochtrack"]:
     do_singletrack = jobs["constants"]["grandStochtrackParams"]["params"]["stochtrack"]["singletrack"]["doSingletrack"]
 else:
     do_singletrack = False
 print("Creating dag and sub files")
-create_anteproc_dag_v6(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, newJobPath, H1_jobs, L1_jobs, anteprocJobs, multiple_job_group_version, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir, do_singletrack = do_singletrack)
+create_anteproc_dag_v6(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, newJobPath, H1_jobs, L1_jobs, anteprocJobs, multiple_job_group_version, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = restrict_cpus, no_job_retry = no_job_retry, extract_from_gpu = extract_from_gpu, do_singletrack = do_singletrack)
 
 print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
 

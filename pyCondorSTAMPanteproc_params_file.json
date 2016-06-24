@@ -10,7 +10,7 @@
 
 
 
-"jobFile" : "NEED/PATH/HERE",
+"jobFile" : "example_O1_job_file.txt",
 "triggerNumber" : 1001,
 "triggerTime" : 1132012817,
 "initial_RA" : 18.01093806,
