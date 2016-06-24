@@ -13,7 +13,7 @@ import random
 import json
 
 
-input_params = json.load(read("pyCondorSTAMPanteproc_params_file.txt"))
+input_params = json.load(open("pyCondorSTAMPanteproc_params_file.txt"))
 
 #this loads all of the input parameters into local variables.  It's kind of magic
 for key, val in input_params:
