@@ -18,6 +18,11 @@ input_params = json.load(open("pyCondorSTAMPanteproc_params_file.json"))
 #this loads all of the input parameters into local variables.  It's kind of magic
 for key, val in input_params.iteritems():
     exec(key + '=val')
+    
+onsource = search_type == "onsource"
+pseudo_onsource = search_type == "pseudo_onsource"
+upper_limits = search_type == "upper_limits"
+offsource = search_type == "offsource"
 
 if injection_bool and not onTheFly and not os.isfile(injection_file):
     pyCondorSTAMPanteprocError("Injection file does not exist.  Make onTheFly true if you do not wish to specify an injection file")
