@@ -330,7 +330,7 @@ if constant_f_window:
     inputFileString += "\n\ngrandStochtrack fmin 40"
     inputFileString += "\ngrandStochtrack fmax 2500"
 if constant_f_mask:
-    inputFileString += "\n\ngrandStochtrack StampFreqsToRemove [" + ", ".join(str(x) for x in O1_lines_to_cut) + "]"
+    inputFileString += "\n\ngrandStochtrack StampFreqsToRemove [" + ", ".join(str(x) for x in lines_to_cut) + "]"
 
 if remove_cluster:
     inputFileString += "\n\ngrandStochtrack maskCluster true"
