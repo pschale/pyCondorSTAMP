@@ -2,7 +2,7 @@
 
 "outputDir" : "/home/paul.schale/public_html/STAMP_outputs",
 
-"default_config_file" : "NEED/PATH/HERE",
+"default_config_file" : "InputFileBase_v6_job_shift.txt",
 "defaultDictionaryPath" : "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/defaultStochtrack.json",
 "anteprocDefault" : "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/anteproc_defaults.txt",
 "STAMP2_installation_dir" : "/home/paul.schale/STAMP/stamp2/",
