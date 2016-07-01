@@ -13,8 +13,11 @@
 "jobFile" : "example_O1_job_file.txt",
 "triggerNumber" : 1001,
 "triggerTime" : 1132012817,
-"initial_RA" : 18.01093806,
-"declination" : -20.0110694,
+"RA" : 18.01093806,
+"DEC" : -20.0110694,
+
+"relative_direction" : true,
+"_comment" : "Setting the above to true will make the analysis look at the relative sky position that is given by the absolute coordinates at the trigger time"
 
 "lines_to_cut" : [52, 53, 57, 58, 59, 60, 61, 62, 63, 64, 85, 108, 119, 120, 121, 178, 179, 180, 181, 182, 239, 240, 241, 300, 360, 372, 400, 404, 480, 1380, 1560, 1740],
 

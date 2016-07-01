@@ -12,8 +12,8 @@ import scipy.io as sio
 import random
 import json
 
-
-input_params = json.load(open("pyCondorSTAMPanteproc_params_file.json"))
+params_file_path = "pyCondorSTAMPanteproc_params_file.json"
+input_params = json.load(open(params_file_path))
 
 #this loads all of the input parameters into local variables.  It's kind of magic
 for key, val in input_params.iteritems():
@@ -47,12 +47,15 @@ if injection_random_start_time:
 if onsource:
     injection_bool = False
     simulated = False
+    relative_direction = False
+    
+if pseudo_onsource:
+    relative_directoin = False
 
 if not injection_bool:
     onTheFly = False
     polarization_smaller_response = False
     injection_random_start_time = False
-    relativeInjectionDirection = False
     include_variations = False
 
 
@@ -145,9 +148,9 @@ job_group = 1
 
 params = {}
 
-if not relativeInjectionDirection:
-    params["preproc stamp.decl"] = declination
-    params["grandStochtrack dec"] = declination
+if not relative_direction:
+    params["granchStochtrack ra"] = RA
+    params["grandStochtrack dec"] = DEC
 
 if injection_bool and not onTheFly:
     params["preproc stamp.file"] = injection_file
@@ -233,8 +236,7 @@ tempNumbersL = list(set([x[1] for x in sortedJobPairs])) #job indices
 for H1_job_index in tempNumbersH:
     H1_job = H1_job_index + 1
     job1StartTime = times[H1_job_index][1]
-    sidereal_day_length = 23.9344696
-    temp_RA = (initial_RA +  (24/sidereal_day_length)*(job1StartTime - triggerJobStart)/3600) % 24
+
     if long_pixel or burstegard:
         job1_hstart = job1StartTime + (9-1)*4/2+2
     else:
@@ -243,9 +245,9 @@ for H1_job_index in tempNumbersH:
     job1_hstop = job1_hstart + 1602 if long_pixel or burstegard else job1_hstart + 400
 
     if injection_bool:
-        if not relativeInjectionDirection:
-            inputFileString += "\n\n" + "anteproc_h anteproc_param "+str(H1_job)+" stamp.ra " + str(temp_RA)
-            inputFileString += "\n" + "anteproc_h anteproc_param "+str(H1_job)+" stamp.decl " + str(declination)
+        if not relative_direction:
+            inputFileString += "\n\n" + "anteproc_h anteproc_param " + str(H1_job) + " stamp.ra " + str(RA)
+            inputFileString += "\n" + "anteproc_h anteproc_param " + str(H1_job) + " stamp.decl " + str(DEC)
         elif H1_job == 34:
             inputFileString += "\n\nanteproc_h anteproc_param 34 useReferenceAntennaFactors false"
         else:
@@ -259,8 +261,7 @@ for H1_job_index in tempNumbersH:
 for L1_job_index in tempNumbersL:
     L1_job = L1_job_index + 1
     job1StartTime = times[L1_job_index][1]
-    sidereal_day_length = 23.9344696
-    temp_RA = (initial_RA +  (24/sidereal_day_length)*(job1StartTime - triggerJobStart)/3600) % 24
+
     if long_pixel or burstegard:
         job1_hstart = job1StartTime + (9-1)*4/2+2
     else:
@@ -269,9 +270,9 @@ for L1_job_index in tempNumbersL:
     job1_hstop = job1_hstart + 1602 if long_pixel or burstegard else job1_hstart + 400
     
     if injection_bool:
-        if not relativeInjectionDirection:
-            inputFileString += "\n\n" + "anteproc_l anteproc_param "+str(L1_job)+" stamp.ra " + str(temp_RA)
-            inputFileString += "\n" + "anteproc_l anteproc_param "+str(L1_job)+" stamp.decl " + str(declination)
+        if not relative_direction:
+            inputFileString += "\n\n" + "anteproc_l anteproc_param " + str(L1_job) + " stamp.ra " + str(RA)
+            inputFileString += "\n" + "anteproc_l anteproc_param " + str(L1_job) + " stamp.decl " + str(DEC)
         elif L1_job == 34:
             inputFileString += "\n\nanteproc_l anteproc_param 34 useReferenceAntennaFactors false"
         else:
@@ -309,7 +310,7 @@ anteproc_l stamp.tau """ + str(wave_tau)
         inputFileString += "\n\n" + "\n".join(" ".join(x for x in ["waveform", temp_name, glueFileLocation(waveformDirectory, temp_name + waveformFileExtention)]) for temp_name in waveformFileNames)
 
 
-if relativeInjectionDirection:
+if relative_direction:
 
     refTime = triggerTime - 2
 
@@ -318,12 +319,12 @@ if relativeInjectionDirection:
     inputFileString += "\nanteproc_h referenceGPSTime " + str(refTime)
     inputFileString += "\nanteproc_l referenceGPSTime " + str(refTime)
 
-    inputFileString += "\n\ngrandStochtrack ra " + str(initial_RA)
-    inputFileString += "\ngrandStochtrack dec " + str(declination)
-    inputFileString += "\n\nanteproc_h stamp.ra " + str(initial_RA)
-    inputFileString += "\nanteproc_h stamp.decl " + str(declination)
-    inputFileString += "\n\nanteproc_l stamp.ra " + str(initial_RA)
-    inputFileString += "\nanteproc_l stamp.decl " + str(declination)
+    inputFileString += "\n\ngrandStochtrack ra " + str(RA)
+    inputFileString += "\ngrandStochtrack dec " + str(DEC)
+    inputFileString += "\n\nanteproc_h stamp.ra " + str(RA)
+    inputFileString += "\nanteproc_h stamp.decl " + str(DEC)
+    inputFileString += "\n\nanteproc_l stamp.ra " + str(RA)
+    inputFileString += "\nanteproc_l stamp.decl " + str(DEC)
 
 
 if constant_f_window:
@@ -361,15 +362,12 @@ for [jobIndex1, jobIndex2] in sortedJobPairs:#[jobNum1, jobNum2] in sortedJobPai
         
     job1_hstop = job1_hstart + 1602 if long_pixel or burstegard else job_hstart + 400
 
-    sidereal_day_length = 23.9344696
-    temp_RA = (initial_RA +  (24/sidereal_day_length)*(job1StartTime - triggerJobStart)/3600) % 24
-
-    if injection_bool and not relativeInjectionDirection:
+    if injection_bool and not relative_direction:
         #params["preproc stamp.startGPS"] = int(jobH1StartTime)
-        params["preproc stamp.ra"] = temp_RA
+        params["preproc stamp.ra"] = RA
 
-    if not relativeInjectionDirection:
-        params["grandStochtrack ra"] = temp_RA
+    if not relative_direction:
+        params["grandStochtrack ra"] = RA
 
     if remove_cluster:
         params["grandStochtrack clusterFile"] = source_file_dict[jobIndex1][jobIndex2]
@@ -386,7 +384,7 @@ for [jobIndex1, jobIndex2] in sortedJobPairs:#[jobNum1, jobNum2] in sortedJobPai
         params["preproc doShift2"] = 1
         params["preproc ShiftTime2"] = base_shift + timeShift - 1
 
-    if relativeInjectionDirection:
+    if relative_direction:
         if jobIndex1 == 33:
             params["grandStochtrack useReferenceAntennaFactors"] = "false"
         elif "grandStochtrack useReferenceAntennaFactors" in params:
@@ -549,6 +547,7 @@ used_seeds += [jobs["constants"]["anteprocLjob_seeds"][x] for x in jobs["constan
 supportDir = create_dir(baseDir + "/input_files")
     # copy input files to this directory
 copy_input_file(configPath, supportDir)
+copy_input_file(params_file_path, supportDir)
 newJobPath = copy_input_file(jobPath, supportDir)
 
 newAdjustedJobPath = adjust_job_file(jobPath, supportDir, jobs)
