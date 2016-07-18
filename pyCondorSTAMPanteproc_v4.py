@@ -343,15 +343,15 @@ if jobs['constants']['grandStochtrackParams']['params']['savePlots']:
     write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutable, STAMP_setup_script)
 else:
     write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutableNoPlots, STAMP_setup_script)
-os.chmod(grandStochtrack_script_file, 0744)
+os.chmod(grandStochtrack_script_file, 0o744)
 
 matlabMatrixExtractionExectuable_script_file = dagDir + "/matlab_matrix_extraction.sh"
 write_grandstochtrack_bash_script(matlabMatrixExtractionExectuable_script_file, matlabMatrixExtractionExectuable, STAMP_setup_script)
-os.chmod(matlabMatrixExtractionExectuable_script_file, 0744)
+os.chmod(matlabMatrixExtractionExectuable_script_file, 0o744)
 
 anteprocExecutable_script_file = dagDir + "/anteproc.sh"
 write_anteproc_bash_script(anteprocExecutable_script_file, anteprocExecutable, STAMP_setup_script)
-os.chmod(anteprocExecutable_script_file, 0744)
+os.chmod(anteprocExecutable_script_file, 0o744)
 
 # If relative injection value set, override any existing injection time with calculated relative injection time.
 
@@ -453,7 +453,7 @@ if "singletrack" in jobs["constants"]["grandStochtrackParams"]["params"]["stocht
 else:
     do_singletrack = False
 print("Creating dag and sub files")
-create_anteproc_dag_v6(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, newJobPath, H1_jobs, L1_jobs, anteprocJobs, multiple_job_group_version, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, alternate_preproc_dir = options.preprocDir, do_singletrack = do_singletrack)
+create_anteproc_dag_v6(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, newJobPath, H1_jobs, L1_jobs, anteprocJobs, multiple_job_group_version, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = options.restrict_cpus, no_job_retry = options.no_job_retry, extract_from_gpu = extract_from_gpu, do_singletrack = do_singletrack)
 
 print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
 

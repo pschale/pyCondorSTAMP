@@ -24,16 +24,7 @@ def new_input_file_name(filePath, outputDirectory):
 
 # Helper function to copy input parameter files
 def copy_input_file(filePath, outputDirectory):
-    """if "/" in filePath:
-        reversePath = filePath[::-1]
-        reverseName = reversePath[:reversePath.index("/")]
-        fileName = reverseName[::-1]
-    else:
-        fileName = filePath
-    if outputDirectory[-1] == "/":
-        outputPath = outputDirectory + fileName
-    else:
-        outputPath = outputDirectory + "/" + fileName"""
+
     outputPath = new_input_file_name(filePath, outputDirectory)
     #print(filePath)# debug
     with open(filePath, "r") as infile:
@@ -161,49 +152,24 @@ def nested_dict_entry(dictionary, entry, value, delimeter = "."):
         return dictionary
 
 # Helper function to find frames of specified type during specified time
-def create_frame_file_list(frame_type, start_time, end_time, observatory, quit_program):
-    if quit_program:
-        return None, quit_program
+def create_frame_file_list(frame_type, start_time, end_time, observatory):
+
     # search for file location for a given frame type during specified times
     data_find = ['gw_data_find','-s', start_time, '-e', end_time, '-o',
                  observatory, '--url-type', 'file', '--lal-cache', '--type',
                  frame_type]
-    #print(data_find) #debug
-    #data_find = ['ligo_data_find','-s', start_time, '-e', end_time, '-o',
-    #             observatory, '--url-type', 'file', '--lal-cache', '--type',
-    #             frame_type]
-    #print(" ".join(str(x) for x in data_find))
+
     frame_locations_raw = subprocess.Popen(data_find, stdout = subprocess.PIPE, stderr=subprocess.PIPE).communicate()#[0]
     if frame_locations_raw[1]:
         print(frame_locations_raw[1])
         print("The following shell command caused the above message:")
-        #print(data_find)
-        print(" ".join(data_find))
-        quit_program = True
+        raise pyCondorSTAMPanteprocError(str(frame_locations_raw[1]) + "\nCaused by the following shell command:\n" + " ".join(data_find))
     #frame_locations = frame_locations_raw.split("\n")
     #print(frame_locations_raw)
     frame_locations = [x[x.find("localhost") + len("localhost"):] for x in frame_locations_raw[0].split("\n") if x]
-    """
-    frame_file_list = []
-    all_found = False
-    rest_of_loc = frame_locations_raw[0]
-    while not all_found:
-        if quit_program:
-            break
-        str_pos = rest_of_loc.find("localhost")
-        if str_pos != -1:
-            start_pos = rest_of_loc.find("localhost") + len("localhost")
-            end_pos = rest_of_loc.find("\n")
-            if end_pos != -1:
-                frame_file_list.append(rest_of_loc[start_pos:end_pos])
-                rest_of_loc = rest_of_loc[end_pos+1:]
-            else:
-                frame_file_list.append(rest_of_loc[start_pos:])
-                all_found = True
-        else:
-            all_found = True"""
+
     # create frame list
-    return frame_locations, quit_program
+    return frame_locations
 
 # Helper function to grab time data from frame name
 def frame_start_time(frame_path):
@@ -223,26 +189,17 @@ def frame_start_time(frame_path):
     return frame_time
 
 # Helper function to create a file from the list of frame file locations
-def create_cache_and_time_file(frame_list,observatory,jobNumber,jobCacheDir,quit_program, archived_frames_okay = False):
-    if quit_program:
-        return quit_program
+def create_cache_and_time_file(frame_list,observatory,jobNumber,jobCacheDir, archived_frames_okay = False):
+
     # make list of times
     time_list = [frame_start_time(x) for x in frame_list if x]
     time_string = "\n".join(x for x in time_list)
     # create string to write to file
-#    output_string = ""
-#    output_string = "".join(x + "\n" for x in frame_list)
+
     output_string = "\n".join(x for x in frame_list)
     # create list to hold list of files in archive directory
-#    archived = []
+
     archived = [x for x in frame_list if "archive" in x]
-    # for loop to go through list
-#    for line in frame_list:
- #       if quit_program:
-#            break
-#        output_string += line + "\n"
-#        if "archive" in line:
-#            archived.append(line)
 
     # check data for possibly archived data
     if archived:
@@ -261,33 +218,14 @@ directory? ('y' or 'n'): ")
             continue_program = ask_yes_no("Continue program? ('y' or 'n'): ")
 
             if continue_program == 'n':
-                quit_program = True
-                version_input("\n\nPress 'enter' to end program. ")
+                pyCondorSTAMPanteprocError("Program execution ended")
 
     # create file
-    if not quit_program:
-        modifier = observatory + "." + str(jobNumber) + ".txt"
-        with open(jobCacheDir + "/frameFiles" + modifier, "w") as outfile:
-            outfile.write(output_string)
-        with open(jobCacheDir + "/gpsTimes" + modifier, "w") as outfile:
-            outfile.write(time_string)
-#        file = open(file_name, 'w')
- #       file.write(output_string)
-  #      file.close()
-    return quit_program
-
-def getEssentialParameter(dictionary, parameter, job, quit_program, default_value = None):
-    output = None
-    try:
-        output = dictionary[parameter]
-    except KeyError, e:
-        if default_value:
-            output = default_value
-        else:
-            quit_program = True
-            print("KeyError: parameter " + str(e) + " not in job '" + job + "'.\n\nQuitting Program. Press enter to continue.")
-            version_input("")
-    return output, quit_program
+    modifier = observatory + "." + str(jobNumber) + ".txt"
+    with open(jobCacheDir + "/frameFiles" + modifier, "w") as outfile:
+        outfile.write(output_string)
+    with open(jobCacheDir + "/gpsTimes" + modifier, "w") as outfile:
+        outfile.write(time_string)
 
 def checkEssentialParameter(dictionary, parameter):
     output = None
@@ -298,9 +236,8 @@ def checkEssentialParameter(dictionary, parameter):
     return output
 
 # Helper function to create a file from the list of frame file locations
-def create_fake_cache_and_time_file(start_time, end_time, observatory, jobNumber, jobCacheDir, quit_program):
-    if quit_program:
-        return quit_program
+def create_fake_cache_and_time_file(start_time, end_time, observatory, jobNumber, jobCacheDir):
+
     # calculate job duration
     tempJobDur = str(int(float(end_time) - float(start_time)))
     # create fake frame name and string to write to channel
@@ -308,10 +245,9 @@ def create_fake_cache_and_time_file(start_time, end_time, observatory, jobNumber
     time_string = str(int(start_time)) + "\n"
 
     # create file
-    if not quit_program:
-        modifier = observatory + "." + str(jobNumber) + ".txt"
-        with open(jobCacheDir + "/frameFiles" + modifier, "w") as outfile:
-            outfile.write(output_string)
-        with open(jobCacheDir + "/gpsTimes" + modifier, "w") as outfile:
-            outfile.write(time_string)
-    return quit_program
+    modifier = observatory + "." + str(jobNumber) + ".txt"
+    with open(jobCacheDir + "/frameFiles" + modifier, "w") as outfile:
+        outfile.write(output_string)
+    with open(jobCacheDir + "/gpsTimes" + modifier, "w") as outfile:
+        outfile.write(time_string)
+

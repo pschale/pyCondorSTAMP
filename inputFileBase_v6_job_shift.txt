@@ -197,7 +197,7 @@ grandStochtrack jobNumber 1
 
 % define stochtrack parameters-------------------------------------------------
 % GPU mode
-grandStochtrack doGPU true
+grandStochtrack doGPU false
 grandStochtrack doParallel false
 % multi-core CPU mode
 % other parameters

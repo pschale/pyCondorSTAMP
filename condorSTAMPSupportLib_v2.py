@@ -326,7 +326,7 @@ def create_grand_stochtrack_jobs_v2(job_number, job_dictionary, grand_stochtrack
     return job_relationship, job_number, output_string
 
 # create preproc dag submission files
-def create_anteproc_dag_v6(job_dictionary, grand_stochtrack_executable, matlab_matrix_extraction_executable, anteproc_executable, dag_dir, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_filename_dictionary, multiple_job_group_version, use_gpu = False, restrict_cpus = False, max_anteproc_jobs = 20, max_gs_jobs = 100, max_extract_jobs = 100, job_order = None, no_job_retry = False, extract_from_gpu = False, alternate_preproc_dir = False, do_singletrack = False):
+def create_anteproc_dag_v6(job_dictionary, grand_stochtrack_executable, matlab_matrix_extraction_executable, anteproc_executable, dag_dir, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_filename_dictionary, multiple_job_group_version, use_gpu = False, restrict_cpus = False, max_anteproc_jobs = 20, max_gs_jobs = 100, max_extract_jobs = 100, job_order = None, no_job_retry = False, extract_from_gpu = False, do_singletrack = False):
     anteproc_category = "ANTEPROC"
     gs_category = "GRANDSTOCKTRACK"
     matrix_extraction_category = "GPUARRAY_TO_ARRAY"

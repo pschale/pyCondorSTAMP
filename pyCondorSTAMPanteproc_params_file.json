@@ -1,0 +1,72 @@
+{
+
+"outputDir" : "/home/paul.schale/public_html/STAMP_outputs",
+
+"default_config_file" : "inputFileBase_v6_job_shift.txt",
+"defaultDictionaryPath" : "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/defaultStochtrack.json",
+"anteprocDefault" : "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/anteproc_defaults.txt",
+"STAMP2_installation_dir" : "/home/paul.schale/STAMP/stamp2/",
+"matlabMatrixExtractionExectuable" : "/home/quitzow/GIT/Development_Branches/MatlabExecutableDuctTape/getSNRandCluster",
+
+
+
+"jobFile" : "/home/paul.schale/job_files/oct_7_O1_job.txt",
+"triggerNumber" : 1003,
+"triggerTime" : 1132012817,
+"RA" : 18.01093806,
+"DEC" : -20.0110694,
+
+"relative_direction" : true,
+"_comment" : "Setting the above to true will make the analysis look at the relative sky position that is given by the absolute coordinates at the trigger time",
+
+"lines_to_cut" : [52, 53, 57, 58, 59, 60, 61, 62, 63, 64, 85, 108, 119, 120, 121, 178, 179, 180, 181, 182, 239, 240, 241, 300, 360, 372, 400, 404, 480, 1380, 1560, 1740],
+
+"search_type" : "offsource",
+
+"anteproc_bool" : true,
+"burstegard" : false,
+"long_pixel" : true,
+"set_stochtrack_seed" : false,
+"pseudo_random_jobs_per_side" : 1,
+"pre_seed" : false,
+"singletrack_bool" : false,
+"singletrack_input_files" : "EXAMPLES AT /home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v4/job_39/grandstochtrackOutput/bknd_39.mat,/home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v4/job_6/grandstochtrackOutput/bknd_6.mat,/home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v3/job_4/grandstochtrackOutput/bknd_4.mat,/home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v4/job_11/grandstochtrackOutput/bknd_11.mat",
+"_comment" : "above files only required if singletrack_bool is set to true",
+
+"simulated": false,
+"LHO_Welch_PSD_file" : "EXAMPLE FILE AT /home/quitzow/public_html/Magnetar/closed_box/sgr_trigger_2469/power_curve/PSD_estimates/LHO_Welch_PSD_for_940556300-940557106GPS.txt",
+"LLO_Welch_PSD_file" : "EXAMPLE FILE AT /home/quitzow/public_html/Magnetar/closed_box/sgr_trigger_2469/power_curve/PSD_estimates/LLO_Welch_PSD_for_940556300-940557106GPS.txt",
+"_comment" : "above files only required if simulated is set to true",
+
+"on_source_file_path" : "EXAMPLE FILE AT /home/quitzow/public_html/Magnetar/open_box/sgr_trigger_2469/stochtrack/stamp_analysis_anteproc-2015_9_11/jobs/job_group_1/job_1/grandstochtrackOutput/bknd_1.mat",
+"off_source_json_path" : "EXAMPLE FILE AT /Users/pschale/ligo/STAMP/SGR_trigger_files/sgr_trigger_2469/upper_limits/job_pairs_with_low_SNR_sgr_trigger_2469_ref_dir.txt",
+"_comment" : "above files only required if search_type is set to upper limits",
+
+"show_plots_when_simulated" : true,
+
+"constant_f_window" : true,
+"constant_f_mask" : true,
+
+"remove_cluster" : false,
+
+"job_subset_limit" : 2,
+
+"injection_bool" : false,
+"onTheFly" : true,
+"long_tau" : true,
+"injection_file" : "NEED FILE HERE IF NOT onTheFly",
+
+
+"polarization_smaller_response" : false,
+"injection_random_start_time" : false,
+"stamp_alpha" : 1e-40,
+"wave_frequency" : 150,
+"relativeInjectionDirection" : true,
+
+"include_variations" : false,
+"number_variation_jobs" : 2,
+"anteproc_varying_param" : [["num_space", "stamp.alpha", "logarithmic_sqrt", 1.296e-43, 1.369e-43]]
+
+
+
+}
