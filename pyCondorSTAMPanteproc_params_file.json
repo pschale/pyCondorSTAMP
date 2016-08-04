@@ -55,6 +55,7 @@
 "onTheFly" : true,
 "long_tau" : true,
 "injection_file" : "NEED FILE HERE IF NOT onTheFly",
+"_comment" : "first element is time starting at 0 seconds, second is h_+, third is h_x",
 
 
 "polarization_smaller_response" : false,
