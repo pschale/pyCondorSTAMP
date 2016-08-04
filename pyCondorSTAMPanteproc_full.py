@@ -576,7 +576,7 @@ else:
 anteproc_H["ASQchannel1"] = channel
 anteproc_H["frameType1"] = "H1_" + frame_type
 anteproc_L["ASQchannel1"] = channel
-anteproc_L["frameType1"] = "L1_" = frame_type
+anteproc_L["frameType1"] = "L1_" + frame_type
 
 multiple_waveforms = False
 
