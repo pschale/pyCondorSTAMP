@@ -334,11 +334,7 @@ def anteproc_setup(anteproc_directory, anteproc_default_data, job_dictionary, ca
     anteproc_L["frameCachePath1"] = cache_directory
 
     anteproc_H["ifo1"] = "H1"
-    anteproc_H["ASQchannel1"] = "DCS-CALIB_STRAIN_C01"
-    anteproc_H["frameType1"] = "H1_HOFT_C01"
     anteproc_L["ifo1"] = "L1"
-    anteproc_L["ASQchannel1"] = "DCS-CALIB_STRAIN_C01"
-    anteproc_L["frameType1"] = "L1_HOFT_C01"
     return anteproc_H, anteproc_L
 
 def save_anteproc_paramfile(anteproc_dict, anteproc_name, anteproc_default_data):
