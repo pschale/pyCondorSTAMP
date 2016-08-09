@@ -66,8 +66,8 @@ if not injection_bool:
 inputFileData = readFile(make_file_path_absolute(default_config_file))
 inputFileString = "\n".join(" ".join(x for x in line) for line in inputFileData)
 
-inputFileString += "\n\n" + "grandStochtrack.T" + str(T)
-inputFileString += "\n" + "grandStochtrack.F" + str(F)
+inputFileString += "\n\n" + "grandStochtrack stochtrack.T " + str(T)
+inputFileString += "\n" + "grandStochtrack stochtrack.F " + str(F)
 
 times = [[int(y) for y in x] for x in readFile(jobFile)]
 
@@ -139,9 +139,9 @@ if set_stochtrack_seed:
     
 if maxband:
     inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + str(maxband)
-    if maxband_mode == "percentage"
+    if maxband_mode == "percent":
         inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxBandPercentage true"
-    elif not maxband_mode == "absolute"
+    elif not maxband_mode == "absolute":
         raise pyCondorSTAMPanteprocError("Unrecognized option for maxband_mode: " + maxband_mode + ".  Must be either 'percent' or 'absolute'")
 
 if not long_pixel:

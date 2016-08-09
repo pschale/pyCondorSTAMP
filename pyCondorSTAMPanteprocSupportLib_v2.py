@@ -54,11 +54,11 @@ def parse_jobs(raw_data):
                 jobs[job_key]["grandStochtrackParams"] = {}
                 jobs[job_key]["grandStochtrackParams"]["params"] = {}
         elif len(line) == 1:
-            raise pyCondorSTAMPanteprocError("Line " + str(line) + " contains only 1 entry")
+            raise ValueError("Line " + str(line) + " contains only 1 entry")
 
         elif temp == 'waveform':
             if len(line) != 3:
-                raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 3")
+                raise ValueError("Line " + str(line) + "contains a different number of entries than 3")
 
             else:
                 wave_id = line[1]
@@ -110,30 +110,30 @@ def parse_jobs(raw_data):
         elif temp == "preproc":
             if line[1].lower() == "job":
                 if len(line) != 3:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 3")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 3")
                 else:
                     jobNumber = line[2]
                     jobs[job_key]["preprocJobs"] = jobNumber
             else:
                 if len(line) != 3:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 3")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 3")
                 else:
                     jobs[job_key]["preprocParams"][line[1]] = line[2]
                     
         elif temp == "anteproc_h":
             if line[1].lower() == "job":
                 if len(line) != 3:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 3")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 3")
                 else:
                     jobNumber = line[2]
                     jobs[job_key]["preprocJobs"] = jobNumber
             elif line[1] == "job_seed":
                 if len(line) != 4:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 3")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 3")
                 elif line[2] in jobs['constants']["anteprocHjob_seeds"]:
-                    raise pyCondorSTAMPanteprocError("Seed for job " + str(line[2]) + "is already recorded.")
+                    raise ValueError("Seed for job " + str(line[2]) + "is already recorded.")
                 elif line[3] in seeds:
-                    raise pyCondorSTAMPanteprocError("Seed " + str(line[3]) + "has already been used in another job.")
+                    raise ValueError("Seed " + str(line[3]) + "has already been used in another job.")
                 else:
                     jobNumber = int(line[2])
                     seed = int(line[3])
@@ -141,7 +141,7 @@ def parse_jobs(raw_data):
                     seeds += [seed]
             elif line[1] == "anteproc_param":
                 if len(line) != 5:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 5")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 5")
                 else:
                     jobNumber = int(line[2])
                     parameter = line[3]
@@ -151,7 +151,7 @@ def parse_jobs(raw_data):
                     jobs['constants']["anteprocH_parameters"][jobNumber][parameter] = value
             elif line[1] == "anteproc_injection":
                 if len(line) <4:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains less than than 3 enries")
+                    raise ValueError("Line " + str(line) + "contains less than than 3 enries")
 
                 else:
                     jobNumber = int(line[2])
@@ -159,28 +159,28 @@ def parse_jobs(raw_data):
                     if jobNumber not in jobs['constants']["anteprocH_waveforms"]:
                         jobs['constants']["anteprocH_waveforms"][jobNumber] = wave_ids
                     else:
-                        raise pyCondorSTAMPanteprocError("Duplicate waveform assignemtn on line " + str(line))
+                        raise ValueError("Duplicate waveform assignemtn on line " + str(line))
 
             else:
                 if len(line) != 3:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 3")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 3")
                 else:
                     jobs[job_key]["anteprocParamsH"][line[1]] = line[2]
                         
         elif temp == "anteproc_l":
             if line[1].lower() == "job":
                 if len(line) != 3:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 3")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 3")
                 else:
                     jobNumber = line[2]
                     jobs[job_key]["preprocJobs"] = jobNumber
             elif line[1] == "job_seed":
                 if len(line) != 4:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 4")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 4")
                 elif line[2] in jobs['constants']["anteprocLjob_seeds"]:
-                    raise pyCondorSTAMPanteprocError("Seed for job " + str(line[2]) + "is already recorded.")
+                    raise ValueError("Seed for job " + str(line[2]) + "is already recorded.")
                 elif line[3] in seeds:
-                    raise pyCondorSTAMPanteprocError("Seed " + str(line[3]) + "has already been used in another job.")
+                    raise ValueError("Seed " + str(line[3]) + "has already been used in another job.")
                 else:
                     jobNumber = int(line[2])
                     seed = int(line[3])
@@ -188,7 +188,7 @@ def parse_jobs(raw_data):
                     seeds += [seed]
             elif line[1] == "anteproc_param":
                 if len(line) != 5:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 5")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 5")
                 else:
                     jobNumber = int(line[2])
                     parameter = line[3]
@@ -198,23 +198,23 @@ def parse_jobs(raw_data):
                     jobs['constants']["anteprocL_parameters"][jobNumber][parameter] = value
             elif line[1] == "anteproc_injection":
                 if len(line) <4:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 4")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 4")
                 else:
                     jobNumber = int(line[2])
                     wave_ids = [x.strip("[]") for group in line[3:] for x in group.split(',')]
                     if jobNumber not in jobs['constants']["anteprocL_waveforms"]:
                         jobs['constants']["anteprocL_waveforms"][jobNumber] = wave_ids
                     else:
-                        raise pyCondorSTAMPanteprocError("Duplicate waveform assignment on line " + str(line))
+                        raise ValueError("Duplicate waveform assignment on line " + str(line))
             else:
                 if len(line) != 3:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 3")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 3")
                 else:
                     jobs[job_key]["anteprocParamsL"][line[1]] = line[2]
                         
         elif temp == "injection_tag":
             if len(line) != 2:
-                raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 2")
+                raise ValueError("Line " + str(line) + "contains a different number of entries than 2")
             else:
                     #wave_ids = [x.strip("[]") for group in line[1:] for x in group.split(',')]
                 jobs[job_key]["injection_tags"] = line[1]
@@ -223,16 +223,16 @@ def parse_jobs(raw_data):
             temp_variable = line[2]
             if line[1] == "num_jobs_to_vary":
                 if int(line[2]) != float(line[2]) or int(line[2]) <= 0:
-                    raise pyCondorSTAMPanteprocError("Error, please choose a positive integer value for 'num_jobs_to_vary'. Value chosen was:" + str(line[2]))
+                    raise ValueError("Error, please choose a positive integer value for 'num_jobs_to_vary'. Value chosen was:" + str(line[2]))
                 varying_anteproc_variables["num_jobs_to_vary"] = int(line[2])
             elif line[1] == "set":
                 varying_anteproc_variables["set"][temp_variable] = [x for x in line[3:]]
             elif line[1] == "random":
                 distribution_type = line[3]
                 if distribution_type != "uniform":
-                    raise pyCondorSTAMPanteprocError("Alert, random varying parameters should be from uniform distribution. Other distributions not yet recognized. Unrecognized option:" + str(distribution_type))
+                    raise ValueError("Alert, random varying parameters should be from uniform distribution. Other distributions not yet recognized. Unrecognized option:" + str(distribution_type))
                 elif distribution_type == "uniform" and len(line) != 6:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 6")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 6")
                 else:
                     lower_range = line[4]
                     upper_range = line[5]
@@ -241,11 +241,11 @@ def parse_jobs(raw_data):
             elif line[1] == "num_space":
                 distribution_type = line[3]
                 if distribution_type not in ["linear", "logarithmic", "linear_sqrt", "logarithmic_sqrt"]:
-                    raise pyCondorSTAMPanteprocError("Random varying parameters should be linear or logarithmic. Other distributions not yet recognized. Unrecognized option:" + str(distribution_type))
+                    raise ValueError("Random varying parameters should be linear or logarithmic. Other distributions not yet recognized. Unrecognized option:" + str(distribution_type))
                 elif distribution_type in ["linear", "linear_sqrt"] and len(line) != 6:
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 6")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 6")
                 elif distribution_type in ["logarithmic", "logarithmic_sqrt"] and (len(line) != 6 and len(line) != 7):
-                    raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 6 or 7")
+                    raise ValueError("Line " + str(line) + "contains a different number of entries than 6 or 7")
                 else:
                     lower_range = line[4]
                     upper_range = line[5]
@@ -255,10 +255,10 @@ def parse_jobs(raw_data):
                         distribution_info += [base]
                     varying_anteproc_variables["num_space"][temp_variable] = distribution_info
             else:
-                raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a non-recognized option for anteproc_varying_param")
+                raise ValueError("Line " + str(line) + "contains a non-recognized option for anteproc_varying_param")
         elif temp == "varying_injection_start":
             if len(line) != 3:
-                raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 3")
+                raise ValueError("Line " + str(line) + "contains a different number of entries than 3")
             else:
                 jobs["constants"]["varying_injection_start"] = line[1:]
 
@@ -275,9 +275,9 @@ def parse_jobs(raw_data):
                     #print(freqList)
                 jobs[job_key]["grandStochtrackParams"]["params"][line[1]] = freqList
             elif line[1] == "doGPU" and job_key != "constants":
-                raise pyCondorSTAMPanteprocError("Current job: " + job_key + "\nnon-default value for 'doGPU' detected. This functionality is not currently supported but may be supported in a future version.")
+                raise ValueError("Current job: " + job_key + "\nnon-default value for 'doGPU' detected. This functionality is not currently supported but may be supported in a future version.")
             elif len(line) != 3:
-                raise pyCondorSTAMPanteprocError("Line " + str(line) + "contains a different number of entries than 3")
+                raise ValueError("Line " + str(line) + "contains a different number of entries than 3")
                     # if statements to catch if attribute is boolean. This may need to be handled another way, but
                     # check in the created .mat file to see if this successfully sets the variables to booleans.
             elif line[2].lower() == "true":
@@ -296,7 +296,7 @@ def parse_jobs(raw_data):
 
 			# If it hasn't been identified, error out
         else:
-            raise pyCondorSTAMPanteprocError("Error in config file. Option " + temp + " not recognized. Quitting program.")
+            raise ValueError("Error in config file. Option " + temp + " not recognized. Quitting program.")
                 
         # In case constants haven't been defined, define them as blank dictionaries
     if 'constants' not in jobs:
@@ -379,10 +379,10 @@ def adjust_job_file(filePath, outputDirectory, job_dictionary):
 def check_on_the_fly_injection(job_dictionary, specific_job = "constants"):
     on_the_fly_bool = False # When true, this will ignore an waveforms in the waveform bank and use on the fly instead
     if ("stamp.inj_type" in job_dictionary[specific_job]["anteprocParamsH"] or "stamp.inj_type" in job_dictionary[specific_job]["anteprocParamsL"]) and not ("stamp.inj_type" in job_dictionary[specific_job]["anteprocParamsH"] and "stamp.inj_type" in job_dictionary[specific_job]["anteprocParamsL"]):
-        raise pyCondorSTAMPanteprocError("WARNING: injection type set in one but not both detectors. Quitting program.")
+        raise ValueError("WARNING: injection type set in one but not both detectors. Quitting program.")
     elif "stamp.inj_type" in job_dictionary[specific_job]["anteprocParamsH"] and "stamp.inj_type" in job_dictionary[specific_job]["anteprocParamsL"]:
         if job_dictionary[specific_job]["anteprocParamsH"]["stamp.inj_type"] != job_dictionary[specific_job]["anteprocParamsL"]["stamp.inj_type"]:
-            raise pyCondorSTAMPanteprocError("WARNING: injection type not the same in both detectors. Quitting program.")
+            raise ValueError("WARNING: injection type not the same in both detectors. Quitting program.")
         elif job_dictionary[specific_job]["anteprocParamsH"]["stamp.inj_type"] == "half_sg" and job_dictionary[specific_job]["anteprocParamsL"]["stamp.inj_type"] == "half_sg":
             on_the_fly_bool = True
     return on_the_fly_bool
@@ -412,7 +412,7 @@ def handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variab
         num_variations = varying_anteproc_variables["num_jobs_to_vary"]
         for temp_param in varying_anteproc_variables["set"]:
             if len(varying_anteproc_variables["set"][temp_param]) != num_variations:
-                raise pyCondorSTAMPanteprocError("ERROR: Number of entries in set for parameter " + temp_param + " is not equal to chosen number of variation (" + str(num_variations) + "). Quitting program.")
+                raise ValueError("ERROR: Number of entries in set for parameter " + temp_param + " is not equal to chosen number of variation (" + str(num_variations) + "). Quitting program.")
 
         spaces = {}
         for temp_param in varying_anteproc_variables["num_space"]:
@@ -452,7 +452,7 @@ def handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variab
                 if distribution_type == "uniform":
                     temp_val = np.random.uniform(temp_range[0], temp_range[1])
                 else:
-                    raise pyCondorSTAMPanteprocError("Distribution type not recognized.")
+                    raise ValueError("Distribution type not recognized.")
                 temp_val = convert_cosiota_to_iota(temp_param, temp_val)
                 anteproc_dict[temp_param] = temp_val
 
@@ -520,7 +520,7 @@ def handle_injections_and_save_anteproc_paramfile(multiple_waveforms, waveform_b
                 #anteproc_file_names += [temp_anteproc_name]
                 anteproc_file_names = handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variables, anteproc_dict, anteproc_file_name, anteproc_file_names, anteproc_default_data)
             else:
-                raise pyCondorSTAMPanteprocError("Warning! No waveform in selected waveform key!")
+                raise ValueError("Warning! No waveform in selected waveform key!")
 
         anteproc_dict["outputfilename"] = base_output_file_name
 
