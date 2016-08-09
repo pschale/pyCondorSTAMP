@@ -135,6 +135,13 @@ if singletrack_bool:
 if set_stochtrack_seed:
     inputFileString += "\n\n" + "grandStochtrack stochtrack.doSeed true"
     inputFileString += "\n\n" + "grandStochtrack stochtrack.seed 2015"
+    
+if maxband:
+    inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + maxband
+    if maxband_mode == "percentage"
+        inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxBandPercentage true"
+    elif not maxband_mode == "absolute"
+        raise pyCondorSTAMPanteprocError("Unrecognized option for maxband_mode: " + maxband_mode + ".  Must be either 'percent' or 'absolute'")
 
 if not long_pixel:
     inputFileString += "\n\n" + "job_start_shift 6"
