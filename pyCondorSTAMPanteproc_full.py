@@ -66,7 +66,8 @@ if not injection_bool:
 inputFileData = readFile(make_file_path_absolute(default_config_file))
 inputFileString = "\n".join(" ".join(x for x in line) for line in inputFileData)
 
-
+inputFileString += "\n\n" + "grandStochtrack.T" + str(T)
+inputFileString += "\n" + "grandStochtrack.F" + str(F)
 
 times = [[int(y) for y in x] for x in readFile(jobFile)]
 
@@ -137,7 +138,7 @@ if set_stochtrack_seed:
     inputFileString += "\n\n" + "grandStochtrack stochtrack.seed 2015"
     
 if maxband:
-    inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + maxband
+    inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + str(maxband)
     if maxband_mode == "percentage"
         inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxBandPercentage true"
     elif not maxband_mode == "absolute"

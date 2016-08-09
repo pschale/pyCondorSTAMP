@@ -20,6 +20,10 @@
 "frame_type" : "HOFT_C01",
 "_comment" : "Frame type used will be 'H1_' + frame_type, and 'L1_' + frame_type",
 
+"T" : 10000,
+"F" : 3000,
+"_comment" : "T is number of times clustering algorithm runs, F is number of tracks each run",
+
 "relative_direction" : true,
 "_comment" : "Setting the above to true will make the analysis look at the relative sky position that is given by the absolute coordinates at the trigger time",
 
