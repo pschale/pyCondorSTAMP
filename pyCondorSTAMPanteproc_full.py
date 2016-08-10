@@ -66,7 +66,8 @@ if not injection_bool:
 inputFileData = readFile(make_file_path_absolute(default_config_file))
 inputFileString = "\n".join(" ".join(x for x in line) for line in inputFileData)
 
-
+inputFileString += "\n\n" + "grandStochtrack stochtrack.T " + str(T)
+inputFileString += "\n" + "grandStochtrack stochtrack.F " + str(F)
 
 times = [[int(y) for y in x] for x in readFile(jobFile)]
 
@@ -135,6 +136,13 @@ if singletrack_bool:
 if set_stochtrack_seed:
     inputFileString += "\n\n" + "grandStochtrack stochtrack.doSeed true"
     inputFileString += "\n\n" + "grandStochtrack stochtrack.seed 2015"
+    
+if maxband:
+    inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + str(maxband)
+    if maxband_mode == "percent":
+        inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxBandPercentage true"
+    elif not maxband_mode == "absolute":
+        raise pyCondorSTAMPanteprocError("Unrecognized option for maxband_mode: " + maxband_mode + ".  Must be either 'percent' or 'absolute'")
 
 if not long_pixel:
     inputFileString += "\n\n" + "job_start_shift 6"
@@ -572,6 +580,12 @@ if cacheDir:
     anteproc_H, anteproc_L = anteproc_setup(anteproc_dir, anteprocDefaultData, jobs, cacheDir)
 else:
     anteproc_H, anteproc_L = anteproc_setup(anteproc_dir, anteprocDefaultData, jobs, fakeCacheDir)
+    
+anteproc_H["ASQchannel1"] = channel
+anteproc_H["frameType1"] = "H1_" + frame_type
+anteproc_L["ASQchannel1"] = channel
+anteproc_L["frameType1"] = "L1_" + frame_type
+
 multiple_waveforms = False
 
 if "stampinj" in anteproc_H and "stampinj" in anteproc_L:
@@ -691,7 +705,7 @@ for tempJob in set(H1_jobs):
     print("Finding frames for job " + str(tempJob) + " for H1")
     tempJobData = jobDataDict[str(tempJob)]
     if anteproc_H["doDetectorNoiseSim"] == "false":
-        temp_frames = create_frame_file_list("H1_HOFT_C01", tempJobData[0], tempJobData[1], "H")
+        temp_frames = create_frame_file_list("H1_" + frame_type, tempJobData[0], tempJobData[1], "H")
         create_cache_and_time_file(temp_frames, "H",tempJob,cacheDir, archived_frames_okay = archived_frames_okay)
     else:
         create_fake_cache_and_time_file(tempJobData[0], tempJobData[1], "H", tempJob, fakeCacheDir)
@@ -699,7 +713,7 @@ for tempJob in set(L1_jobs):
     print("Finding frames for job " + str(tempJob) + " for L1")
     tempJobData = jobDataDict[str(tempJob)]
     if anteproc_L["doDetectorNoiseSim"] == "false":
-        temp_frames = create_frame_file_list("L1_HOFT_C01", tempJobData[0], tempJobData[1], "L")
+        temp_frames = create_frame_file_list("L1_" + frame_type, tempJobData[0], tempJobData[1], "L")
         create_cache_and_time_file(temp_frames, "L",tempJob,cacheDir, archived_frames_okay = archived_frames_okay)
     else:
         create_fake_cache_and_time_file(tempJobData[0], tempJobData[1], "L", tempJob, fakeCacheDir)

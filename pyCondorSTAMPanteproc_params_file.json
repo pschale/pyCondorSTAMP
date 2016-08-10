@@ -16,6 +16,14 @@
 "RA" : 18.01093806,
 "DEC" : -20.0110694,
 
+"channel" : "DCS-CALIB_STRAIN_C01",
+"frame_type" : "HOFT_C01",
+"_comment" : "Frame type used will be 'H1_' + frame_type, and 'L1_' + frame_type",
+
+"T" : 1000,
+"F" : 3000,
+"_comment" : "T is number of times clustering algorithm runs, F is number of tracks each run",
+
 "relative_direction" : true,
 "_comment" : "Setting the above to true will make the analysis look at the relative sky position that is given by the absolute coordinates at the trigger time",
 
@@ -32,6 +40,10 @@
 "singletrack_bool" : false,
 "singletrack_input_files" : "EXAMPLES AT /home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v4/job_39/grandstochtrackOutput/bknd_39.mat,/home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v4/job_6/grandstochtrackOutput/bknd_6.mat,/home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v3/job_4/grandstochtrackOutput/bknd_4.mat,/home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v4/job_11/grandstochtrackOutput/bknd_11.mat",
 "_comment" : "above files only required if singletrack_bool is set to true",
+
+"maxband" : 0.10,
+"maxband_mode" : "percent",
+"_comment" : "restricts strochtrack to only look at tracks that only change in frequency by amount set by maxband.  Mode is either percent or absolute",
 
 "simulated": false,
 "LHO_Welch_PSD_file" : "EXAMPLE FILE AT /home/quitzow/public_html/Magnetar/closed_box/sgr_trigger_2469/power_curve/PSD_estimates/LHO_Welch_PSD_for_940556300-940557106GPS.txt",
@@ -55,6 +67,7 @@
 "onTheFly" : true,
 "long_tau" : true,
 "injection_file" : "NEED FILE HERE IF NOT onTheFly",
+"_comment" : "first element is time starting at 0 seconds, second is h_+, third is h_x",
 
 
 "polarization_smaller_response" : false,

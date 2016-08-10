@@ -24,7 +24,7 @@ parser.add_option("-v", action="store_true", dest="verbose")
 print("NOTE: Script ignores all files and directories starting with '.'")
 print("NOTE: Common functions such as 'create_dir' should eventually be in a separate common python module.")
 
-baseDir = options.targetDirectory + "/jobs"
+baseDir = options.targetDirectory + "/jobs/job_group_1"
 
 jobDirs = [x for x in os.listdir(baseDir) if "job" in x]
 
@@ -40,7 +40,7 @@ gsoutMats = dict((returnMatrixFilePath("bknd_", baseDir + "/" + x + "/grandstoch
 
 def getSNR(inputFile):
     data = sio.loadmat(inputFile)
-    SNR = data['stoch_out'][0,0].max_SNR[0,0]
+    SNR = data['stoch_out'][0,0]['max_SNR'][0,0]
     return (SNR, inputFile)
 
 SNRs = [getSNR(fileName) for fileName in gsoutMats]
