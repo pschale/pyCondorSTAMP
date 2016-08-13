@@ -5,7 +5,7 @@ import json
 import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
-from matplotlib.ticker import FormatStrFormatter
+#from matplotlib.ticker import FormatStrFormatter
 import matplotlib.pyplot as plt
 plt.rcParams['legend.numpoints'] = 1
 
@@ -13,7 +13,9 @@ trigger_number = 2471
 
 background_based_upper_limits = True
 
-alternate_polarization = True#False#True
+show_bayesian_average = True
+
+alternate_polarization = False#False#True
 polarized_version = False#True#False#True
 polarized_separate = False#True
 polarized_test = False#True
@@ -306,7 +308,8 @@ elif trigger_number == 2471:
         # background only
         #name_tag += "_20_background"
         #name_tag += "_21_background"
-        name_tag += "_22_background"
+        #name_tag += "_22_background"
+        name_tag += "_23_background"
 elif trigger_number == 2475:
     name_tag += "_20"
 else:
@@ -782,7 +785,8 @@ sorted_alphas_p = [alphas_p[x] for x in temp_indices]"""
                 plt.errorbar([np.sqrt(x) for x in sorted_alphas_p], sorted_percentiles, fmt = 'x-', yerr = [lower_deltas, upper_deltas], label = "Threshold alpha = " + ", ".join(str(temp_threshold[0]) + " (" + str(temp_threshold[1]) + ")" for temp_threshold in threshold_pairs) + " " + labels[num].replace("_"," "))# + " " + labels[num])
             elif plot_mode == "shaded":
                 plt.plot([np.sqrt(x) for x in sorted_alphas_p], sorted_percentiles, color = colours[num], label = labels[num])# + " " + labels[num])
-                #plt.plot([np.sqrt(x) for x in sorted_alphas_p], bayesian_averages, '--', color = colours[num])#, label = labels[num])
+                if show_bayesian_average:
+                    plt.plot([np.sqrt(x) for x in sorted_alphas_p], bayesian_averages, '--', color = colours[num])#, label = labels[num])
                 plt.fill_between([np.sqrt(x) for x in sorted_alphas_p], lower_limits_2, upper_limits_2, alpha = 0.5, color = colours[num], linewidth = 0.0)# Make this a custom function with the proper edge made with an actual plot line instead of the fill_between edge in ordre to get the proper alpha. #, edgecolor = (0,0,0,0))
             else:
                 print("Warning: plot type uncertain")
