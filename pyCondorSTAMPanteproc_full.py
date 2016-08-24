@@ -12,7 +12,23 @@ import scipy.io as sio
 import random
 import json
 
-params_file_path = "pyCondorSTAMPanteproc_params_file.json"
+parser = OptionParser()
+
+parser.add_option("-p", "--params-file", dest = "params_file",
+                  help = "Path to params file")
+
+(options, args) = parser.parse_args()
+
+params_file_path = options.params_file
+
+if params_file_path[0] == ".":
+    params_file_path = os.getcwd() + params_file_path[1:]
+elif params_file_path[0] == "~":
+    raise ValueError("This script cannot handle a path starting with ~")
+elif not params_file_path[0] == "/":
+    params_file_path = os.getcwd() + "/" + params_file_path[1:]
+    
+
 input_params = json.load(open(params_file_path))
 
 #this loads all of the input parameters into local variables.  It's kind of magic
