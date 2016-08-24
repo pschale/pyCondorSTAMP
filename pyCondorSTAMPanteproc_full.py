@@ -28,7 +28,7 @@ if params_file_path[0] == ".":
 elif params_file_path[0] == "~":
     raise ValueError("This script cannot handle a path starting with ~")
 elif not params_file_path[0] == "/":
-    params_file_path = os.getcwd() + "/" + params_file_path[1:]
+    params_file_path = os.getcwd() + "/" + params_file_path[0:]
     
 
 input_params = json.load(open(params_file_path))
