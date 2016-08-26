@@ -26,7 +26,7 @@ params_file_path = options.params_file
 if params_file_path[0] == ".":
     params_file_path = os.getcwd() + params_file_path[1:]
 elif params_file_path[0] == "~":
-    raise ValueError("This script cannot handle a path starting with ~")
+    params_file_path = os.path.expanduser('~') + params_file_path[1:]
 elif not params_file_path[0] == "/":
     params_file_path = os.getcwd() + "/" + params_file_path[0:]
     
@@ -159,7 +159,6 @@ if maxband:
     if maxband_mode == "percent":
         inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxbandPercentage true"
         inputFileString += "\n\n" + "grandStochtrack stochtrack.maxbandPercentage " + str(maxband)
-        inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + str(maxband)
     elif maxband_mode == "absolute":
         inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxbandPercentage false"
         inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + str(maxband)
