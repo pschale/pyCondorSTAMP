@@ -11,8 +11,26 @@ import webpageGenerateLib as webGen
 import scipy.io as sio
 import random
 import json
+import os
+from optparse import OptionParser
 
-params_file_path = "pyCondorSTAMPanteproc_params_file.json"
+parser = OptionParser()
+
+parser.add_option("-p", "--params-file", dest = "params_file",
+                  help = "Path to params file")
+
+(options, args) = parser.parse_args()
+
+params_file_path = options.params_file
+
+if params_file_path[0] == ".":
+    params_file_path = os.getcwd() + params_file_path[1:]
+elif params_file_path[0] == "~":
+    params_file_path = os.path.expanduser('~') + params_file_path[1:]
+elif not params_file_path[0] == "/":
+    params_file_path = os.getcwd() + "/" + params_file_path[0:]
+    
+
 input_params = json.load(open(params_file_path))
 
 #this loads all of the input parameters into local variables.  It's kind of magic
@@ -138,10 +156,13 @@ if set_stochtrack_seed:
     inputFileString += "\n\n" + "grandStochtrack stochtrack.seed 2015"
     
 if maxband:
-    inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + str(maxband)
     if maxband_mode == "percent":
-        inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxBandPercentage true"
-    elif not maxband_mode == "absolute":
+        inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxbandPercentage true"
+        inputFileString += "\n\n" + "grandStochtrack stochtrack.maxbandPercentage " + str(maxband)
+    elif maxband_mode == "absolute":
+        inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxbandPercentage false"
+        inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + str(maxband)
+    else:
         raise pyCondorSTAMPanteprocError("Unrecognized option for maxband_mode: " + maxband_mode + ".  Must be either 'percent' or 'absolute'")
 
 if not long_pixel:
