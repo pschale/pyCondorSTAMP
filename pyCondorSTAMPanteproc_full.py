@@ -86,7 +86,7 @@ inputFileData = readFile(make_file_path_absolute(input_params['default_config_fi
 inputFileString = "\n".join(" ".join(x for x in line) for line in inputFileData)
 
 inputFileString += "\n\n" + "grandStochtrack stochtrack.T " + str(input_params['T'])
-inputFileString += "\n" + "grandStochtrack stochtrack.F " + str(F)
+inputFileString += "\n" + "grandStochtrack stochtrack.F " + str(input_params['F'])
 
 times = [[int(y) for y in x] for x in readFile(input_params['jobFile'])]
 
