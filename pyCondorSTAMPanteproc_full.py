@@ -33,85 +33,86 @@ elif not params_file_path[0] == "/":
 
 input_params = json.load(open(params_file_path))
 
+#Following lines DISABLED, dictionary now used due to increased security
 #this loads all of the input parameters into local variables.  It's kind of magic
-for key, val in input_params.iteritems():
-    exec(key + '=val')
+#for key, val in input_params.iteritems():
+#    exec(key + '=val')
     
-onsource = search_type == "onsource"
-pseudo_onsource = search_type == "pseudo_onsource"
-upper_limits = search_type == "upper_limits"
-offsource = search_type == "offsource"
+onsource = input_params['search_type'] == "onsource"
+pseudo_onsource = input_params['search_type'] == "pseudo_onsource"
+upper_limits = input_params['search_type'] == "upper_limits"
+offsource = input_params['search_type'] == "offsource"
 
-if injection_bool and not onTheFly and not os.isfile(injection_file):
+if input_params['injection_bool'] and not input_params['onTheFly'] and not os.isfile(injection_file):
     pyCondorSTAMPanteprocError("Injection file does not exist.  Make onTheFly true if you do not wish to specify an injection file")
     
-if long_tau:
+if input_params['long_tau']:
     wave_tau = 400
 else:
     wave_tau = 150
     
 wave_duration = wave_tau*3
 
-if polarization_smaller_response: #this might need adjustment for particular triggers
+if input_params['polarization_smaller_response']: #this might need adjustment for particular triggers
     wave_iota = 120
     wave_psi = 45
 else:
     wave_iota = 0
     wave_psi = 0
     
-if injection_random_start_time:
+if input_params['injection_random_start_time']:
     start_variation_line = "varying_injection_start -2 " + str(1604 - wave_duration - 2) #check what this does exactly
 
 if onsource:
-    injection_bool = False
-    simulated = False
-    relative_direction = False
+    input_params['injection_bool'] = False
+    input_params['simulated'] = False
+    input_params['relative_direction'] = False
     
 if pseudo_onsource:
     relative_directoin = False
 
-if not injection_bool:
-    onTheFly = False
-    polarization_smaller_response = False
-    injection_random_start_time = False
-    include_variations = False
+if not input_params['injection_bool']:
+    input_params['onTheFly'] = False
+    input_params['polarization_smaller_response'] = False
+    input_params['injection_random_start_time'] = False
+    input_params['include_variations'] = False
 
 
     
 
 
 #load default file
-inputFileData = readFile(make_file_path_absolute(default_config_file))
+inputFileData = readFile(make_file_path_absolute(input_params['default_config_file']))
 inputFileString = "\n".join(" ".join(x for x in line) for line in inputFileData)
 
-inputFileString += "\n\n" + "grandStochtrack stochtrack.T " + str(T)
+inputFileString += "\n\n" + "grandStochtrack stochtrack.T " + str(input_params['T'])
 inputFileString += "\n" + "grandStochtrack stochtrack.F " + str(F)
 
-times = [[int(y) for y in x] for x in readFile(jobFile)]
+times = [[int(y) for y in x] for x in readFile(input_params['jobFile'])]
 
-if burstegard:
+if input_params['burstegard']:
     inputFileString += "\n\n" + "grandStochtrack doBurstegard true"
 else:
-    if long_pixel:
+    if input_params['long_pixel']:
         inputFileString += "\n\n" + "anteproc_h segmentDuration 4"
         inputFileString += "\n\n" + "anteproc_l segmentDuration 4"
     else:
         inputFileString += "\n\n" + "anteproc_h segmentDuration 1"
         inputFileString += "\n\n" + "anteproc_l segmentDuration 1"
     inputFileString += "\n\n" + "grandStochtrack doStochtrack true"
-    if long_pixel:
+    if input_params['long_pixel']:
         inputFileString += "\n\n" + "grandStochtrack stochtrack.mindur 25"
         inputFileString += "\n\n" + "preproc segmentDuration 4"
     else:
         inputFileString += "\n\n" + "grandStochtrack stochtrack.mindur 100"
         inputFileString += "\n\n" + "grandStochtrack stochtrack.F 600"
 
-if simulated:
+if input_params['simulated']:
     inputFileString += "\n\n" + "anteproc_h doDetectorNoiseSim true"
     inputFileString += "\n\n" + "anteproc_l doDetectorNoiseSim true"
-    inputFileString += "\n\n" + "anteproc_h DetectorNoiseFile " + LHO_Welch_PSD_file
-    inputFileString += "\n\n" + "anteproc_l DetectorNoiseFile " + LLO_Welch_PSD_file
-    if not show_plots_when_simulated:
+    inputFileString += "\n\n" + "anteproc_h DetectorNoiseFile " + input_params['LHO_Welch_PSD_file']
+    inputFileString += "\n\n" + "anteproc_l DetectorNoiseFile " + input_params['LLO_Welch_PSD_file']
+    if not input_params['show_plots_when_simulated']:
         inputFileString += "\n\n" + "grandStochtrack savePlots false"
 else:
     inputFileString += "\n\n" + "anteproc_h doDetectorNoiseSim false"
@@ -119,58 +120,58 @@ else:
 
 
 # Add in injections (if desired)
-if injection_bool:
-    if onTheFly:
+if input_params['injection_bool']:
+    if input_params['onTheFly']:
         # stamp_alpha was waveformPowerAmplitudeScaling here
         inputFileString += "\n\n" + """anteproc_h stampinj true
-anteproc_h stamp.alpha """ + str(stamp_alpha) + """
+anteproc_h stamp.alpha """ + str(input_params['stamp_alpha']) + """
 
 anteproc_h stamp.iota """ + str(wave_iota) + """
 anteproc_h stamp.psi """ + str(wave_psi) + """
 
 anteproc_l stampinj true
-anteproc_l stamp.alpha """ + str(stamp_alpha) + """
+anteproc_l stamp.alpha """ + str(input_params['stamp_alpha']) + """
 
 anteproc_l stamp.iota """ + str(wave_iota) + """
 anteproc_l stamp.psi """ + str(wave_psi)
     else:
         inputFileString += "\n\n" + """anteproc_h stampinj true
-anteproc_h stamp.alpha """ + str(stamp_alpha) + """
+anteproc_h stamp.alpha """ + str(input_params['stamp_alpha']) + """
 
 anteproc_h stamp.iota 0
 anteproc_h stamp.psi 0
 
 anteproc_l stampinj true
-anteproc_l stamp.alpha """ + str(stamp_alpha) + """
+anteproc_l stamp.alpha """ + str(input_params['stamp_alpha']) + """
 
 anteproc_l stamp.iota 0
 anteproc_l stamp.psi 0"""
 
 
-if singletrack_bool:
+if input_params['singletrack_bool']:
     inputFileString += '\n\n' + "grandStochtrack stochtrack.singletrack.doSingletrack true"
-    inputFileString += "\n" + "grandStochtrack stochtrack.singletrack.trackInputFiles " + singletrack_input_files
+    inputFileString += "\n" + "grandStochtrack stochtrack.singletrack.trackInputFiles " + input_params['singletrack_input_files']
     
-if set_stochtrack_seed:
+if input_params['set_stochtrack_seed']:
     inputFileString += "\n\n" + "grandStochtrack stochtrack.doSeed true"
     inputFileString += "\n\n" + "grandStochtrack stochtrack.seed 2015"
     
-if maxband:
-    if maxband_mode == "percent":
+if input_params['maxband']:
+    if input_params['maxband_mode'] == "percent":
         inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxbandPercentage true"
-        inputFileString += "\n\n" + "grandStochtrack stochtrack.maxbandPercentage " + str(maxband)
+        inputFileString += "\n\n" + "grandStochtrack stochtrack.maxbandPercentage " + str(input_params['maxband'])
         print("WARNING - doMaxbandPercentage is active - this only works with fixed version of STAMP")
-    elif maxband_mode == "absolute":
+    elif input_params['maxband_mode'] == "absolute":
         inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxbandPercentage false"
-        inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + str(maxband)
+        inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + str(input_params['maxband'])
     else:
-        raise pyCondorSTAMPanteprocError("Unrecognized option for maxband_mode: " + maxband_mode + ".  Must be either 'percent' or 'absolute'")
+        raise pyCondorSTAMPanteprocError("Unrecognized option for maxband_mode: " + input_params['maxband_mode'] + ".  Must be either 'percent' or 'absolute'")
 
-if not long_pixel:
+if not input_params['long_pixel']:
     inputFileString += "\n\n" + "job_start_shift 6"
     inputFileString += "\n\n" + "job_duration 400"
 
-if simulated and onsource and pre_seed:
+if input_params['simulated'] and onsource and input_params['pre_seed']:
     inputFileString += "\n\n" + "anteproc_h job_seed 1 2694478780"
     inputFileString += "\n\n" + "anteproc_l job_seed 1 4222550304"
 
@@ -178,11 +179,11 @@ job_group = 1
 
 params = {}
 
-if not relative_direction:
-    params["granchStochtrack ra"] = RA
-    params["grandStochtrack dec"] = DEC
+if not input_params['relative_direction']:
+    params["granchStochtrack ra"] = input_params['RA']
+    params["grandStochtrack dec"] = input_params['DEC']
 
-if injection_bool and not onTheFly:
+if input_params['injection_bool'] and not input_params['onTheFly']:
     params["preproc stamp.file"] = injection_file
     params["preproc stamp.alpha"] = 1e-40
 
@@ -190,13 +191,13 @@ if injection_bool and not onTheFly:
 #this ensures there's enough data to be able to estimate the background
 # 9-NumberofSegmentsPerInterval (NSPI), -1 (take out the pixel that's being analyzed), /2 to get one side of those
 # *4 (pixel duration) 2 + (buffer seconds), + 2 (window started 2 seconds before trigger time)
-if long_pixel or burstegard:
-    triggerJobStart = triggerTime - (2 + (9-1)*4/2 + 2)
+if input_params['long_pixel'] or input_params['burstegard']:
+    triggerJobStart = input_params['triggerTime'] - (2 + (9-1)*4/2 + 2)
 else:
-    triggerJobStart = triggerTime - (2 + (9-1)/2 + 2)
+    triggerJobStart = input_params['triggerTime'] - (2 + (9-1)/2 + 2)
 
 # analysis starts 2 pixels before trigger time
-trigger_hStart = triggerTime - 2
+trigger_hStart = input_params['triggerTime'] - 2
 
 deltaTotal = []
 jobPairs = []
@@ -204,7 +205,7 @@ jobPairsTotal = 1000 #number of background job pairs set
 
 if upper_limits:
 
-    with open(off_source_json_path, 'r') as infile:
+    with open(input_params['off_source_json_path'], 'r') as infile:
         temp_job_data = json.load(infile)
     sortedJobPairs = [x[1:3] for x in temp_job_data if x[1:3] != [34, 34]]
     sortedJobPairs = [[x-1 for x in y] for y in sortedJobPairs] # goes from job number to job index
@@ -226,13 +227,13 @@ if upper_limits:
         # add on-source jobs and path, it's job number 34, and index number 33
     sortedJobPairs = [[33,33]] + sortedJobPairs
     source_file_dict[33] = {}
-    source_file_dict[33][33] = on_source_file_path
+    source_file_dict[33][33] = input_params['on_source_file_path']
     
     #cut down to max number of jobs (if needed)
-    if len(sortedJobPairs) > job_subset_limit:
-        sortedJobPairs = sortedJobPairs[:job_subset_limit]
+    if len(sortedJobPairs) > input_params['job_subset_limit']:
+        sortedJobPairs = sortedJobPairs[:input_params['job_subset_limit']]
     else:
-        job_subset_limit = None
+        input_params['job_subset_limit'] = None
         
 elif onsource:
     sortedJobPairs = [[0,0]]
@@ -240,8 +241,8 @@ elif onsource:
 elif pseudo_onsource:
     before_possible_job_indices = [index for index, val in enumerate(times) if triggerJobStart - val[1] >= 3600]
     after_possible_job_indices = [index for index, val in enumerate(times) if val[1] - triggerJobStart >= 3600]
-    job_index_list_1 = random.sample(before_possible_job_indices, pseudo_random_jobs_per_side)
-    job_index_list_2 = random.sample(after_possible_job_indices, pseudo_random_jobs_per_side)
+    job_index_list_1 = random.sample(before_possible_job_indices, input_params['pseudo_random_jobs_per_side'])
+    job_index_list_2 = random.sample(after_possible_job_indices, input_params['pseudo_random_jobs_per_side'])
     sortedJobPairs = [[x,x] for x in job_index_list_1] + [[x,x] for x in job_index_list_2]
 
 elif offsource:
@@ -267,22 +268,22 @@ for H1_job_index in tempNumbersH:
     H1_job = H1_job_index + 1
     job1StartTime = times[H1_job_index][1]
 
-    if long_pixel or burstegard:
+    if input_params['long_pixel'] or input_params['burstegard']:
         job1_hstart = job1StartTime + (9-1)*4/2+2
     else:
         job1_hstart = job1StartTime + (9-1)/2+2
         
-    job1_hstop = job1_hstart + 1602 if long_pixel or burstegard else job1_hstart + 400
+    job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job1_hstart + 400
 
-    if injection_bool:
-        if not relative_direction:
-            inputFileString += "\n\n" + "anteproc_h anteproc_param " + str(H1_job) + " stamp.ra " + str(RA)
-            inputFileString += "\n" + "anteproc_h anteproc_param " + str(H1_job) + " stamp.decl " + str(DEC)
+    if input_params['injection_bool']:
+        if not input_params['relative_direction']:
+            inputFileString += "\n\n" + "anteproc_h anteproc_param " + str(H1_job) + " stamp.ra " + str(input_params['RA'])
+            inputFileString += "\n" + "anteproc_h anteproc_param " + str(H1_job) + " stamp.decl " + str(input_params['DEC'])
         elif H1_job == 34:
             inputFileString += "\n\nanteproc_h anteproc_param 34 useReferenceAntennaFactors false"
         else:
             inputFileString += "\n\nanteproc_h anteproc_param " + str(H1_job) + " useReferenceAntennaFactors true"
-        if onTheFly:
+        if input_params['onTheFly']:
             inputFileString += "\n" + "anteproc_h anteproc_param " + str(H1_job) + " stamp.start " + str(job1_hstart+2)
         else:
             inputFileString += "\n" + "anteproc_h stamp.startGPS " + str(job1_hstart+2)
@@ -292,28 +293,28 @@ for L1_job_index in tempNumbersL:
     L1_job = L1_job_index + 1
     job1StartTime = times[L1_job_index][1]
 
-    if long_pixel or burstegard:
+    if input_params['long_pixel'] or input_params['burstegard']:
         job1_hstart = job1StartTime + (9-1)*4/2+2
     else:
         job1_hstart = job1StartTime + (9-1)/2+2
         
-    job1_hstop = job1_hstart + 1602 if long_pixel or burstegard else job1_hstart + 400
+    job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job1_hstart + 400
     
-    if injection_bool:
-        if not relative_direction:
-            inputFileString += "\n\n" + "anteproc_l anteproc_param " + str(L1_job) + " stamp.ra " + str(RA)
-            inputFileString += "\n" + "anteproc_l anteproc_param " + str(L1_job) + " stamp.decl " + str(DEC)
+    if input_params['injection_bool']:
+        if not input_params['relative_direction']:
+            inputFileString += "\n\n" + "anteproc_l anteproc_param " + str(L1_job) + " stamp.ra " + str(input_params['RA'])
+            inputFileString += "\n" + "anteproc_l anteproc_param " + str(L1_job) + " stamp.decl " + str(input_params['DEC'])
         elif L1_job == 34:
             inputFileString += "\n\nanteproc_l anteproc_param 34 useReferenceAntennaFactors false"
         else:
             inputFileString += "\n\nanteproc_l anteproc_param " + str(L1_job) + " useReferenceAntennaFactors true"
-        if onTheFly:
+        if input_params['onTheFly']:
             inputFileString += "\n" + "anteproc_l anteproc_param " + str(L1_job) + " stamp.start " + str(job1_hstart+2)
         else:
             inputFileString += "\n" + "anteproc_l stamp.startGPS " + str(job1_hstart+2)
 
-if injection_bool:
-    if onTheFly:
+if input_params['injection_bool']:
+    if input_params['onTheFly']:
         #here we put in parameters for the on-the-fly injection, including waveform, frequency, amplitude (sqrt(2)/2, so that
         # they sum in quadrature to 1
         inputFileString += """
@@ -324,53 +325,53 @@ anteproc_l stamp.inj_type fly
 anteproc_l stamp.fly_waveform half_sg
 
 anteproc_h stamp.h0 """ + str(sqrt(0.5)) + """
-anteproc_h stamp.f0 """ + str(wave_frequency) + """
+anteproc_h stamp.f0 """ + str(input_params['wave_frequency']) + """
 anteproc_h stamp.phi0 0
 anteproc_h stamp.fdot 0
 anteproc_h stamp.duration """ + str(wave_duration) + """
 anteproc_h stamp.tau """ + str(wave_tau) + """
 
 anteproc_l stamp.h0 """ + str(sqrt(0.5)) + """
-anteproc_l stamp.f0 """ + str(wave_frequency) + """
+anteproc_l stamp.f0 """ + str(input_params['wave_frequency']) + """
 anteproc_l stamp.phi0 0
 anteproc_l stamp.fdot 0
 anteproc_l stamp.duration """ + str(wave_duration) + """
 anteproc_l stamp.tau """ + str(wave_tau)
-    elif not onTheFly:
+    elif not input_params['onTheFly']:
         inputFileString += "\n\n" + "\n".join(" ".join(x for x in ["waveform", temp_name, glueFileLocation(waveformDirectory, temp_name + waveformFileExtention)]) for temp_name in waveformFileNames)
 
 
-if relative_direction:
+if input_params['relative_direction']:
 
-    refTime = triggerTime - 2
+    refTime = input_params['triggerTime'] - 2
 
     inputFileString += "\n\ngrandStochtrack useReferenceAntennaFactors true"
     inputFileString += "\n\ngrandStochtrack referenceGPSTime " + str(refTime)
     inputFileString += "\nanteproc_h referenceGPSTime " + str(refTime)
     inputFileString += "\nanteproc_l referenceGPSTime " + str(refTime)
 
-    inputFileString += "\n\ngrandStochtrack ra " + str(RA)
-    inputFileString += "\ngrandStochtrack dec " + str(DEC)
-    inputFileString += "\n\nanteproc_h stamp.ra " + str(RA)
-    inputFileString += "\nanteproc_h stamp.decl " + str(DEC)
-    inputFileString += "\n\nanteproc_l stamp.ra " + str(RA)
-    inputFileString += "\nanteproc_l stamp.decl " + str(DEC)
+    inputFileString += "\n\ngrandStochtrack ra " + str(input_params['RA'])
+    inputFileString += "\ngrandStochtrack dec " + str(input_params['DEC'])
+    inputFileString += "\n\nanteproc_h stamp.ra " + str(input_params['RA'])
+    inputFileString += "\nanteproc_h stamp.decl " + str(input_params['DEC'])
+    inputFileString += "\n\nanteproc_l stamp.ra " + str(input_params['RA'])
+    inputFileString += "\nanteproc_l stamp.decl " + str(input_params['DEC'])
 
 
-if constant_f_window:
+if input_params['constant_f_window']:
     inputFileString += "\n\ngrandStochtrack fmin 40"
     inputFileString += "\ngrandStochtrack fmax 2500"
-if constant_f_mask:
-    inputFileString += "\n\ngrandStochtrack StampFreqsToRemove [" + ", ".join(str(x) for x in lines_to_cut) + "]"
+if input_params['constant_f_mask']:
+    inputFileString += "\n\ngrandStochtrack StampFreqsToRemove [" + ", ".join(str(x) for x in input_params['lines_to_cut']) + "]"
 
-if remove_cluster:
+if input_params['remove_cluster']:
     inputFileString += "\n\ngrandStochtrack maskCluster true"
 
-if include_variations:
-    inputFileString += "\n\nanteproc_varying_param num_jobs_to_vary " + str(number_variation_jobs)
-    inputFileString += "".join("\nanteproc_varying_param " + " ".join(str(y) for y in x) for x in anteproc_varying_param)
+if input_params['include_variations']:
+    inputFileString += "\n\nanteproc_varying_param num_jobs_to_vary " + str(input_params['number_variation_jobs'])
+    inputFileString += "".join("\nanteproc_varying_param " + " ".join(str(y) for y in x) for x in input_params['anteproc_varying_param'])
 
-if injection_random_start_time:
+if input_params['injection_random_start_time']:
     inputFileString += "\n" + start_variation_line
 
 text_output = inputFileString
@@ -385,26 +386,26 @@ for [jobIndex1, jobIndex2] in sortedJobPairs:#[jobNum1, jobNum2] in sortedJobPai
     job1StartTime = times[jobIndex1][1]
     job1EndTime = times[jobIndex1][2]
 
-    if long_pixel or burstegard:
+    if input_params['long_pixel'] or input_params['burstegard']:
         job1_hstart = job1StartTime + (9-1)*4/2+2
     else:
         job1_hstart = job1StartTime + (9-1)/2+2
         
-    job1_hstop = job1_hstart + 1602 if long_pixel or burstegard else job_hstart + 400
+    job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job_hstart + 400
 
-    if injection_bool and not relative_direction:
+    if input_params['injection_bool'] and not input_params['relative_direction']:
         #params["preproc stamp.startGPS"] = int(jobH1StartTime)
-        params["preproc stamp.ra"] = RA
+        params["preproc stamp.ra"] = input_params['RA']
 
-    if not relative_direction:
-        params["grandStochtrack ra"] = RA
+    if not input_params['relative_direction']:
+        params["grandStochtrack ra"] = input_params['RA']
 
-    if remove_cluster:
+    if input_params['remove_cluster']:
         params["grandStochtrack clusterFile"] = source_file_dict[jobIndex1][jobIndex2]
 
     params["preproc job"] = jobNum1#this needed anymore?
 
-    if anteproc_bool:
+    if input_params['anteproc_bool']:
         params["grandStochtrack anteproc.jobNum1"] = jobNum1
         params["grandStochtrack anteproc.jobNum2"] = jobNum2
 
@@ -414,13 +415,13 @@ for [jobIndex1, jobIndex2] in sortedJobPairs:#[jobNum1, jobNum2] in sortedJobPai
         params["preproc doShift2"] = 1
         params["preproc ShiftTime2"] = base_shift + timeShift - 1
 
-    if relative_direction:
+    if input_params['relative_direction']:
         if jobIndex1 == 33:
             params["grandStochtrack useReferenceAntennaFactors"] = "false"
         elif "grandStochtrack useReferenceAntennaFactors" in params:
             del params["grandStochtrack useReferenceAntennaFactors"]
 
-    if injection_bool and not onTheFly:
+    if input_params['injection_bool'] and not input_params['onTheFly']:
         for temp_waveform in waveformFileNames:
             params["injection_tag"] = temp_waveform
             current_job += 1
@@ -437,7 +438,7 @@ for [jobIndex1, jobIndex2] in sortedJobPairs:#[jobNum1, jobNum2] in sortedJobPai
         temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])
         text_output += "\n\n" + temp_output
  
-saveText(glueFileLocation(outputDir, "config_file.txt"), text_output)
+saveText(glueFileLocation(input_params['outputDir'], "config_file.txt"), text_output)
 
 
 ###################################################################################
@@ -451,35 +452,34 @@ saveText(glueFileLocation(outputDir, "config_file.txt"), text_output)
 ###################################################################################
 
 
-jobPath = make_file_path_absolute(jobFile)
-configPath = glueFileLocation(outputDir, "config_file.txt")
-outputDir = make_file_path_absolute(outputDir)
+jobPath = make_file_path_absolute(input_params['jobFile'])
+configPath = glueFileLocation(input_params['outputDir'], "config_file.txt")
+outputDir = make_file_path_absolute(input_params['outputDir'])
 
 verbose = False
 archived_frames_okay = True
-burstegard = False
 all_clusters = False
 restrict_cpus = True
 no_job_retry = False
 
 
-outputDir += "stamp_analysis_anteproc" if outputDir[-1] == "/" else "/stamp_analysis_anteproc"
+outputDir += "stamp_analysis_anteproc" if input_params['outputDir'][-1] == "/" else "/stamp_analysis_anteproc"
 baseDir = dated_dir(outputDir)
 
-STAMP_setup_script = STAMP2_installation_dir + "test/stamp_setup.sh"
+STAMP_setup_script = input_params['STAMP2_installation_dir'] + "test/stamp_setup.sh"
 # set other defaults this way too instead of definining them inside the preprocSupportLib.py file
 
 # paths to executables
-anteprocExecutable = STAMP2_installation_dir + "compilationScripts/anteproc"
-grandStochtrackExecutable = STAMP2_installation_dir + "compilationScripts/grand_stochtrack"
-grandStochtrackExecutableNoPlots = STAMP2_installation_dir + "compilationScripts/grand_stochtrack_nojvm"
+anteprocExecutable = input_params['STAMP2_installation_dir'] + "compilationScripts/anteproc"
+grandStochtrackExecutable = input_params['STAMP2_installation_dir'] + "compilationScripts/grand_stochtrack"
+grandStochtrackExecutableNoPlots = input_params['STAMP2_installation_dir'] + "compilationScripts/grand_stochtrack_nojvm"
 
 # load info from config file
 rawData = read_text_file(configPath, ' ')
 
 # load default dictionary if selected
 # TODO: fix this for option to exclude default dictionary if wished
-defaultDictionary = load_dict_from_json(defaultDictionaryPath)
+defaultDictionary = load_dict_from_json(input_params['defaultDictionaryPath'])
 
 # load data from jobFile
 with open(jobPath, "r") as infile:
@@ -534,7 +534,7 @@ if jobDuplicates:
 defaultDictionary = load_default_dict(jobs['constants']['grandStochtrackParams']['params'] , defaultDictionary)
 
 # load default anteproc
-with open(anteprocDefault, 'r') as infile:
+with open(input_params['anteprocDefault'], 'r') as infile:
     anteprocDefaultData = [line.split() for line in infile]
 
 # create directory structure
@@ -603,10 +603,10 @@ if cacheDir:
 else:
     anteproc_H, anteproc_L = anteproc_setup(anteproc_dir, anteprocDefaultData, jobs, fakeCacheDir)
     
-anteproc_H["ASQchannel1"] = channel
-anteproc_H["frameType1"] = "H1_" + frame_type
-anteproc_L["ASQchannel1"] = channel
-anteproc_L["frameType1"] = "L1_" + frame_type
+anteproc_H["ASQchannel1"] = input_params['channel']
+anteproc_H["frameType1"] = "H1_" + input_params['frame_type']
+anteproc_L["ASQchannel1"] = input_params['channel']
+anteproc_L["frameType1"] = "L1_" + input_params['frame_type']
 
 multiple_waveforms = False
 
@@ -713,7 +713,7 @@ else:
 os.chmod(grandStochtrack_script_file, 0o744)
 
 matlabMatrixExtractionExectuable_script_file = dagDir + "/matlab_matrix_extraction.sh"
-write_grandstochtrack_bash_script(matlabMatrixExtractionExectuable_script_file, matlabMatrixExtractionExectuable, STAMP_setup_script)
+write_grandstochtrack_bash_script(matlabMatrixExtractionExectuable_script_file, input_params['matlabMatrixExtractionExectuable'], STAMP_setup_script)
 os.chmod(matlabMatrixExtractionExectuable_script_file, 0o744)
 
 anteprocExecutable_script_file = dagDir + "/anteproc.sh"
@@ -727,7 +727,7 @@ for tempJob in set(H1_jobs):
     print("Finding frames for job " + str(tempJob) + " for H1")
     tempJobData = jobDataDict[str(tempJob)]
     if anteproc_H["doDetectorNoiseSim"] == "false":
-        temp_frames = create_frame_file_list("H1_" + frame_type, tempJobData[0], tempJobData[1], "H")
+        temp_frames = create_frame_file_list("H1_" + input_params['frame_type'], tempJobData[0], tempJobData[1], "H")
         create_cache_and_time_file(temp_frames, "H",tempJob,cacheDir, archived_frames_okay = archived_frames_okay)
     else:
         create_fake_cache_and_time_file(tempJobData[0], tempJobData[1], "H", tempJob, fakeCacheDir)
@@ -735,7 +735,7 @@ for tempJob in set(L1_jobs):
     print("Finding frames for job " + str(tempJob) + " for L1")
     tempJobData = jobDataDict[str(tempJob)]
     if anteproc_L["doDetectorNoiseSim"] == "false":
-        temp_frames = create_frame_file_list("L1_" + frame_type, tempJobData[0], tempJobData[1], "L")
+        temp_frames = create_frame_file_list("L1_" + input_params['frame_type'], tempJobData[0], tempJobData[1], "L")
         create_cache_and_time_file(temp_frames, "L",tempJob,cacheDir, archived_frames_okay = archived_frames_okay)
     else:
         create_fake_cache_and_time_file(tempJobData[0], tempJobData[1], "L", tempJob, fakeCacheDir)
@@ -784,7 +784,7 @@ for job in jobs:
 # This line likely needs fixing if it's going to work with the variable parameters. otherwise it's fine.
 jobTempDict = dict((int(job[job.index("_")+1:]),{"job" : job, "job dir" : "job_group_" + jobs[job]["job_group"] + "/" + job}) for job in [x for x in jobs if x != "constants"])
 
-if burstegard:
+if input_params['burstegard']:
     plotTypeList = ["SNR", "Largest Cluster", "All Clusters", "sig map", "y map", "Xi snr map"]
     plotTypeDict = {"SNR" : "snr.png", "Largest Cluster" : "large_cluster.png", "All Clusters": "all_clusters.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
 elif all_clusters:
@@ -810,7 +810,7 @@ webGen.make_display_page("jobs", baseDir, jobOrderWeb, "grandstochtrackOutput/pl
 # preproc DAG
 # build submission file
 doGPU = jobs["constants"]["grandStochtrackParams"]["params"]["doGPU"]
-if doGPU and not burstegard:
+if doGPU and not input_params['burstegard']:
     extract_from_gpu = True
 else:
     extract_from_gpu = False
