@@ -159,6 +159,7 @@ if maxband:
     if maxband_mode == "percent":
         inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxbandPercentage true"
         inputFileString += "\n\n" + "grandStochtrack stochtrack.maxbandPercentage " + str(maxband)
+        print("WARNING - doMaxbandPercentage is active - this only works with fixed version of STAMP")
     elif maxband_mode == "absolute":
         inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxbandPercentage false"
         inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + str(maxband)
