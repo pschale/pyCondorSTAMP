@@ -466,13 +466,13 @@ no_job_retry = False
 outputDir += "stamp_analysis_anteproc" if input_params['outputDir'][-1] == "/" else "/stamp_analysis_anteproc"
 baseDir = dated_dir(outputDir)
 
-STAMP_setup_script = input_params['STAMP2_installation_dir'] + "test/stamp_setup.sh"
+STAMP_setup_script = glueFileLocation(input_params['STAMP2_installation_dir'], "test/stamp_setup.sh")
 # set other defaults this way too instead of definining them inside the preprocSupportLib.py file
 
 # paths to executables
-anteprocExecutable = input_params['STAMP2_installation_dir'] + "compilationScripts/anteproc"
-grandStochtrackExecutable = input_params['STAMP2_installation_dir'] + "compilationScripts/grand_stochtrack"
-grandStochtrackExecutableNoPlots = input_params['STAMP2_installation_dir'] + "compilationScripts/grand_stochtrack_nojvm"
+anteprocExecutable = glueFileLocation(input_params['STAMP2_installation_dir'], "compilationScripts/anteproc")
+grandStochtrackExecutable = glueFileLocation(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack")
+grandStochtrackExecutableNoPlots = glueFileLocation(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack_nojvm")
 
 # load info from config file
 rawData = read_text_file(configPath, ' ')
