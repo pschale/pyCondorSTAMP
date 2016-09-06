@@ -160,7 +160,7 @@ if input_params['maxband']:
     if input_params['maxband_mode'] == "percent":
         inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxbandPercentage true"
         inputFileString += "\n\n" + "grandStochtrack stochtrack.maxbandPercentage " + str(input_params['maxband'])
-        print("WARNING - doMaxbandPercentage is active - this only works with fixed version of STAMP")
+        print("WARNING - doMaxbandPercentage is active - this only works with STAMP revision 12522 or later")
     elif input_params['maxband_mode'] == "absolute":
         inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxbandPercentage false"
         inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + str(input_params['maxband'])
