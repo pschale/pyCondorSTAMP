@@ -673,7 +673,7 @@ def make_file_path_absolute(file_path):
     
     return absolute_path
 
-def generate_summary(params_dict, list_of_important_settings, output_dir):
+def generate_summary(params_dict, output_dir):
 
     output_str = "Summary of Parameters\n\nThe following parameters have been changed from default values:"
     
@@ -681,7 +681,7 @@ def generate_summary(params_dict, list_of_important_settings, output_dir):
     
     default_params_dict = get_default_params()
 
-    for ele in list_of_important_settings:
+    for ele in default_params_dict['list_of_important_settings']:
         output_str += ele + "\t" + str(params_dict[ele]) + "\n"
         params_dict.pop(ele, None)
         default_params_dict(ele, None)

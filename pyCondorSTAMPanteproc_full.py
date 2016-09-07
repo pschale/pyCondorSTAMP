@@ -824,6 +824,9 @@ def main():
     
     print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
     
+    #create summary of parameters
+    generate_summary(input_params, baseDir)
+    
     # create webpage
     
     # run top DAG
