@@ -684,7 +684,7 @@ def generate_summary(params_dict, output_dir):
     for ele in default_params_dict['list_of_important_settings']:
         output_str += ele + "\t" + str(params_dict[ele]) + "\n"
         params_dict.pop(ele, None)
-        default_params_dict(ele, None)
+        default_params_dict.pop(ele, None)
     
     output_str += "\n\nThe rest of the parameters"
     
