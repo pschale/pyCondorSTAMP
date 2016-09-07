@@ -672,3 +672,101 @@ def make_file_path_absolute(file_path):
         absolute_path = file_path
     
     return absolute_path
+
+def generate_summary(params_dict, list_of_important_settings, output_dir):
+
+    output_str = "Summary of Parameters\n\nThe following parameters have been changed from default values:"
+    
+    params_dict.pop("_comment", None)
+    
+    default_params_dict = get_default_params()
+
+    for ele in list_of_important_settings:
+        output_str += ele + "\t" + str(params_dict[ele]) + "\n"
+        params_dict.pop(ele, None)
+        default_params_dict(ele, None)
+    
+    output_str += "\n\nThe rest of the parameters"
+    
+    for key in params_dict:
+        if not params_dict[key] == default_params_dict[key]:
+            output_str += key + "\t" + str(params_dict[key]) + "\n"
+        
+    with open(glueFileLocation(output_dir, 'summary.txt'), "w") as h:
+        print >> h, output_str
+        
+def get_default_params():
+    return {"outputDir" : "/home/paul.schale/public_html/STAMP_outputs",
+
+    "default_config_file" : "inputFileBase_v6_job_shift.txt",
+    "defaultDictionaryPath" : "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/defaultStochtrack.json",
+    "anteprocDefault" : "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/anteproc_defaults.txt",
+    "STAMP2_installation_dir" : "/home/paul.schale/STAMP/stamp2/",
+    "matlabMatrixExtractionExectuable" : "/home/quitzow/GIT/Development_Branches/MatlabExecutableDuctTape/getSNRandCluster",
+
+
+
+    "jobFile" : "/home/paul.schale/job_files/oct_7_O1_job.txt",
+    "triggerNumber" : 1003,
+    "triggerTime" : 1132012817,
+    "RA" : 18.01093806,
+    "DEC" : -20.0110694,
+
+    "channel" : "DCS-CALIB_STRAIN_C01",
+    "frame_type" : "HOFT_C01",
+
+    "T" : 1000,
+    "F" : 3000,
+
+    "relative_direction" : True,
+
+    "lines_to_cut" : [52, 53, 57, 58, 59, 60, 61, 62, 63, 64, 85, 108, 119, 120, 121, 178, 179, 180, 181, 182, 239, 240, 241, 300, 360, 372, 400, 404, 480, 1380, 1560, 1740],
+
+    "search_type" : "offsource",
+
+    "anteproc_bool" : True,
+    "burstegard" : False,
+    "long_pixel" : True,
+    "set_stochtrack_seed" : False,
+    "pseudo_random_jobs_per_side" : 1,
+    "pre_seed" : False,
+    "singletrack_bool" : False,
+    "singletrack_input_files" : "EXAMPLES AT /home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v4/job_39/grandstochtrackOutput/bknd_39.mat,/home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v4/job_6/grandstochtrackOutput/bknd_6.mat,/home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v3/job_4/grandstochtrackOutput/bknd_4.mat,/home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v4/job_11/grandstochtrackOutput/bknd_11.mat",
+
+    "maxband" : 0.10,
+    "maxband_mode" : False,
+
+    "simulated": False,
+    "LHO_Welch_PSD_file" : "EXAMPLE FILE AT /home/quitzow/public_html/Magnetar/closed_box/sgr_trigger_2469/power_curve/PSD_estimates/LHO_Welch_PSD_for_940556300-940557106GPS.txt",
+    "LLO_Welch_PSD_file" : "EXAMPLE FILE AT /home/quitzow/public_html/Magnetar/closed_box/sgr_trigger_2469/power_curve/PSD_estimates/LLO_Welch_PSD_for_940556300-940557106GPS.txt",
+
+    "on_source_file_path" : "EXAMPLE FILE AT /home/quitzow/public_html/Magnetar/open_box/sgr_trigger_2469/stochtrack/stamp_analysis_anteproc-2015_9_11/jobs/job_group_1/job_1/grandstochtrackOutput/bknd_1.mat",
+    "off_source_json_path" : "EXAMPLE FILE AT /Users/pschale/ligo/STAMP/SGR_trigger_files/sgr_trigger_2469/upper_limits/job_pairs_with_low_SNR_sgr_trigger_2469_ref_dir.txt",
+
+    "show_plots_when_simulated" : True,
+
+    "constant_f_window" : True,
+    "constant_f_mask" : True,
+
+    "remove_cluster" : False,
+
+    "job_subset_limit" : 2,
+
+    "injection_bool" : False,
+    "onTheFly" : True,
+    "long_tau" : True,
+    "injection_file" : "NEED FILE HERE IF NOT onTheFly",
+
+
+    "polarization_smaller_response" : False,
+    "injection_random_start_time" : False,
+    "stamp_alpha" : 1e-40,
+    "wave_frequency" : 150,
+    "relativeInjectionDirection" : True,
+
+    "include_variations" : False,
+    "number_variation_jobs" : 2,
+    "anteproc_varying_param" : [["num_space", "stamp.alpha", "logarithmic_sqrt", 1.296e-43, 1.369e-43]],
+
+    "list_of_important_settings" : ["triggerNumber", "injection_bool", "maxband_mode", "T", "F"]}
+
