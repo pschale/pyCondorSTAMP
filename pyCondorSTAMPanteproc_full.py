@@ -820,7 +820,7 @@ def main():
         extract_from_gpu = False
 
     print("Creating dag and sub files")
-    create_anteproc_dag_v6(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, newJobPath, H1_jobs, L1_jobs, anteprocJobs, multiple_job_group_version, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = restrict_cpus, no_job_retry = no_job_retry, extract_from_gpu = extract_from_gpu, single_cpu = single_cpu)
+    create_anteproc_dag_v6(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, newJobPath, H1_jobs, L1_jobs, anteprocJobs, multiple_job_group_version, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = restrict_cpus, no_job_retry = no_job_retry, extract_from_gpu = extract_from_gpu, single_cpu = input_params['single_cpu'])
     
     print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
     
