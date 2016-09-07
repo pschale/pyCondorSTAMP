@@ -276,7 +276,7 @@ def create_anteproc_jobs_v4(job_number, condor_sub_loc, post_processing_job_file
     return job_listings, job_number, output_string
 
 # create grandstochtrack jobs
-def create_grand_stochtrack_jobs_v2(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, output_string, use_gpu = False, restrict_cpus = False, job_order = None, gs_category = None, no_job_retry = False, do_singletrack = False):
+def create_grand_stochtrack_jobs_v2(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, output_string, use_gpu = False, restrict_cpus = False, job_order = None, gs_category = None, no_job_retry = False, single_cpu = False):
     # create grand_stochtrack executable submit file
     if type(use_gpu) == str:
         if use_gpu.lower() == "true":
@@ -285,7 +285,7 @@ def create_grand_stochtrack_jobs_v2(job_number, job_dictionary, grand_stochtrack
         else:
             print("doGPU set to '" + use_gpu + "'. Using CPUs for clustermap.")
             use_gpu = False
-    if do_singletrack:
+    if single_cpu:
         additional_inputs = None
         memory = "4000"
     elif use_gpu:
@@ -326,7 +326,7 @@ def create_grand_stochtrack_jobs_v2(job_number, job_dictionary, grand_stochtrack
     return job_relationship, job_number, output_string
 
 # create preproc dag submission files
-def create_anteproc_dag_v6(job_dictionary, grand_stochtrack_executable, matlab_matrix_extraction_executable, anteproc_executable, dag_dir, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_filename_dictionary, multiple_job_group_version, use_gpu = False, restrict_cpus = False, max_anteproc_jobs = 20, max_gs_jobs = 100, max_extract_jobs = 100, job_order = None, no_job_retry = False, extract_from_gpu = False, do_singletrack = False):
+def create_anteproc_dag_v6(job_dictionary, grand_stochtrack_executable, matlab_matrix_extraction_executable, anteproc_executable, dag_dir, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_filename_dictionary, multiple_job_group_version, use_gpu = False, restrict_cpus = False, max_anteproc_jobs = 20, max_gs_jobs = 100, max_extract_jobs = 100, job_order = None, no_job_retry = False, extract_from_gpu = False, single_cpu = False):
     anteproc_category = "ANTEPROC"
     gs_category = "GRANDSTOCKTRACK"
     matrix_extraction_category = "GPUARRAY_TO_ARRAY"
@@ -344,7 +344,7 @@ def create_anteproc_dag_v6(job_dictionary, grand_stochtrack_executable, matlab_m
     anteproc_job_listing, job_number, dag_string = create_anteproc_jobs_v4(job_number, anteproc_sub_filename, post_processing_job_file, H1_job_numbers, L1_job_numbers, anteproc_filename_dictionary, dag_dir, dag_string, anteproc_category = anteproc_category, no_job_retry = no_job_retry)
 
     # create grand stochtrack jobs
-    job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs_v2(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, use_gpu = use_gpu, restrict_cpus = restrict_cpus, job_order = job_order, gs_category = gs_category, no_job_retry = no_job_retry, do_singletrack = do_singletrack)
+    job_relationship_gs, job_number, dag_string = create_grand_stochtrack_jobs_v2(job_number, job_dictionary, grand_stochtrack_executable, dag_dir, dag_string, use_gpu = use_gpu, restrict_cpus = restrict_cpus, job_order = job_order, gs_category = gs_category, no_job_retry = no_job_retry, single_cpu = single_cpu)
     gs_job_listing = [x for key in job_relationship_gs for x in job_relationship_gs[key]]
     gs_job_listing.sort()
     # create matrix extraction jobs

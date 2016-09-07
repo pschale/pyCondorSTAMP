@@ -24,6 +24,8 @@
 "F" : 3000,
 "_comment" : "T is number of times clustering algorithm runs, F is number of tracks each run",
 
+"single_cpu" : true,
+
 "relative_direction" : true,
 "_comment" : "Setting the above to true will make the analysis look at the relative sky position that is given by the absolute coordinates at the trigger time",
 
