@@ -676,7 +676,7 @@ def make_file_path_absolute(file_path):
 
 def generate_summary(params_dict, output_dir):
 
-    output_str = "Summary of Parameters\n\nThe following parameters have been changed from default values:"
+    output_str = "Summary of Parameters\n\nThe following parameters have been changed from default values:\n\n"
     
     params_dict.pop("_comment", None)
     
@@ -687,7 +687,7 @@ def generate_summary(params_dict, output_dir):
         params_dict.pop(ele, None)
         default_params_dict.pop(ele, None)
     
-    output_str += "\n\nThe rest of the parameters"
+    output_str += "\n\nThe rest of the parameters\n\n"
     
     for key in params_dict:
         if not params_dict[key] == default_params_dict[key]:
