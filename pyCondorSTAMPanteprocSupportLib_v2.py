@@ -718,6 +718,8 @@ def get_default_params():
 
     "T" : 1000,
     "F" : 3000,
+    
+    "single_cpu" : True,
 
     "relative_direction" : True,
 
