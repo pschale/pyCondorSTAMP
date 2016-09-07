@@ -1,6 +1,7 @@
 from __future__ import division
 from pyCondorSTAMPLib import nested_dict_entry, create_dir
 from grandStochtrackSupportLib import load_if_number, load_number
+from generateInputFileLib import glueFileLocation
 import numpy as np
 import random
 from os import getcwd
