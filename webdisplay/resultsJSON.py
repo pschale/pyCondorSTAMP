@@ -39,8 +39,10 @@ def getSNR(inputFile):
 def getInfo(inputFile):
     if inputFile:
         data = sio.loadmat(inputFile)
+        #job_id = "/".join(inputFile.split("/")[2:-2])
         SNR = data['stoch_out']['max_SNR'][0,0][0,0]
-        info = [SNR]
+        #SNR_string = "SNR = ", 
+        info = [["SNR = ", SNR]]
     else:
         info = [None]
     return info
@@ -121,7 +123,7 @@ def main():
         if options.debug:
             print("Printing 1st four items from 'plotinfo'.")
             print(plotinfo[:4])
-        SNRs = [x[0][0] for x in plotinfo]
+        SNRs = [x[0][0][-1] for x in plotinfo]
         indices = argsort(SNRs)
         indices = indices[::-1]
         decendingplots = [plotinfo[x] for x in indices]

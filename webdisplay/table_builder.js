@@ -1,11 +1,41 @@
+function isNumber(n) {
+    return !isNaN(parseFloat(n)) && isFinite(n);
+};
+
+function splice_info (info_list) {
+    var val_label = info_list[0];
+    var value = info_list[1];
+    if (isNumber(value)) {
+        var label_string = val_label + value.toFixed(2)
+    } else {
+        var label_string = val_label + value
+    };
+    console.log(label_string);
+    return label_string
+};
+
+function build_info_cell (cell_item, row_element) {
+    var table_cell = document.createElement("td");
+    var labels = [];
+    console.log(cell_item.length);
+    for (i = 0; i < cell_item.length; i++) {
+        labels.push(splice_info(cell_item[i]))
+    };
+    console.log("labels");
+    console.log(cell_item);
+    console.log(labels);
+    table_cell.textContent = labels.join("<br/>");
+    row_element.appendChild(table_cell);
+};
+
 function build_row (plotinfo_list, tableID) {
-    var snr_info = plotinfo_list[0][0];
+    var textinfo_list = plotinfo_list[0];
+    //var snr_info = textinfo_list[0];
     var table = document.getElementById(tableID);
     var table_row = document.createElement("tr");
-    //var label_string = "SNR = " + plotinfo_list[0].toString();
-    //var label_string = "SNR = " + plotinfo_list[0][0].toFixed(2);
-    var label_string = "SNR = " + snr_info.toFixed(2);
-    build_cell(label_string, table_row);
+    //var label_string = "SNR = " + snr_info.toFixed(2);
+    console.log("build info cell");
+    build_info_cell(textinfo_list, table_row);
     for (i = 1; i < plotinfo_list.length; i++) {
         build_image_cell(plotinfo_list[i], table_row)
     };
