@@ -4,22 +4,12 @@ import scipy.io as sio
 from numpy import argsort
 import json
 
-# search pycondorstamp directory file structure
-# build json of file locations
-    # file types
-    # different plots
-    # bknd file location? no, max_cluster SNR instead
-# save json
-
 def return_filepaths(basedir):
     dir_contents = os.listdir(basedir)
-    #print(dir_contents)
     output_paths = []
     cond_1 = "plots" in dir_contents
     cond_2 = any(["bknd_" == x[:5] and ".mat" == x[-4:] for x in dir_contents])
     if cond_1 and cond_2:
-        #print("truth!")
-        #print(dir_contents)
         output_paths = [basedir]
     else:
         for item in dir_contents:
@@ -28,56 +18,18 @@ def return_filepaths(basedir):
                 output_paths += return_filepaths(current_path)
     return output_paths
 
-def getSNR(inputFile):
-    if inputFile:
-        data = sio.loadmat(inputFile)
-        SNR = data['stoch_out']['max_SNR'][0,0][0,0]
-    else:
-        SNR = None
-    return SNR
-
 def getInfo(inputFile):
     if inputFile:
         data = sio.loadmat(inputFile)
-        #job_id = "/".join(inputFile.split("/")[2:-2])
+        job_id = "/".join(inputFile.split("/")[2:-2])
         SNR = data['stoch_out']['max_SNR'][0,0][0,0]
-        #SNR_string = "SNR = ", 
-        info = [["SNR = ", SNR]]
+        SNR_string = "SNR = " + str(round(SNR, 2))
+        info = {"SNR": SNR, "label info": [job_id, SNR_string]}
     else:
         info = [None]
     return info
 
-##def get_plot_paths(basedir, plotdir = None, plot_types = [".pdf"]):
-#def get_plot_paths(basedir, plotdir = None, plot_types = [".png"]):
-#    if plotdir:
-#        targetdir = os.path.join(basedir, plotdir)
-#    else:
-#        targetdir = basedir
-#    dir_contents = os.listdir(targetdir)
-#    output_paths = [x for x in dir_contents for y in plot_types if not os.path.isdir(x) and x[-len(y):] == y]
-#    #for x in dir_contents:
-#        #for y in plot_types:
-#            #if x[-len(y):] == y:
-#                #print(x)
-#            #else:
-#                #print("huh")
-#                #print(x)
-#    for item in dir_contents:
-#        current_path = os.path.join(targetdir, item)
-#        print("testing")
-#        print("item")
-#        print(item)
-#        print(current_path)
-#        print(os.path.isdir(current_path))
-#        print("testing")
-#        if "bknd" in current_path:
-#            print(getSNR(current_path))
-#        if os.path.isdir(current_path):
-#            output_paths += get_plot_paths(current_path)
-#    return output_paths
-
-#def get_job_plots(basedir, plotdir = None, plot_types = [".png"]):
-def get_plot_paths(basedir, plotdir = None, plot_types = [".png"]):
+def get_plot_paths(basedir, plotdir = None, plot_types = [".png", ".pdf"]):
     if plotdir:
          targetdir = os.path.join(basedir, plotdir)
     else:
@@ -89,7 +41,6 @@ def get_plot_paths(basedir, plotdir = None, plot_types = [".png"]):
         current_path = os.path.join(targetdir, item)
         if "bknd" in current_path:
             # add additional info to show on webpage in getInfo function
-            #infolist += [getSNR(current_path)]
             infolist += [getInfo(current_path)]
         if os.path.isdir(current_path):
             new_plotdir = os.path.join(plotdir, item)
@@ -123,7 +74,7 @@ def main():
         if options.debug:
             print("Printing 1st four items from 'plotinfo'.")
             print(plotinfo[:4])
-        SNRs = [x[0][0][-1] for x in plotinfo]
+        SNRs = [x[0]["SNR"] for x in plotinfo]
         indices = argsort(SNRs)
         indices = indices[::-1]
         decendingplots = [plotinfo[x] for x in indices]

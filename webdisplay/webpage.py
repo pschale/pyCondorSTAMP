@@ -14,9 +14,7 @@ def copy_webfiles(target_directory, pycondorstamp_dir):
 
 def read_config_file(config_filepath):
     with open(config_filepath, "r") as infile:
-        #config = [[x.strip() for x in line.split("=")] for line in infile]
         temp_list = [[x.strip() for x in line.split("=")] for line in infile]
-        #config = {line.split("=")[0].strip(): line.split("=")[1].strip() for line in infile}
         config = {line[0]: line[1] for line in temp_list}
     return config
     
@@ -30,18 +28,14 @@ def main():
     parser = OptionParser()
 
     parser.add_option("-d", "--dir", dest = "targetDirectory",
-            help = "Path to directory to create webpage to display results.",
-            metavar = "DIRECTORY")
+           help = "Path to directory to create webpage to display results.",
+           metavar = "DIRECTORY")
 
     (options, args) = parser.parse_args()
 
     displaydir = options.targetDirectory
 
     load_conf_cp_webfiles(displaydir)
-    #default_conf = read_config_file(default_config_filepath)
-    #pycondorstamp_dir = default_conf["pycondorstamp_dir"]
-
-    #copy_webfiles(displaydir, pycondorstamp_dir)
 
 if __name__ == "__main__":
     main()
