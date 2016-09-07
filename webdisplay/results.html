@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+	<meta charset="UTF-8">
+	<meta name="description" content="Plots and details of STAMP analysis output ranked by SNR.">
+	<title>STAMP Analysis Results</title>
+        <style type="text/css">
+            img
+            {
+                width:auto;
+                height:200px
+            }
+            th, td
+            {
+                padding: 15px
+            }
+        </style>
+	<script src="simple_ajax.js"> </script>
+	<script src="table_builder.js"> </script>
+    </head>
+    <body>
+        <table id="theTable" border="1" style="border-collapse: collapse;">
+        </table>
+	<script>
+            var json_location = "plotlisting.json";
+	    loadJSON(build_table_function("theTable"), json_location)
+	</script>
+    </body>
+</html>
