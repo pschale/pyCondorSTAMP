@@ -24,7 +24,7 @@ def getInfo(inputFile):
         job_id = "/".join(inputFile.split("/")[2:-2])
         SNR = data['stoch_out']['max_SNR'][0,0][0,0]
         SNR_string = "SNR = " + str(round(SNR, 2))
-        info = {"SNR": SNR, "label info": [job_id, SNR_string]}
+        info = {"SNR": SNR, "label_info": [job_id, SNR_string]}
     else:
         info = [None]
     return info
@@ -34,18 +34,21 @@ def get_plot_paths(basedir, plotdir = None, plot_types = [".png", ".pdf"]):
          targetdir = os.path.join(basedir, plotdir)
     else:
          targetdir = basedir
-    infolist = []
+    #infolist = []
+    infolist = {"plot_subdirs": []}
     dir_contents = os.listdir(targetdir)
     plot_paths = [os.path.join(plotdir, x) for x in dir_contents for y in plot_types if not os.path.isdir(x) and x[-len(y):] == y]
     for item in dir_contents:
         current_path = os.path.join(targetdir, item)
         if "bknd" in current_path:
             # add additional info to show on webpage in getInfo function
-            infolist += [getInfo(current_path)]
+            #infolist += [getInfo(current_path)]
+            infolist.update(getInfo(current_path))
         if os.path.isdir(current_path):
             new_plotdir = os.path.join(plotdir, item)
-            plot_paths += get_plot_paths(basedir, new_plotdir)
-    infolist += plot_paths
+            #plot_paths += get_plot_paths(basedir, new_plotdir)
+            infolist.update(get_plot_paths(basedir, new_plotdir))
+    infolist["plot_subdirs"] += plot_paths
     return infolist
 
 def main():
@@ -74,7 +77,7 @@ def main():
         if options.debug:
             print("Printing 1st four items from 'plotinfo'.")
             print(plotinfo[:4])
-        SNRs = [x[0]["SNR"] for x in plotinfo]
+        SNRs = [x["SNR"] for x in plotinfo]
         indices = argsort(SNRs)
         indices = indices[::-1]
         decendingplots = [plotinfo[x] for x in indices]

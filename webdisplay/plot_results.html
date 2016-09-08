@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+	<meta charset="UTF-8">
+	<meta name="description" content="Plots and details of STAMP analysis output ranked by SNR.">
+	<title>pyCondorSTAMP Analysis Results</title>
+        <style type="text/css">
+            img
+            {
+                width:auto;
+                height:200px
+            }
+            th, td
+            {
+                padding: 15px
+            }
+	    p {
+                margin: 5px 0;
+	    }
+        </style>
+	<script src="simple_ajax.js"> </script>
+	<script src="table_builder.js"> </script>
+    </head>
+    <body>
+        <table id="theTable" border="1" style="border-collapse: collapse;">
+            <thead id="tableHead"></thead>
+	    <tbody id="tableBody"></tbody>
+        </table>
+	<script>
+            var table_info = ["theTable", "tableHead", "tableBody"];
+            //var table_head_id = "tableHead";
+	    //var table_body_id = "tableBody";
+            var json_location = "plotlisting.json";
+	    //loadJSON(build_table_function(table_info), json_location)
+	    loadJSON(build_anonymous_function(build_table, table_info), json_location)
+	</script>
+	<button style="position: fixed; bottom:15px;left:5px;" onclick="window.location.href='#'">Continue</button>
+	<!--<button style="position: fixed; bottom:15px;right:5px;" onclick="loadJSON(build_anonymous_function(build_table, table_info), json_location)">Test</button>-->
+	<button style="position: fixed; bottom:15px;right:5px;" onclick="loadJSON(rebuild_table_function(table_info, [0, 2]), json_location)">Test</button>
+    </body>
+</html>

@@ -5,7 +5,7 @@ from optparse import OptionParser
 home_folder = os.path.expanduser("~")
 default_config_filepath = os.path.join(home_folder, ".pycondorstamp", "config.txt")
 webfile_subdir = "webdisplay"
-webfiles = ["results.html", "simple_ajax.js", "table_builder.js"]
+webfiles = ["plot_results.html", "simple_ajax.js", "table_builder.js"]
 
 def copy_webfiles(target_directory, pycondorstamp_dir):
     for filename in webfiles:
