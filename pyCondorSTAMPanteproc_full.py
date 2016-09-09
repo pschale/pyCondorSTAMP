@@ -112,7 +112,7 @@ def main():
             commonParamsDictionary['anteproc_l']['segmentDuration'] = 1
             
         inputFileString += "\n\n" + "grandStochtrack doStochtrack true"
-        commonGSParamsDictionary['grandStochtrack']['doStochtrack'] = True
+        commonParamsDictionary['grandStochtrack']['doStochtrack'] = True
         
         if input_params['long_pixel']:
             inputFileString += "\n\n" + "grandStochtrack stochtrack.mindur 25"
