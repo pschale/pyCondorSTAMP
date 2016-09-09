@@ -61,7 +61,7 @@ function plotTitles (func, plotinfo_list, indices = null, second_arg = null, thi
 function build_header_row (plotinfo_list, tableHeadID, indices = null) {
     var table_head = document.getElementById(tableHeadID);
     var table_row = document.createElement("tr");
-    build_cell("job info", table_row);
+    build_cell("Job info", table_row);
     //plotTitles([build_cell], plotinfo_list, indices, table_row);
     plotTitles(build_cell, plotinfo_list, indices, table_row);
     table_head.appendChild(table_row)
@@ -79,28 +79,36 @@ function select_subinfo (plotinfo_list, indices = null) {
     return info_subset
 };
 
-function build_table (jsonString, tableID, indices = null, single_page_limit = 25) {
+//function build_table (jsonString, tableID, indices = null, single_page_limit = 25) {
+function build_table (jsonString, tableID, indices = null, start_plotindex = 0, single_page_limit = 25) {
+    if (start_plotindex < 0) {
+        start_plotindex = 0
+    };
     var jsonObject = JSON.parse(jsonString);
     var table_size = jsonObject.length;
-    if (single_page_limit < table_size) {
-        table_size = single_page_limit
-    };
-    reset_element(tableID[1]);
-    reset_element(tableID[2]);
-    build_header_row(jsonObject[0], tableID[1], indices);
-    for (j = 0; j < table_size; j++) {
-        build_row(jsonObject[j], tableID[2], indices)
-    };
-};
-
-function build_table_function (table_info) {
-    return function (jsonString) {
-        build_table (jsonString, table_info)
+    var end_plotindex = start_plotindex + single_page_limit;
+    if (start_plotindex < table_size) {
+        if (table_size < end_plotindex) {
+            end_plotindex = table_size
+        };
+        reset_element(tableID[1]);
+        reset_element(tableID[2]);
+        build_header_row(jsonObject[0], tableID[1], indices);
+        //console.log(start_plotindex);
+        //console.log(end_plotindex);
+        for (j = start_plotindex; j < end_plotindex; j++) {
+            build_row(jsonObject[j], tableID[2], indices)
+        }
+    } else {
+        var plotnum = start_plotindex + 1;
+        alert("Warning: Attempted to start viewing at plot number " + plotnum.toString() + ". Only " + table_size.toString() + " viewable plots.")
     }
 };
 
-function rebuild_table_function (table_info, indices) {
+function build_table_function (table_info, indices = null, start_plotindex = 0, single_page_limit = 25) {
+    //console.log(start_plotindex);
+    //console.log(single_page_limit);
     return function (jsonString) {
-        build_table (jsonString, table_info, indices)
+        build_table (jsonString, table_info, indices, start_plotindex, single_page_limit)
     }
 };
