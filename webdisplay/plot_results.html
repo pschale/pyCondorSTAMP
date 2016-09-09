@@ -20,6 +20,7 @@
         </style>
 	<script src="simple_ajax.js"> </script>
 	<script src="table_builder.js"> </script>
+	<script src="table_interact.js"> </script>
     </head>
     <body>
         <table id="theTable" border="1" style="border-collapse: collapse;">
@@ -28,14 +29,15 @@
         </table>
 	<script>
             var table_info = ["theTable", "tableHead", "tableBody"];
-            //var table_head_id = "tableHead";
-	    //var table_body_id = "tableBody";
             var json_location = "plotlisting.json";
-	    //loadJSON(build_table_function(table_info), json_location)
-	    loadJSON(build_anonymous_function(build_table, table_info), json_location)
+	    loadJSON(build_table_function(table_info), json_location)
 	</script>
-	<button style="position: fixed; bottom:15px;left:5px;" onclick="window.location.href='#'">Continue</button>
-	<!--<button style="position: fixed; bottom:15px;right:5px;" onclick="loadJSON(build_anonymous_function(build_table, table_info), json_location)">Test</button>-->
-	<button style="position: fixed; bottom:15px;right:5px;" onclick="loadJSON(rebuild_table_function(table_info, [0, 2]), json_location)">Test</button>
+	<button style="position: fixed; bottom:15px;left:5px;" onclick="window.location.href='#'">Back to top</button>
+	<!--<button style="position: fixed; bottom:15px;right:5px;" onclick="loadJSON(rebuild_table_function(table_info, [0, 2]), json_location)">Test</button>-->
+	<div id="testdiv" style="position: fixed; bottom:15px; right:5px; background-color: white">
+	<!--<button onclick="create_button('testing', 'testdiv', testlog)">Test 2</button>-->
+	<!--<button onclick="create_button('testing', 'testdiv', expand_plotcontrol('testdiv', json_location))">Test 2</button>-->
+	    <button onclick="expand_plotcontrol('testdiv', json_location)">Test 2</button>
+	</div>
     </body>
 </html>
