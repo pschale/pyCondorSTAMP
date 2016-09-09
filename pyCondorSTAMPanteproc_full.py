@@ -578,7 +578,7 @@ def main():
                 text_output += "\n\n" + temp_output
                 
                 stochtrackParamsList.append(jobDictionary)
-                stochtrackParamsList[current_job]['job_group']=  job_group
+                stochtrackParamsList[current_job - 1]['job_group']=  job_group
                 
         else:
             current_job +=1
@@ -589,7 +589,7 @@ def main():
             text_output += "\n\n" + temp_output
             
             stochtrackParamsList.append(jobDictionary)
-            stochtrackParamsList[current_job]['job_group']=  job_group
+            stochtrackParamsList[current_job - 1]['job_group']=  job_group
 
 
     
