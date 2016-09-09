@@ -1,5 +1,4 @@
 function build_info_cell (cell_item, row_element) {
-    //console.log(cell_item);
     var table_cell = document.createElement("td");
     var labels = cell_item["label_info"];
     for (i = 0; i < labels.length; i++) {
@@ -10,14 +9,10 @@ function build_info_cell (cell_item, row_element) {
     row_element.appendChild(table_cell);
 };
 
-//function build_row (plotinfo_list, tableID) {
 function build_row (plotinfo_list, tableBodyID, indices = null) {
-    //var textinfo_list = plotinfo_list[0];
-    //var table = document.getElementById(tableID);
     var table_body = document.getElementById(tableBodyID);
     var table_row = document.createElement("tr");
     build_info_cell(plotinfo_list, table_row);
-    //var plot_subdirs = plotinfo_list["plot_subdirs"];
     var plot_subdirs = select_subinfo(plotinfo_list["plot_subdirs"], indices);
     for (i = 0; i < plot_subdirs.length; i++) {
         build_image_cell(plot_subdirs[i], table_row)
@@ -28,7 +23,7 @@ function build_row (plotinfo_list, tableBodyID, indices = null) {
 function rebuild_row (plotinfo_list, tableBodyID, indices) {
     var info_subset = [];
     for (i = 0; i < indices.length; i++) {
-        info_subset.push(plotinfo_list[i])
+        info_subset.push(plotinfo_list[indices[i]])
     };
     build_row(info_subset, tableBodyID)
 };
@@ -59,18 +54,15 @@ function reset_table_element (element_ID) {
 
 //function build_header_row (plotinfo_list, tableID) {
 function build_header_row (plotinfo_list, tableHeadID, indices = null) {
-    //var table = document.getElementById(tableID);
-    //var table_head = document.getElementById(tableHeadID);
-    //table_head.innerHTML = "";
     var table_head = document.getElementById(tableHeadID);
     var table_row = document.createElement("tr");
     build_cell("job info", table_row);
-    //var plot_subdirs = plotinfo_list["plot_subdirs"];
     var plot_subdirs = select_subinfo(plotinfo_list["plot_subdirs"], indices);
     console.log(plot_subdirs);
     for (i = 0; i < plot_subdirs.length; i++) {
-        //console.log(plotinfo_list[i]);
-        //console.log(plotinfo_list);
+        console.log(plotinfo_list[i]);
+        console.log(plotinfo_list);
+        console.log(plotinfo_list["plot_subdirs"]);
         var column_info = plot_subdirs[i].split("/").pop();
         column_info = column_info.replace(/\.[^/.]+$/, "");
         column_info = column_info.replace(/_/g, " ");
@@ -83,7 +75,7 @@ function select_subinfo (plotinfo_list, indices = null) {
     if (indices) {
         var info_subset = [];
         for (i = 0; i < indices.length; i++) {
-            info_subset.push(plotinfo_list[i])
+            info_subset.push(plotinfo_list[indices[i]])
         }
     } else {
         info_subset = plotinfo_list
