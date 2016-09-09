@@ -508,7 +508,7 @@ def main():
     
     #this for loop builds each individual job
     current_job = 0
-    
+    stochtrackParamsList = []
     for [jobIndex1, jobIndex2] in sortedJobPairs:#[jobNum1, jobNum2] in sortedJobPairs:
         jobNum1 = jobIndex1 + 1
         jobNum2 = jobIndex2 + 1
@@ -575,7 +575,7 @@ def main():
                 temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])    
                 text_output += "\n\n" + temp_output
                 
-                stochtrackParamsList[current_job] = jobDictionary
+                stochtrackParamsList.append(jobDictionary)
                 stochtrackParamsList[current_job]['job_group']=  job_group
                 
         else:
@@ -586,11 +586,11 @@ def main():
             temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])
             text_output += "\n\n" + temp_output
             
-            stochtrackParamsList[current_job] = jobDictionary
+            stochtrackParamsList.append(jobDictionary)
             stochtrackParamsList[current_job]['job_group']=  job_group
 
 
-     
+    
     saveText(glueFileLocation(input_params['outputDir'], "config_file.txt"), text_output)
     
     
@@ -641,6 +641,11 @@ def main():
     # parse jobs
     
     jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms, varyingAnteprocVariables = parse_jobs(rawData)
+    import pprint
+    pprint.pprint(jobs, width=1)
+    pprint.pprint(commonParamsDictionary, width=1)
+    pprint.pprint(anteprocParamsDictionary, width=1)
+    pprint.pprint(stochtrackParamsList, width=1)
     H1_jobs = set(H1_jobs)
     L1_jobs = set(L1_jobs)
     
