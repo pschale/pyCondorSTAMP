@@ -644,14 +644,11 @@ def main():
     
     jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms, varyingAnteprocVariables = parse_jobs(rawData)
     import pprint
-    with open(glueFileLocation(input_params['outputDir'], "jobs_dict.txt"), "w") as h:
-        h.write(pprint.pprint(jobs, width=1))
-    with open(glueFileLocation(input_params['outputDir'], "commonParams_dict.txt"), "w") as h:
-        h.write(pprint.pprint(commonParamsDictionary, width=1))
-    with open(glueFileLocation(input_params['outputDir'], "anteprocParams_dict.txt"), "w") as h:
-        h.write(pprint.pprint(anteprocParamsDictionary, width=1))
-    with open(glueFileLocation(input_params['outputDir'], "stochtrackParams_list.txt"), "w") as h:
-        h.write(pprint.pprint(stochtrackParamsList, width=1))
+    pprint.pprint(jobs, open(glueFileLocation(input_params['outputDir'], "jobs_dict.txt"), "w"))
+    pprint.pprint(commonParamsDictionary, open(glueFileLocation(input_params['outputDir'], "commonParams_dict.txt"), "w"))
+    pprint.pprint(anteprocParamsDictionary, open(glueFileLocation(input_params['outputDir'], "anteprocParams_dict.txt"), "w"))
+    pprint.pprint(stochtrackParamsList, open(glueFileLocation(input_params['outputDir'], "stochtrackParams_list.txt"), "w"))
+
     H1_jobs = set(H1_jobs)
     L1_jobs = set(L1_jobs)
     
