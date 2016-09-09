@@ -44,7 +44,6 @@ function reset_element (element_ID) {
     element_object.innerHTML = "";
 };
 
-//function plotTitles (func_array, plotinfo_list, indices = null, second_arg = null, third_arg = null) {
 function plotTitles (func, plotinfo_list, indices = null, second_arg = null, third_arg = null) {
     var plot_subdirs = select_subinfo(plotinfo_list["plot_subdirs"], indices);
     for (i = 0; i < plot_subdirs.length; i++) {
@@ -52,9 +51,6 @@ function plotTitles (func, plotinfo_list, indices = null, second_arg = null, thi
         column_info = column_info.replace(/\.[^/.]+$/, "");
         column_info = column_info.replace(/_/g," ");
         func(column_info, second_arg, third_arg)
-        //for (j = 0; j < func_array.length; j++) {
-            //func_array[j](column_info, second_arg, third_arg)
-        //}
     }
 };
 
@@ -62,7 +58,6 @@ function build_header_row (plotinfo_list, tableHeadID, indices = null) {
     var table_head = document.getElementById(tableHeadID);
     var table_row = document.createElement("tr");
     build_cell("Job info", table_row);
-    //plotTitles([build_cell], plotinfo_list, indices, table_row);
     plotTitles(build_cell, plotinfo_list, indices, table_row);
     table_head.appendChild(table_row)
 };
@@ -79,7 +74,6 @@ function select_subinfo (plotinfo_list, indices = null) {
     return info_subset
 };
 
-//function build_table (jsonString, tableID, indices = null, single_page_limit = 25) {
 function build_table (jsonString, tableID, indices = null, start_plotindex = 0, single_page_limit = 25) {
     if (start_plotindex < 0) {
         start_plotindex = 0
@@ -94,8 +88,6 @@ function build_table (jsonString, tableID, indices = null, start_plotindex = 0, 
         reset_element(tableID[1]);
         reset_element(tableID[2]);
         build_header_row(jsonObject[0], tableID[1], indices);
-        //console.log(start_plotindex);
-        //console.log(end_plotindex);
         for (j = start_plotindex; j < end_plotindex; j++) {
             build_row(jsonObject[j], tableID[2], indices)
         }
@@ -106,8 +98,6 @@ function build_table (jsonString, tableID, indices = null, start_plotindex = 0, 
 };
 
 function build_table_function (table_info, indices = null, start_plotindex = 0, single_page_limit = 25) {
-    //console.log(start_plotindex);
-    //console.log(single_page_limit);
     return function (jsonString) {
         build_table (jsonString, table_info, indices, start_plotindex, single_page_limit)
     }

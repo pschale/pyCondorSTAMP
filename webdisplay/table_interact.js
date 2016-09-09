@@ -1,7 +1,6 @@
 var start_index_global = 0;
 var numplots_global = 25;
 var tablelength = null;
-//var currentColumns = [];
 
 function create_button (name, parentID, onclick_function, titlename = null) {
     var parentElement = document.getElementById(parentID);
@@ -22,11 +21,6 @@ function create_checkbox (name, parentID) {
     checkbox.type = "checkbox";
     checkbox.id = name;
     checkbox.checked = true;
-    //checkbox.value = name;
-    //<input class="messageCheckbox" type="checkbox" value="3" name="mailId[]">
-    //<input type="checkbox" name="vehicle" value="Bike">
-    //checkbox.textContent = name;
-    //parElement.textContent = name;
     parElement.appendChild(checkbox);
     parElement.appendChild(nameText);
     parentElement.appendChild(parElement)
@@ -42,38 +36,20 @@ function set_class (elementID, classname) {
     document.getElementById(elementID).className = classname
 };
 
-//function create_textinput (parentID) {
 function create_textinput(parentID, elementID, global_var) {
-    //<input type="text">
     var parentElement = document.getElementById(parentID);
     var textbox = document.createElement("input");
-    //var nameText = document.createTextNode(name);
     textbox.type = "text";
-    //textbox.size = "4";
     textbox.size = "2";
     textbox.value = global_var;
     textbox.id = elementID;
     textbox.title = elementID;
-    //checkbox.id = name;
-    //checkbox.checked = true;
-    //checkbox.value = name;
-    //<input class="messageCheckbox" type="checkbox" value="3" name="mailId[]">
-    //<input type="checkbox" name="vehicle" value="Bike">
-    //checkbox.textContent = name;
-    //parElement.textContent = name;
-    //parElement.appendChild(checkbox);
-    //parElement.appendChild(nameText);
     parentElement.appendChild(textbox)
 };
 
 function settablelength (jsonString) {
     jsonObject = JSON.parse(jsonString);
-    //var tempArray = [];
     tablelength = jsonObject.length;
-    //for (i = 0; i < jsonObject[0]["plot_subdirs"].length; i++) {
-        //tempArray.push(i)
-    //};
-    //currentColumns = tempArray
 };
 
 function prevplots (json_location) {
@@ -105,7 +81,6 @@ function updaterowinfo () {
     if (start_index_temp < 0) {
         start_index_global = 0
         plotnum = start_index_global + 1;
-        //console.log(plotnum);
         document.getElementById("Start plot row").value = plotnum.toString();
     } else if (start_index_temp < tablelength) {
         start_index_global = start_index_temp;
@@ -114,12 +89,6 @@ function updaterowinfo () {
         alert("Warning: Attempted to start viewing at plot number " + plotnum.toString() + ". Only " + tablelength.toString() + " viewable plots.")
     }
 };
-
-//function update_table () {
-        //updaterowinfo();
-        //loadJSON(build_table_function(table_info, check_checkboxes(jsonObject[0]), start_index_global, numplots_global), json_location)
-//};
-//function () {updaterowinfo(); loadJSON(build_table_function(table_info, check_checkboxes(jsonObject[0]), start_index_global, numplots_global), json_location)}
 
 function expand_plotcontrol (divID, json_location) {
     reset_element(divID);
