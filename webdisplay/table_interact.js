@@ -49,7 +49,7 @@ function create_textinput(parentID, elementID, global_var) {
 
 function settablelength (jsonString) {
     jsonObject = JSON.parse(jsonString);
-    tablelength = jsonObject.length;
+    tablelength = jsonObject["plot_info"].length;
 };
 
 function prevplots (json_location) {
@@ -60,7 +60,7 @@ function prevplots (json_location) {
         start_index_global -= numplots_global;
     }
     document.getElementById("Start plot row").value = start_index_global+1;
-    loadJSON(build_table_function(table_info, check_checkboxes(jsonObject[0]), start_index_global, numplots_global), json_location)
+    loadJSON(build_table_function(table_info, check_checkboxes(jsonObject), start_index_global, numplots_global), json_location)
 };
 
 function nextplots (json_location) {
@@ -68,7 +68,7 @@ function nextplots (json_location) {
         start_index_global += numplots_global;
         numplots_global = parseInt(document.getElementById("Number plot rows").value);
         document.getElementById("Start plot row").value = start_index_global+1;
-        loadJSON(build_table_function(table_info, check_checkboxes(jsonObject[0]), start_index_global, numplots_global), json_location)
+        loadJSON(build_table_function(table_info, check_checkboxes(jsonObject), start_index_global, numplots_global), json_location)
     } else {
         var plotnum = start_index_global + numplots_global;
         alert("Warning: Attempted to start viewing at plot number " + plotnum.toString() + ". Only " + tablelength.toString() + " viewable plots.")
@@ -100,8 +100,8 @@ function expand_plotcontrol (divID, json_location) {
         create_textinput(divID, "Start plot row", start_index_global+1);
         create_textinput(divID, "Number plot rows", numplots_global);
         create_button(">>", divID, function () {nextplots(json_location)}, "Next plots");
-        plotTitles(create_checkbox, jsonObject[0], null, divID);
-        create_button("Update", divID, function () {updaterowinfo(); loadJSON(build_table_function(table_info, check_checkboxes(jsonObject[0]), start_index_global, numplots_global), json_location)}, "Update displayed plots");
+        plotTitles(create_checkbox, jsonObject, null, divID);
+        create_button("Update", divID, function () {updaterowinfo(); loadJSON(build_table_function(table_info, check_checkboxes(jsonObject), start_index_global, numplots_global), json_location)}, "Update displayed plots");
         create_button("Hide", divID, function () {hide_plotcontrol(divID, json_location)}, "Hide plot controls")
     }, json_location)
 };

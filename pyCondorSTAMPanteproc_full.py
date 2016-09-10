@@ -13,6 +13,7 @@ import random
 import json
 import os
 from optparse import OptionParser
+from webdisplay import webpage
 
 def main():
     parser = OptionParser()
@@ -465,6 +466,7 @@ def main():
     
     
     outputDir += "stamp_analysis_anteproc" if input_params['outputDir'][-1] == "/" else "/stamp_analysis_anteproc"
+    outputDir = os.path.join(output, "stamp_analysis_anteproc")
     baseDir = dated_dir(outputDir)
     
     STAMP_setup_script = glueFileLocation(input_params['STAMP2_installation_dir'], "test/stamp_setup.sh")
@@ -802,10 +804,8 @@ def main():
     jobOrder = [jobTempDict[jobNum]["job"] for jobNum in jobNumOrder]
     jobOrderWeb = [jobTempDict[jobNum]["job dir"] for jobNum in jobNumOrder]
     
-    #webGen.make_display_page(directory, saveDir, subDirList, subSubDir, plotTypeList, plotTypeDict, outputFileName)
-    print('DEBUG NOTE: Maybe figure out how to variablize "grandstochtrackOutput/plots" in next line?')
     print("Creating webpage")
-    webGen.make_display_page("jobs", baseDir, jobOrderWeb, "grandstochtrackOutput/plots", plotTypeList, plotTypeDict, outFile)
+    webpage.load_conf_cp_webfiles(baseDir)
     
     # build DAGs
     # preproc DAG

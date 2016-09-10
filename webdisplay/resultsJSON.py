@@ -1,3 +1,4 @@
+from __future__ import division
 import os
 from optparse import OptionParser
 import scipy.io as sio
@@ -24,7 +25,19 @@ def getInfo(inputFile):
         job_id = "/".join(inputFile.split("/")[2:-2])
         SNR = data['stoch_out']['max_SNR'][0,0][0,0]
         SNR_string = "SNR = " + str(round(SNR, 2))
-        info = {"SNR": SNR, "label_info": [job_id, SNR_string]}
+        min_f = data['stoch_out']['fmin'][0,0][0,0]
+        min_f_string = "Min Freqency = " + str(min_f)
+        max_f = data['stoch_out']['fmax'][0,0][0,0]
+        max_f_string = "Max Freqency = " + str(max_f)
+        cluster_length = data['stoch_out']['tmax'][0,0][0,0] - data['stoch_out']['tmin'][0,0][0,0]
+        info = {"SNR": SNR, "label_info": [job_id, SNR_string, min_f_string, max_f_string]}
+        if data['stoch_out']['params'][0,0][0,0]['doOverlap'][0,0]:
+            overlap_time = data['stoch_out']['params'][0,0][0,0]['segmentDuration'][0,0]/2
+            if overlap_time == int(overlap_time):
+                overlap_time = int(overlap_time)
+            cluster_length += overlap_time
+        cluster_length_string = "Cluster Duration = " + str(cluster_length)
+        info["label_info"] += [cluster_length_string]
     else:
         info = [None]
     return info
@@ -34,7 +47,6 @@ def get_plot_paths(basedir, plotdir = None, plot_types = [".png", ".pdf"]):
          targetdir = os.path.join(basedir, plotdir)
     else:
          targetdir = basedir
-    #infolist = []
     infolist = {"plot_subdirs": []}
     dir_contents = os.listdir(targetdir)
     plot_paths = [os.path.join(plotdir, x) for x in dir_contents for y in plot_types if not os.path.isdir(x) and x[-len(y):] == y]
@@ -42,14 +54,19 @@ def get_plot_paths(basedir, plotdir = None, plot_types = [".png", ".pdf"]):
         current_path = os.path.join(targetdir, item)
         if "bknd" in current_path:
             # add additional info to show on webpage in getInfo function
-            #infolist += [getInfo(current_path)]
             infolist.update(getInfo(current_path))
         if os.path.isdir(current_path):
             new_plotdir = os.path.join(plotdir, item)
-            #plot_paths += get_plot_paths(basedir, new_plotdir)
             infolist.update(get_plot_paths(basedir, new_plotdir))
     infolist["plot_subdirs"] += plot_paths
     return infolist
+
+def wrapjsonlist(jsonlist):
+    plot_subdirs = jsonlist[0]["plot_subdirs"]
+    simple_plotnames = [os.path.basename(x).replace("_", " ") for x in plot_subdirs]
+    simple_plotnames = [os.path.splitext(x)[0] for x in simple_plotnames]
+    output_json = {"simple_plotnames": simple_plotnames, "plot_info": jsonlist}
+    return output_json
 
 def main():
     parser = OptionParser()
@@ -81,9 +98,10 @@ def main():
         indices = argsort(SNRs)
         indices = indices[::-1]
         decendingplots = [plotinfo[x] for x in indices]
+        output_json = wrapjsonlist(decendingplots)
         outputfilename = os.path.join(analysisdir, "plotlisting.json")
         with open(outputfilename, "w") as outfile:
-            json.dump(decendingplots, outfile, indent = 4)
+            json.dump(output_json, outfile, indent = 4)
     else:
         print("Check target directory structure. This script does not seems to be set up to properly unpack this directory.")
 

@@ -44,21 +44,18 @@ function reset_element (element_ID) {
     element_object.innerHTML = "";
 };
 
-function plotTitles (func, plotinfo_list, indices = null, second_arg = null, third_arg = null) {
-    var plot_subdirs = select_subinfo(plotinfo_list["plot_subdirs"], indices);
-    for (i = 0; i < plot_subdirs.length; i++) {
-        var column_info = plot_subdirs[i].split("/").pop();
-        column_info = column_info.replace(/\.[^/.]+$/, "");
-        column_info = column_info.replace(/_/g," ");
-        func(column_info, second_arg, third_arg)
+function plotTitles (func, jsonObject, indices = null, second_arg = null, third_arg = null) {
+    var plot_names = select_subinfo(jsonObject["simple_plotnames"], indices);
+    for (i = 0; i < plot_names.length; i++) {
+        func(plot_names[i], second_arg, third_arg)
     }
 };
 
-function build_header_row (plotinfo_list, tableHeadID, indices = null) {
+function build_header_row (jsonObject, tableHeadID, indices = null) {
     var table_head = document.getElementById(tableHeadID);
     var table_row = document.createElement("tr");
     build_cell("Job info", table_row);
-    plotTitles(build_cell, plotinfo_list, indices, table_row);
+    plotTitles(build_cell, jsonObject, indices, table_row);
     table_head.appendChild(table_row)
 };
 
@@ -79,7 +76,7 @@ function build_table (jsonString, tableID, indices = null, start_plotindex = 0, 
         start_plotindex = 0
     };
     var jsonObject = JSON.parse(jsonString);
-    var table_size = jsonObject.length;
+    var table_size = jsonObject["plot_info"].length;
     var end_plotindex = start_plotindex + single_page_limit;
     if (start_plotindex < table_size) {
         if (table_size < end_plotindex) {
@@ -87,9 +84,9 @@ function build_table (jsonString, tableID, indices = null, start_plotindex = 0, 
         };
         reset_element(tableID[1]);
         reset_element(tableID[2]);
-        build_header_row(jsonObject[0], tableID[1], indices);
+        build_header_row(jsonObject, tableID[1], indices);
         for (j = start_plotindex; j < end_plotindex; j++) {
-            build_row(jsonObject[j], tableID[2], indices)
+            build_row(jsonObject["plot_info"][j], tableID[2], indices)
         }
     } else {
         var plotnum = start_plotindex + 1;
