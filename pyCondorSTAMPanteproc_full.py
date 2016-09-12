@@ -3,7 +3,7 @@ from __future__ import division
 from generateInputFileLib import *
 from numpy import argsort, sqrt, arccos, pi
 from pyCondorSTAMPLib import *
-from pyCondorSTAMPanteprocSupportLib_v2 import *
+from pyCondorSTAMPanteprocSupportLib import *
 from preprocSupportLib import *
 from grandStochtrackSupportLib import *
 from condorSTAMPSupportLib_v2 import *
