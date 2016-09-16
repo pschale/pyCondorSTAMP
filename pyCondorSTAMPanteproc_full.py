@@ -832,7 +832,7 @@ def main():
         stochtrackParamsList[i]['anteproc'] = {}
         stochtrackParamsList[i]['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map"
         stochtrackParamsList[i]['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
-        if stochtrackParamsList[i]["injection_tags"]:
+        if "injection_tags" in stochtrackParamsList[i]:
             stochtrackParamsList[i]['anteproc']['inmats1'] += "_" + stochtrackParamsList[i]["injection_tags"]
             stochtrackParamsList[i]['anteproc']['inmats2'] += "_" + stochtrackParamsList[i]["injection_tags"]
         stochtrackParamsList[i]['anteproc'].update(added_anteproc_dict)
