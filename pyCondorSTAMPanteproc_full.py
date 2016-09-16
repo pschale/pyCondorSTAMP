@@ -829,6 +829,7 @@ def main():
     #this can likely be moved to much earlier
     #need to add support for varying parameters
     for i in range(0, len(stochtrackParamsList)):
+        stochtrackParamsList[i]['anteproc'] = {}
         stochtrackParamsList[i]['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map"
         stochtrackParamsList[i]['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
         if stochtrackParamsList[i]["injection_tags"]:
