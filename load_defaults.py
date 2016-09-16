@@ -154,7 +154,7 @@ def getDefaultCommonParams():
                             "stochtrack": {
 
                             },
-                            "yMapScale": 1e-43
+                            "yMapScale": 1e-43,
         
                             "stochtrack" : {
                                 "T": 10000,
