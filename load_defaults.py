@@ -3,6 +3,7 @@
 def getDefaultCommonParams():
 
     return {
+        "anteproc" : {},
         "preproc" : {
                      'ShiftTime1': 1,
                      'ShiftTime2': 0,
