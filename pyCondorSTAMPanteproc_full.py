@@ -578,8 +578,9 @@ def main():
                 temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])    
                 text_output += "\n\n" + temp_output
                 
-                stochtrackParamsList.append(jobDictionary)
+                stochtrackParamsList.append({'grandStochtrackParams': {'params': jobDictionary}})
                 stochtrackParamsList[current_job - 1]['job_group']=  job_group
+                stochtrackParamsList[current_job - 1]['jobNum'] = current_job - 1
                 
         else:
             current_job +=1
@@ -589,8 +590,10 @@ def main():
             temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])
             text_output += "\n\n" + temp_output
             
-            stochtrackParamsList.append(jobDictionary)
-            stochtrackParamsList[current_job - 1]['job_group']=  job_group
+            stochtrackParamsList.append({'grandStochtrackParams': {'params': jobDictionary}})
+            stochtrackParamsList[current_job - 1]['job_group'] = job_group
+            stochtrackParamsList[current_job - 1]['jobNum'] = current_job - 1
+
 
 
     
@@ -829,13 +832,13 @@ def main():
     #this can likely be moved to much earlier
     #need to add support for varying parameters
     for i in range(0, len(stochtrackParamsList)):
-        stochtrackParamsList[i]['anteproc'] = {}
-        stochtrackParamsList[i]['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map"
-        stochtrackParamsList[i]['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
+        stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc'] = {}
+        stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map"
+        stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
         if "injection_tags" in stochtrackParamsList[i]:
-            stochtrackParamsList[i]['anteproc']['inmats1'] += "_" + stochtrackParamsList[i]["injection_tags"]
-            stochtrackParamsList[i]['anteproc']['inmats2'] += "_" + stochtrackParamsList[i]["injection_tags"]
-        stochtrackParamsList[i]['anteproc'].update(added_anteproc_dict)
+            stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats1'] += "_" + stochtrackParamsList[i]["injection_tags"]
+            stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats2'] += "_" + stochtrackParamsList[i]["injection_tags"]
+        stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc'].update(added_anteproc_dict)
         
         jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(stochtrackParamsList[i]["job_group"]) + "/job_" + str(i))
         
