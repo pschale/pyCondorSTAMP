@@ -61,7 +61,7 @@ def getDefaultCommonParams():
                      'segmentDuration': 4,
                      'simOmegaRef': 0,
                      'stampinj': False,
-                     'stochmap': True
+                     'stochmap': True,
                      'storemats': True,
                      
 
