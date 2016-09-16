@@ -110,8 +110,7 @@ def getDefaultCommonParams():
             "glitch": {"doCut": False,
                 "numBands": 3,
                 "doCoincidentCut": 0,
-                "doCut": 1,
-                "
+                "doCut": 1
             },
             "burstegard": {"NCN": 80,
                             "NR": 2,
