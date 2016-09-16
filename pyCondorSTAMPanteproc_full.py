@@ -517,7 +517,7 @@ def main():
         job1EndTime = times[jobIndex1][2]
         
         #jobDictionary = {"preproc" : {}, "grandStochtrack": {"anteproc" : {}}}
-        jobDictionary = {'grandStochtrack': getDefaultCommonParams()['grandStochtrack']}
+        jobDictionary = {'grandStochtrackParams': {'params':getDefaultCommonParams()['grandStochtrack']}}
         
         if input_params['long_pixel'] or input_params['burstegard']:
             job1_hstart = job1StartTime + (9-1)*4/2+2
@@ -533,11 +533,11 @@ def main():
     
         if not input_params['relative_direction']:
             params["grandStochtrack ra"] = input_params['RA']
-            jobDictionary["grandStochtrack"]["ra"] = input_params['RA']
+            jobDictionary["grandStochtrackParams"]["params"]["ra"] = input_params['RA']
 
         if input_params['remove_cluster']:
             params["grandStochtrack clusterFile"] = source_file_dict[jobIndex1][jobIndex2]
-            jobDictionary["grandStochtrack"]["clusterFile"] = source_file_dict[jobIndex1][jobIndex2]
+            jobDictionary["grandStochtrackParams"]["params"]["clusterFile"] = source_file_dict[jobIndex1][jobIndex2]
     
         params["preproc job"] = jobNum1#this needed anymore?
         jobDictionary["preprocJobs"] = jobNum1
@@ -545,8 +545,8 @@ def main():
         if input_params['anteproc_bool']:
             params["grandStochtrack anteproc.jobNum1"] = jobNum1
             params["grandStochtrack anteproc.jobNum2"] = jobNum2
-            jobDictionary["grandStochtrack"]["anteproc"]["jobNum1"] = jobNum1
-            jobDictionary["grandStochtrack"]["anteproc"]["jobNum2"] = jobNum2
+            jobDictionary["grandStochtrackParams"]["params"]["anteproc"]["jobNum1"] = jobNum1
+            jobDictionary["grandStochtrackParams"]["params"]["anteproc"]["jobNum2"] = jobNum2
     
         else:
             params["preproc doShift1"] = 0
@@ -562,11 +562,11 @@ def main():
         if input_params['relative_direction']:
             if jobIndex1 == 33:
                 params["grandStochtrack useReferenceAntennaFactors"] = "false"
-                jobDictionary["grandStochtrack"]["useReferenceAntennaFactors"] = False
+                jobDictionary["grandStochtrackParams"]["params"]["useReferenceAntennaFactors"] = False
 
             elif "grandStochtrack useReferenceAntennaFactors" in params:
                 del params["grandStochtrack useReferenceAntennaFactors"]
-            jobDictionary["grandStochtrack"].pop("useReferenceAntennaFactors", None)
+                jobDictionary["grandStochtrackParams"]["params"].pop("useReferenceAntennaFactors", None)
     
         if input_params['injection_bool'] and not input_params['onTheFly']:
             for temp_waveform in waveformFileNames:
@@ -579,7 +579,7 @@ def main():
                 temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])    
                 text_output += "\n\n" + temp_output
                 
-                stochtrackParamsList['grandStochtrackParams']['params'] = jobDictionary
+                stochtrackParamsList.append(jobDictionary)
                 stochtrackParamsList[current_job - 1]['job_group']=  job_group
                 stochtrackParamsList[current_job - 1]['jobNum'] = current_job - 1
                 
@@ -591,7 +591,7 @@ def main():
             temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])
             text_output += "\n\n" + temp_output
             
-            stochtrackParamsList['grandStochtrackParams']['params'] = jobDictionary
+            stochtrackParamsList.append(jobDictionary)
             stochtrackParamsList[current_job - 1]['job_group'] = job_group
             stochtrackParamsList[current_job - 1]['jobNum'] = current_job - 1
 
