@@ -96,20 +96,6 @@ def preproc_dag_job(job_number, jobKey, jobDictionary, condor_sub_loc, output_st
 
     return job_number, output_string
 
-"""def preproc_dag_job_backup(job_number, jobKey, jobDictionary, condor_sub_loc, output_string, preproc_category = None):#output_dir, output_string)#, test_interval = None):
-    # possible arguments
-    argList = ["paramFile", "jobFile", "jobNum"]
-    jobPath = jobDictionary[jobKey]["grandStochtrackParams"]["params"]["jobsFile"]
-    confPath = jobDictionary[jobKey]["preprocInputDir"] + "/preprocParams.txt"
-    jobNum = str(jobDictionary[jobKey]["preprocJobs"])
-    vars_entries = [confPath, jobPath, jobNum]
-
-    # create job entry
-    job_number, output_string = create_dag_job(job_number, condor_sub_loc, vars_entries,
-                                argList, output_string, restrictCat = preproc_category)
-
-    return job_number, output_string"""
-
 # Helper function to write list of preproc job entries
 def write_preproc_jobs(job_number, jobDictionary, job_tracker, condor_sub_loc, output_string, preproc_category = None, job_order = None, job_group_preproc = None, no_job_retry = False):
     # record jobs to job numbers translation

@@ -13,6 +13,7 @@ import random
 import json
 import os
 from optparse import OptionParser
+from load_defaults import getDefaultCommonParams
 
 def main():
     parser = OptionParser()
@@ -79,8 +80,8 @@ def main():
         input_params['single_cpu'] = True
     
     
-        
-    commonParamsDictionary = {'grandStochtrack': {'stochtrack': {'singletrack': {}}}, 'anteproc_h': {'stamp': {}}, 'anteproc_l': {'stamp': {}}, 'preproc': {}}
+    commonParamsDictionary = getDefaultCommonParams()   
+    #commonParamsDictionary = {'grandStochtrack': {'stochtrack': {'singletrack': {}}}, 'anteproc_h': {'stamp': {}}, 'anteproc_l': {'stamp': {}}, 'preproc': {}}
     anteprocParamsDictionary = {}
     stochtrackParamsDictionary = {}
 
@@ -472,10 +473,10 @@ def main():
 
         commonParamsDictionary['grandStochtrack']['ra'] = input_params['RA']
         commonParamsDictionary['grandStochtrack']['dec'] = input_params['DEC']
-        commonParamsDictionary['anteproc_h']['ra'] = input_params['RA']
-        commonParamsDictionary['anteproc_h']['decl'] = input_params['DEC']
-        commonParamsDictionary['anteproc_l']['ra'] = input_params['RA']
-        commonParamsDictionary['anteproc_l']['decl'] = input_params['DEC']
+        commonParamsDictionary['anteproc_h']['stamp']['ra'] = input_params['RA']
+        commonParamsDictionary['anteproc_h']['stamp']['decl'] = input_params['DEC']
+        commonParamsDictionary['anteproc_l']['stamp']['ra'] = input_params['RA']
+        commonParamsDictionary['anteproc_l']['stamp']['decl'] = input_params['DEC']
 
     
     if input_params['constant_f_window']:
@@ -643,11 +644,7 @@ def main():
     # parse jobs
     
     jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms, varyingAnteprocVariables = parse_jobs(rawData)
-    import pprint
-    pprint.pprint(jobs, open(glueFileLocation(input_params['outputDir'], "jobs_dict.txt"), "w"))
-    pprint.pprint(commonParamsDictionary, open(glueFileLocation(input_params['outputDir'], "commonParams_dict.txt"), "w"))
-    pprint.pprint(anteprocParamsDictionary, open(glueFileLocation(input_params['outputDir'], "anteprocParams_dict.txt"), "w"))
-    pprint.pprint(stochtrackParamsList, open(glueFileLocation(input_params['outputDir'], "stochtrackParams_list.txt"), "w"))
+
 
     H1_jobs = set(H1_jobs)
     L1_jobs = set(L1_jobs)
@@ -746,21 +743,32 @@ def main():
     
         # create cachefile directory
     print("Creating cache directory")
-    
+    anteproc_dir = create_dir(baseDir + "/anteproc_data")
+    commonParamsDictionary['anteproc_h']["outputfiledir"] = anteproc_dir + "/"
+    commonParamsDictionary['anteproc_l']["outputfiledir"] = anteproc_dir + "/"  
     if jobs["constants"]["anteprocParamsH"]["doDetectorNoiseSim"] == "false":
         cacheDir = create_dir(baseDir + "/cache_files") + "/"
         fakeCacheDir = None
+        commonParamsDictionary['anteproc_h']["gpsTimesPath1"] = cacheDir
+        commonParamsDictionary['anteproc_h']["frameCachePath1"] = cacheDir
+        commonParamsDictionary['anteproc_l']["gpsTimesPath1"] = cacheDir
+        commonParamsDictionary['anteproc_l']["frameCachePath1"] = cacheDir        
     else:
         fakeCacheDir = create_dir(baseDir + "/fake_cache_files") + "/"
         cacheDir = None
+        commonParamsDictionary['anteproc_h']["gpsTimesPath1"] = fakeCacheDir
+        commonParamsDictionary['anteproc_h']["frameCachePath1"] = fakeCacheDir
+        commonParamsDictionary['anteproc_l']["gpsTimesPath1"] = fakeCacheDir
+        commonParamsDictionary['anteproc_l']["frameCachePath1"] = fakeCacheDir
     
     print("Creating anteproc directory and input files")
-    anteproc_dir = create_dir(baseDir + "/anteproc_data")
+
     
-        # load default anteproc
+        # load default anteproc - this is already done
     with open(input_params['anteprocDefault'], 'r') as infile:
         anteprocDefaultData = [line.split() for line in infile]
-        
+    
+    #this is done already above
     if cacheDir:
         anteproc_H, anteproc_L = anteproc_setup(anteproc_dir, anteprocDefaultData, jobs, cacheDir)
     else:
@@ -810,6 +818,31 @@ def main():
     anteproc_grand_stochtrack_values["anteproc.inmats2"] = anteproc_dir + "/L-L1_map"
     anteproc_grand_stochtrack_values["anteproc.jobfile"] = newAdjustedJobPath
     
+    added_anteproc_dict = {"loadFiles": True,
+                            "timeShift1": 0,
+                            "timeShift2": 0,
+                            "jobFileTimeShift": True,
+                            "bkndstudy": False,
+                            "bkndstudydur": 100
+                            "jobfile": newAdjustedJobPath}
+    #NEW LOOP, hopefully replaces next 2 loops
+    #this can likely be moved to much earlier
+    #need to add support for varying parameters
+    for i in range(0, len(stochtrackParamsList)):
+        stochtrackParamsList[i]['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map"
+        stochtrackParamsList[i]['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
+        if stochtrackParamsList[i]["injection_tags"]:
+            stochtrackParamsList[i]['anteproc']['inmats1'] += "_" + stochtrackParamsList[i]["injection_tags"]
+            stochtrackParamsList[i]['anteproc']['inmats2'] += "_" + stochtrackParamsList[i]["injection_tags"]
+        stochtrackParamsList[i]['anteproc'].update(added_anteproc_dict)
+        
+        jobDir = create_dir(base_directory + "/" + "job_group_" + stochtrackParamsList[i]["job_group"] + "/job_" + str(i))
+        
+        stochtrackParamsList[i]["jobDir"] = jobDir
+        stochtrackParamsList[i]["stochtrackInputDir"] = create_dir(jobDir + "/grandstochtrackInput")
+        stochtrackParamsList[i]["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandstochtrackOutput")
+        stochtrackParamsList[i]["plotDir"] = create_dir(grandstochtrackOutputDir + "/plots")
+    
     for job in jobs:
             #"adjust inmats entries here maybe if needed? yes."
         for anteprocParameter in anteprocOrder:
@@ -855,13 +888,9 @@ def main():
             # NOTE: recording any directories other than the base job directory may not have any value
             # because the internal structure of each job is identical.
     
-        # build dag directory
+        # build dag directory, support directories
     dagDir = create_dir(baseDir + "/dag")
-    
-        # Build support file sub directory for dag logs
     dagLogDir = create_dir(dagDir + "/dagLogs")
-    
-        # Build support file sub directory for job logs
     logDir = create_dir(dagLogDir + "/logs")
     
     
@@ -989,7 +1018,11 @@ def main():
     # create webpage
     
     # run top DAG
-
+    import pprint
+    pprint.pprint(jobs, open(glueFileLocation(input_params['outputDir'], "jobs_dict.txt"), "w"))
+    pprint.pprint(commonParamsDictionary, open(glueFileLocation(input_params['outputDir'], "commonParams_dict.txt"), "w"))
+    pprint.pprint(anteprocParamsDictionary, open(glueFileLocation(input_params['outputDir'], "anteprocParams_dict.txt"), "w"))
+    pprint.pprint(stochtrackParamsList, open(glueFileLocation(input_params['outputDir'], "stochtrackParams_list.txt"), "w"))
 
 if __name__ == "__main__":
     main()
