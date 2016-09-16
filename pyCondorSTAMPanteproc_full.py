@@ -540,7 +540,7 @@ def main():
             jobDictionary["grandStochtrack"]["clusterFile"] = source_file_dict[jobIndex1][jobIndex2]
     
         params["preproc job"] = jobNum1#this needed anymore?
-        jobDictionary["preproc"]["job"] = jobNum1
+        jobDictionary["preprocJobs"] = jobNum1
     
         if input_params['anteproc_bool']:
             params["grandStochtrack anteproc.jobNum1"] = jobNum1
