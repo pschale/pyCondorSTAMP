@@ -547,7 +547,7 @@ def main():
             params["grandStochtrack anteproc.jobNum2"] = jobNum2
             jobDictionary["grandStochtrackParams"]["params"]["anteproc"]["jobNum1"] = jobNum1
             jobDictionary["grandStochtrackParams"]["params"]["anteproc"]["jobNum2"] = jobNum2
-    
+        
         else:
             params["preproc doShift1"] = 0
             params["preproc ShiftTime1"] = 0
@@ -833,7 +833,6 @@ def main():
     #this can likely be moved to much earlier
     #need to add support for varying parameters
     for i in range(0, len(stochtrackParamsList)):
-        stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc'] = {}
         stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map"
         stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
         if "injection_tags" in stochtrackParamsList[i]:
