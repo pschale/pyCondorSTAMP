@@ -823,7 +823,7 @@ def main():
                             "timeShift2": 0,
                             "jobFileTimeShift": True,
                             "bkndstudy": False,
-                            "bkndstudydur": 100
+                            "bkndstudydur": 100,
                             "jobfile": newAdjustedJobPath}
     #NEW LOOP, hopefully replaces next 2 loops
     #this can likely be moved to much earlier
