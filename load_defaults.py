@@ -161,7 +161,7 @@ def getDefaultCommonParams():
                                 "F": 3000,
                                 "mindur": 25,
                                 "doExponential": 0,
-                                "doSeed": 0
+                                "doSeed": 0,
                                 "demo": False,
                                 "doStampFreqMask": True,
                                 "doPixelCut": 1,
