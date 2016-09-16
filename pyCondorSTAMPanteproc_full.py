@@ -516,8 +516,9 @@ def main():
         job1StartTime = times[jobIndex1][1]
         job1EndTime = times[jobIndex1][2]
         
-        jobDictionary = {"preproc" : {}, "grandStochtrack": {"anteproc" : {}}}
-    
+        #jobDictionary = {"preproc" : {}, "grandStochtrack": {"anteproc" : {}}}
+        jobDictionary = getDefaultCommonParams()['grandStochtrack']
+        
         if input_params['long_pixel'] or input_params['burstegard']:
             job1_hstart = job1StartTime + (9-1)*4/2+2
         else:
@@ -578,7 +579,7 @@ def main():
                 temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])    
                 text_output += "\n\n" + temp_output
                 
-                stochtrackParamsList.append({'grandStochtrackParams': {'params': jobDictionary}})
+                stochtrackParamsList['grandStochtrackParams']['params'] = jobDictionary
                 stochtrackParamsList[current_job - 1]['job_group']=  job_group
                 stochtrackParamsList[current_job - 1]['jobNum'] = current_job - 1
                 
@@ -590,7 +591,7 @@ def main():
             temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])
             text_output += "\n\n" + temp_output
             
-            stochtrackParamsList.append({'grandStochtrackParams': {'params': jobDictionary}})
+            stochtrackParamsList['grandStochtrackParams']['params'] = jobDictionary
             stochtrackParamsList[current_job - 1]['job_group'] = job_group
             stochtrackParamsList[current_job - 1]['jobNum'] = current_job - 1
 
@@ -846,6 +847,7 @@ def main():
         stochtrackParamsList[i]["stochtrackInputDir"] = create_dir(jobDir + "/grandstochtrackInput")
         stochtrackParamsList[i]["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandstochtrackOutput")
         stochtrackParamsList[i]["plotDir"] = create_dir(jobDir + "/grandstochtrackOutput" + "/plots")
+        
     
     for job in jobs:
             #"adjust inmats entries here maybe if needed? yes."
