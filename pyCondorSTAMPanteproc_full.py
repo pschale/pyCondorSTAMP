@@ -14,6 +14,7 @@ import json
 import os
 from optparse import OptionParser
 from load_defaults import getDefaultCommonParams
+from copy import deepcopy
 
 def main():
     parser = OptionParser()
@@ -517,7 +518,7 @@ def main():
         job1EndTime = times[jobIndex1][2]
         
         #jobDictionary = {"preproc" : {}, "grandStochtrack": {"anteproc" : {}}}
-        jobDictionary = {'grandStochtrackParams': {'params':commonParamsDictionary['grandStochtrack'].deepcopy()}}
+        jobDictionary = {'grandStochtrackParams': {'params':deepcopy(commonParamsDictionary['grandStochtrack'])}}
         
         if input_params['long_pixel'] or input_params['burstegard']:
             job1_hstart = job1StartTime + (9-1)*4/2+2
@@ -579,7 +580,7 @@ def main():
                 temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])    
                 text_output += "\n\n" + temp_output
                 
-                stochtrackParamsList.append(jobDictionary.deepcopy())
+                stochtrackParamsList.append(deepcopy(jobDictionary))
                 stochtrackParamsList[current_job - 1]['job_group']=  job_group
                 stochtrackParamsList[current_job - 1]['jobNum'] = current_job
                 
@@ -591,7 +592,7 @@ def main():
             temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])
             text_output += "\n\n" + temp_output
             
-            stochtrackParamsList.append(jobDictionary.deepcopy())
+            stochtrackParamsList.append(deepcopy(jobDictionary))
             stochtrackParamsList[current_job - 1]['job_group'] = job_group
             stochtrackParamsList[current_job - 1]['jobNum'] = current_job
 
