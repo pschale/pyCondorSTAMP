@@ -517,8 +517,7 @@ def main():
         job1EndTime = times[jobIndex1][2]
         
         #jobDictionary = {"preproc" : {}, "grandStochtrack": {"anteproc" : {}}}
-        jobDictionary = {'grandStochtrackParams': {'params':getDefaultCommonParams()['grandStochtrack']}}
-        jobDictionary['grandStochtrackParams']['params'].update(commonParamsDictionary['grandStochtrack'])
+        jobDictionary = {'grandStochtrackParams': {'params':commonParamsDictionary['grandStochtrack']}}
         
         if input_params['long_pixel'] or input_params['burstegard']:
             job1_hstart = job1StartTime + (9-1)*4/2+2
