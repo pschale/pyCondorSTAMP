@@ -581,7 +581,7 @@ def main():
                 
                 stochtrackParamsList.append(jobDictionary)
                 stochtrackParamsList[current_job - 1]['job_group']=  job_group
-                stochtrackParamsList[current_job - 1]['jobNum'] = current_job - 1
+                stochtrackParamsList[current_job - 1]['jobNum'] = current_job
                 
         else:
             current_job +=1
@@ -593,7 +593,7 @@ def main():
             
             stochtrackParamsList.append(jobDictionary)
             stochtrackParamsList[current_job - 1]['job_group'] = job_group
-            stochtrackParamsList[current_job - 1]['jobNum'] = current_job - 1
+            stochtrackParamsList[current_job - 1]['jobNum'] = current_job
 
 
 
