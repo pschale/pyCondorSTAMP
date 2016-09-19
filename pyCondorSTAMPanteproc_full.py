@@ -511,6 +511,8 @@ def main():
     #this for loop builds each individual job
     current_job = 0
     stochtrackParamsList = []
+    H1AnteprocJobNums = set()
+    L1AnteprocJobNums = set()
     for [jobIndex1, jobIndex2] in sortedJobPairs:#[jobNum1, jobNum2] in sortedJobPairs:
         jobNum1 = jobIndex1 + 1
         jobNum2 = jobIndex2 + 1
@@ -583,6 +585,8 @@ def main():
                 stochtrackParamsList.append(deepcopy(jobDictionary))
                 stochtrackParamsList[current_job - 1]['job_group']=  job_group
                 stochtrackParamsList[current_job - 1]['jobNum'] = current_job
+                H1AnteprocJobNums.add(JobNum1)
+                L1AnteprocJobNums.add(JobNum2)
                 
         else:
             current_job +=1
@@ -595,7 +599,8 @@ def main():
             stochtrackParamsList.append(deepcopy(jobDictionary))
             stochtrackParamsList[current_job - 1]['job_group'] = job_group
             stochtrackParamsList[current_job - 1]['jobNum'] = current_job
-
+            H1AnteprocJobNums.add(JobNum1)
+            L1AnteprocJobNums.add(JobNum2)
 
 
     
@@ -808,7 +813,38 @@ def main():
     anteprocJobs, used_seeds, organizedSeeds = anteproc_job_specific_setup(L1_jobs, "L1",
             anteproc_dir, jobs, anteproc_L, used_seeds, organizedSeeds, multiple_waveforms, waveforms, anteprocDefaultData,
             anteprocJobs, varyingAnteprocVariables, anteprocJobDictTracker = anteprocJobDictTracker, injectionStartTimes = injectionStartTimes)
+            
+    #new loop to make anteproc files
     
+    for jobNum in H1AneprocJobNums:
+        
+        temp_anteproc_h_dict = deepcopy(commonParamsDictionary['anteproc_h'])
+        temp_anteproc_h_dict['stamp.ra'] = temp_anteproc_h_dict['stamp']['ra']
+        temp_anteproc_h_dict['stamp.decl'] = temp_anteproc_h_dict['stamp']['decl']
+        temp_anteproc_h_dict.pop('stamp')
+        anteproc_dict = deepcopy(commonParamsDictionary['anteproc']).update(temp_anteproc_h_dict)
+        anteproc_dict['ifo1'] = "H1"
+        anteproc_dict['frameType1'] = "H1_" + input_params['frame_type']
+        anteptorc_dict['ASQchannel1'] = input_params['channel']
+        
+        with open(anteproc_dir + "/H1-anteproc_params_" + jobNum + "new.txt", 'w') as h:
+            print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])
+            
+    for jobNum in L1AneprocJobNums:
+        
+        temp_anteproc_h_dict = deepcopy(commonParamsDictionary['anteproc_l'])
+        temp_anteproc_h_dict['stamp.ra'] = temp_anteproc_h_dict['stamp']['ra']
+        temp_anteproc_h_dict['stamp.decl'] = temp_anteproc_h_dict['stamp']['decl']
+        temp_anteproc_h_dict.pop('stamp')
+        anteproc_dict = deepcopy(commonParamsDictionary['anteproc']).update(temp_anteproc_h_dict)
+        anteproc_dict['ifo1'] = "L1"
+        anteproc_dict['frameType1'] = "L1_" + input_params['frame_type']
+        anteptorc_dict['ASQchannel1'] = input_params['channel']
+        
+        with open(anteproc_dir + "/L1-anteproc_params_" + jobNum + "new.txt", 'w') as h:
+            print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])        
+      
+        
     if jobs["constants"]["anteprocParamsH"]["doDetectorNoiseSim"] == "true" or jobs["constants"]["anteprocParamsL"]["doDetectorNoiseSim"] == "true":
         with open(anteproc_dir + "/seeds_for_simulated_data.txt", "w") as outfile:
             json.dump(organizedSeeds, outfile, sort_keys = True, indent = 4)
