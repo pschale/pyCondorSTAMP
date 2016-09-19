@@ -828,7 +828,7 @@ def main():
         anteproc_dict['frameType1'] = "H1_" + input_params['frame_type']
         anteproc_dict['ASQchannel1'] = input_params['channel']
         
-        with open(anteproc_dir + "/H1-anteproc_params_" + jobNum + "new.txt", 'w') as h:
+        with open(anteproc_dir + "/H1-anteproc_params_" + str(jobNum) + "new.txt", 'w') as h:
             print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])
             
     for jobNum in L1AnteprocJobNums:
@@ -843,7 +843,7 @@ def main():
         anteproc_dict['frameType1'] = "L1_" + input_params['frame_type']
         anteproc_dict['ASQchannel1'] = input_params['channel']
         
-        with open(anteproc_dir + "/L1-anteproc_params_" + jobNum + "new.txt", 'w') as h:
+        with open(anteproc_dir + "/L1-anteproc_params_" + str(jobNum) + "new.txt", 'w') as h:
             print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])        
       
         
