@@ -885,7 +885,7 @@ def main():
             stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats2'] += "_" + stochtrackParamsList[i]["injection_tags"]
         stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc'].update(added_anteproc_dict)
         
-        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(stochtrackParamsList[i]["job_group"]) + "/job_" + str(i + 1))
+        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(stochtrackParamsList[i]["grandStochtrackParams"]["params"]["job_group"]) + "/job_" + str(i + 1))
         
         stochtrackParamsList[i]["jobDir"] = jobDir
         stochtrackParamsList[i]["stochtrackInputDir"] = create_dir(jobDir + "/grandstochtrackInput")
