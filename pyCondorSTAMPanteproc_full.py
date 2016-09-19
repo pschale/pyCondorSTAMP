@@ -822,7 +822,8 @@ def main():
         temp_anteproc_h_dict['stamp.ra'] = temp_anteproc_h_dict['stamp']['ra']
         temp_anteproc_h_dict['stamp.decl'] = temp_anteproc_h_dict['stamp']['decl']
         temp_anteproc_h_dict.pop('stamp')
-        anteproc_dict = deepcopy(commonParamsDictionary['anteproc']).update(temp_anteproc_h_dict)
+        anteproc_dict = deepcopy(commonParamsDictionary['anteproc'])
+        anteproc_dict.update(temp_anteproc_h_dict)
         anteproc_dict['ifo1'] = "H1"
         anteproc_dict['frameType1'] = "H1_" + input_params['frame_type']
         anteptorc_dict['ASQchannel1'] = input_params['channel']
@@ -836,7 +837,8 @@ def main():
         temp_anteproc_h_dict['stamp.ra'] = temp_anteproc_h_dict['stamp']['ra']
         temp_anteproc_h_dict['stamp.decl'] = temp_anteproc_h_dict['stamp']['decl']
         temp_anteproc_h_dict.pop('stamp')
-        anteproc_dict = deepcopy(commonParamsDictionary['anteproc']).update(temp_anteproc_h_dict)
+        anteproc_dict = deepcopy(commonParamsDictionary['anteproc'])
+        anteproc_dict.update(temp_anteproc_h_dict)
         anteproc_dict['ifo1'] = "L1"
         anteproc_dict['frameType1'] = "L1_" + input_params['frame_type']
         anteptorc_dict['ASQchannel1'] = input_params['channel']
