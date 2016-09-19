@@ -202,7 +202,7 @@ def main():
     if input_params['singletrack_bool']:
         inputFileString += '\n\n' + "grandStochtrack stochtrack.singletrack.doSingletrack true"
         inputFileString += "\n" + "grandStochtrack stochtrack.singletrack.trackInputFiles " + input_params['singletrack_input_files']
-        commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['doSingltrack'] = True
+        commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['doSingletrack'] = True
         commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['trackInputFiles'] = input_params['singletrack_input_files']
         
     if input_params['set_stochtrack_seed']:
@@ -526,7 +526,7 @@ def main():
         
         #jobDictionary = {"preproc" : {}, "grandStochtrack": {"anteproc" : {}}}
         jobDictionary = {'grandStochtrackParams': {'params':deepcopy(commonParamsDictionary['grandStochtrack'])}}
-        job_dir = baseDir + "plots/job_group_1/job_" + str(current_job + 1)
+        job_dir = baseDir + "/plots/job_group_1/job_" + str(current_job + 1)
         jobDictionary["grandStochtrackParams"]["params"]["plotdir"] = job_dir + "/grandStochtrackOutput/plots/"
         jobDictionary["grandStochtrackParams"]["params"]["outputfilename"] = job_dir + "/grandStochtrackOutput/map"
         jobDictionary["grandStochtrackParams"]["params"]["ofile"] = job_dir + "/grandStochtrackOutput/bknd"
@@ -593,8 +593,8 @@ def main():
                 text_output += "\n\n" + temp_output
                 
                 stochtrackParamsList.append(deepcopy(jobDictionary))
-                stochtrackParamsList[current_job - 1]['job_group']=  job_group
-                stochtrackParamsList[current_job - 1]['jobNum'] = current_job
+                stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['job_group']=  job_group
+                stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['jobNum'] = current_job
                 H1AnteprocJobNums.add(jobNum1)
                 L1AnteprocJobNums.add(jobNum2)
                 
@@ -607,8 +607,8 @@ def main():
             text_output += "\n\n" + temp_output
             
             stochtrackParamsList.append(deepcopy(jobDictionary))
-            stochtrackParamsList[current_job - 1]['job_group'] = job_group
-            stochtrackParamsList[current_job - 1]['jobNum'] = current_job
+            stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['job_group'] = job_group
+            stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['jobNum'] = current_job
             H1AnteprocJobNums.add(jobNum1)
             L1AnteprocJobNums.add(jobNum2)
 

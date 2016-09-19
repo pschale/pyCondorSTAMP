@@ -128,7 +128,7 @@ def getDefaultCommonParams():
                             "doParallel": False,
                             "NoTimeDelay": 0,
                             "StampFreqsToRemove": [],
-                            "TmapBuffer": 0,
+                            "TmapBuffer": 1,
                             "alternative_sigma": 0,
                             "anteproc": {
                                 "bkndstudy": 0,
@@ -162,7 +162,7 @@ def getDefaultCommonParams():
                             "fixAntennaFactors": 0,
                             "fixedInjectionLocation": 0,
                             "fixedInjectionTime": 0,
-                            "flexibleTmap": 0,
+                            "flexibleTmap": 1,
                             "gap": 1,
                             "glitch": {
                                 "doCoincidentCut": 0,
@@ -205,8 +205,6 @@ def getDefaultCommonParams():
                                 "doPixelCut": 1,
                                 "pixel_threshold": 10,
                                 "norm": "npix",
-                                "flexibleTmap": 1,
-                                "TmapButter": 1,
                                 "StampFreqsToRemove": [57, 58, 59, 60, 61, 62, 63, 119, 120, 121],
 
                                 "singletrack" : {
