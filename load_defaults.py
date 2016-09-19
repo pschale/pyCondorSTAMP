@@ -41,7 +41,7 @@ def getDefaultCommonParams():
                     'nBinsToRemove': "",
                     'outputfilename': "map",
                     'storemats': True,
-                    'pp_seed' -1},
+                    'pp_seed': -1},
         "preproc" : {
                      'ShiftTime1': 1,
                      'ShiftTime2': 0,
