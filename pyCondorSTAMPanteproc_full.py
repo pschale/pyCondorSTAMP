@@ -79,7 +79,9 @@ def main():
         
     if input_params['singletrack_bool']:
         input_params['single_cpu'] = True
-    
+        
+    outputDir += "stamp_analysis_anteproc" if input_params['outputDir'][-1] == "/" else "/stamp_analysis_anteproc"
+    baseDir = dated_dir(outputDir)
     
     commonParamsDictionary = getDefaultCommonParams()   
     #commonParamsDictionary = {'grandStochtrack': {'stochtrack': {'singletrack': {}}}, 'anteproc_h': {'stamp': {}}, 'anteproc_l': {'stamp': {}}, 'preproc': {}}
@@ -521,6 +523,11 @@ def main():
         
         #jobDictionary = {"preproc" : {}, "grandStochtrack": {"anteproc" : {}}}
         jobDictionary = {'grandStochtrackParams': {'params':deepcopy(commonParamsDictionary['grandStochtrack'])}}
+        job_dir = baseDir + "plots/job_group_1/job_" + str(current_job + 1)
+        jobDictionary["grandStochtrackParams"]["params"]["plotdir"] = job_dir + "/grandStochtrackOutput/plots/"
+        jobDictionary["grandStochtrackParams"]["params"]["outputfilename"] = job_dir + "/grandStochtrackOutput/map"
+        jobDictionary["grandStochtrackParams"]["params"]["ofile"] = job_dir + "/grandStochtrackOutput/bknd"
+        jobDictionary["grandStochtrackParams"]["params"]["jobsFile"] = input_params['jobFile']
         
         if input_params['long_pixel'] or input_params['burstegard']:
             job1_hstart = job1StartTime + (9-1)*4/2+2
@@ -628,9 +635,7 @@ def main():
     restrict_cpus = True
     no_job_retry = False
     
-    
-    outputDir += "stamp_analysis_anteproc" if input_params['outputDir'][-1] == "/" else "/stamp_analysis_anteproc"
-    baseDir = dated_dir(outputDir)
+
     
     STAMP_setup_script = glueFileLocation(input_params['STAMP2_installation_dir'], "test/stamp_setup.sh")
     # set other defaults this way too instead of definining them inside the preprocSupportLib.py file
