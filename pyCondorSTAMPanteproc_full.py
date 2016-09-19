@@ -816,7 +816,7 @@ def main():
             
     #new loop to make anteproc files
     
-    for jobNum in H1AneprocJobNums:
+    for jobNum in H1AnteprocJobNums:
         
         temp_anteproc_h_dict = deepcopy(commonParamsDictionary['anteproc_h'])
         temp_anteproc_h_dict['stamp.ra'] = temp_anteproc_h_dict['stamp']['ra']
@@ -830,7 +830,7 @@ def main():
         with open(anteproc_dir + "/H1-anteproc_params_" + jobNum + "new.txt", 'w') as h:
             print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])
             
-    for jobNum in L1AneprocJobNums:
+    for jobNum in L1AnteprocJobNums:
         
         temp_anteproc_h_dict = deepcopy(commonParamsDictionary['anteproc_l'])
         temp_anteproc_h_dict['stamp.ra'] = temp_anteproc_h_dict['stamp']['ra']
