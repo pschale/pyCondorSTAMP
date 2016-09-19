@@ -85,6 +85,14 @@ def main():
     outputDir = make_file_path_absolute(input_params['outputDir'])
     outputDir += "stamp_analysis_anteproc" if input_params['outputDir'][-1] == "/" else "/stamp_analysis_anteproc"
     baseDir = dated_dir(outputDir)
+            # copy input parameter file and jobs file into a support directory here
+        # support directory
+    supportDir = create_dir(baseDir + "/input_files")
+        # copy input files to this directory
+    copy_input_file(configPath, supportDir)
+    copy_input_file(params_file_path, supportDir)
+    newJobPath = copy_input_file(jobPath, supportDir)
+    
     
     commonParamsDictionary = getDefaultCommonParams()   
     #commonParamsDictionary = {'grandStochtrack': {'stochtrack': {'singletrack': {}}}, 'anteproc_h': {'stamp': {}}, 'anteproc_l': {'stamp': {}}, 'preproc': {}}
@@ -530,7 +538,7 @@ def main():
         jobDictionary["grandStochtrackParams"]["params"]["plotdir"] = job_dir + "/grandStochtrackOutput/plots/"
         jobDictionary["grandStochtrackParams"]["params"]["outputfilename"] = job_dir + "/grandStochtrackOutput/map"
         jobDictionary["grandStochtrackParams"]["params"]["ofile"] = job_dir + "/grandStochtrackOutput/bknd"
-        jobDictionary["grandStochtrackParams"]["params"]["jobsFile"] = input_params['jobFile']
+        jobDictionary["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
         
         if input_params['long_pixel'] or input_params['burstegard']:
             job1_hstart = job1StartTime + (9-1)*4/2+2
@@ -744,13 +752,7 @@ def main():
         # stochtrack_condor_job_group_num
     
     
-        # copy input parameter file and jobs file into a support directory here
-        # support directory
-    supportDir = create_dir(baseDir + "/input_files")
-        # copy input files to this directory
-    copy_input_file(configPath, supportDir)
-    copy_input_file(params_file_path, supportDir)
-    newJobPath = copy_input_file(jobPath, supportDir)
+
     
     newAdjustedJobPath = adjust_job_file(jobPath, supportDir, jobs)
     
