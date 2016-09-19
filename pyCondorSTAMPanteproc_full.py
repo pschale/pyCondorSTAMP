@@ -79,7 +79,10 @@ def main():
         
     if input_params['singletrack_bool']:
         input_params['single_cpu'] = True
-        
+    
+    jobPath = make_file_path_absolute(input_params['jobFile'])
+    configPath = glueFileLocation(input_params['outputDir'], "config_file.txt")
+    outputDir = make_file_path_absolute(input_params['outputDir'])
     outputDir += "stamp_analysis_anteproc" if input_params['outputDir'][-1] == "/" else "/stamp_analysis_anteproc"
     baseDir = dated_dir(outputDir)
     
@@ -625,9 +628,7 @@ def main():
     ###################################################################################
     
     
-    jobPath = make_file_path_absolute(input_params['jobFile'])
-    configPath = glueFileLocation(input_params['outputDir'], "config_file.txt")
-    outputDir = make_file_path_absolute(input_params['outputDir'])
+
     
     verbose = False
     archived_frames_okay = True
