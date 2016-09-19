@@ -879,7 +879,7 @@ def main():
             stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats2'] += "_" + stochtrackParamsList[i]["injection_tags"]
         stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc'].update(added_anteproc_dict)
         
-        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(stochtrackParamsList[i]["job_group"]) + "/job_" + str(i))
+        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(stochtrackParamsList[i]["job_group"]) + "/job_" + str(i + 1))
         
         stochtrackParamsList[i]["jobDir"] = jobDir
         stochtrackParamsList[i]["stochtrackInputDir"] = create_dir(jobDir + "/grandstochtrackInput")
@@ -976,6 +976,9 @@ def main():
         else:
             create_fake_cache_and_time_file(tempJobData[0], tempJobData[1], "L", tempJob, fakeCacheDir)
             
+    for job in stochtrackParamsList:
+        sio.savemat(job['stochtrackInputDir'] + "/params_new.mat", job)
+        
     # write preproc parameter files for each job
     print("Saving grand_stochtrack paramter files")
     for job in jobs:
