@@ -585,8 +585,8 @@ def main():
                 stochtrackParamsList.append(deepcopy(jobDictionary))
                 stochtrackParamsList[current_job - 1]['job_group']=  job_group
                 stochtrackParamsList[current_job - 1]['jobNum'] = current_job
-                H1AnteprocJobNums.add(JobNum1)
-                L1AnteprocJobNums.add(JobNum2)
+                H1AnteprocJobNums.add(jobNum1)
+                L1AnteprocJobNums.add(jobNum2)
                 
         else:
             current_job +=1
@@ -599,8 +599,8 @@ def main():
             stochtrackParamsList.append(deepcopy(jobDictionary))
             stochtrackParamsList[current_job - 1]['job_group'] = job_group
             stochtrackParamsList[current_job - 1]['jobNum'] = current_job
-            H1AnteprocJobNums.add(JobNum1)
-            L1AnteprocJobNums.add(JobNum2)
+            H1AnteprocJobNums.add(jobNum1)
+            L1AnteprocJobNums.add(jobNum2)
 
 
     
