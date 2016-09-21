@@ -995,6 +995,7 @@ def main():
         sio.savemat(job['stochtrackInputDir'] + "/params_new.mat", job)
         
     # write preproc parameter files for each job
+    '''
     print("Saving grand_stochtrack paramter files")
     for job in jobs:
         if job != "constants":
@@ -1032,7 +1033,7 @@ def main():
                 if multiple_job_group_version:
                     jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats1"] = base_inmat1
                     jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats2"] = base_inmat2
-    
+    '''
     # order plots by job
     
     # This line likely needs fixing if it's going to work with the variable parameters. otherwise it's fine.
