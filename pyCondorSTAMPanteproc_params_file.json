@@ -24,7 +24,13 @@
 "F" : 3000,
 "_comment" : "T is number of times clustering algorithm runs, F is number of tracks each run",
 
-"single_cpu" : true,
+"accountingGroup": "ligo.dev.s6.burst.sgr_qpo.stamp",
+"anteprocMemory": 2048,
+"stochtrackMemeory": 4000,
+"doGPU": false,
+"numCPU" : 1,
+"maxJobsAnteproc": 20,
+"maxJobsGrandStochtrack" : 100,
 
 "relative_direction" : true,
 "_comment" : "Setting the above to true will make the analysis look at the relative sky position that is given by the absolute coordinates at the trigger time",

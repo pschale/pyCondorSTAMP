@@ -378,7 +378,7 @@ def write_anteproc_sub_file(memory, anteprocSH, dagDir, accountingGroup):
         
     return dagDir + "/anteproc.sub"
         
-def write_anteproc_stochtrack_file(memory, grandStochtrackSH, dagDir, accountingGroup, doGPU, numCPU):
+def write_stochtrack_file(memory, grandStochtrackSH, dagDir, accountingGroup, doGPU, numCPU):
 
     if doGPU:
         memory = 4000
