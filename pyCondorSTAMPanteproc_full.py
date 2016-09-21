@@ -370,7 +370,7 @@ def main():
 
             elif H1_job == 34:
                 inputFileString += "\n\nanteproc_h anteproc_param 34 useReferenceAntennaFactors false"
-                anteprocHParamsList[33['useReferenceAntennaFactors'] = False
+                anteprocHParamsList[33]['useReferenceAntennaFactors'] = False
 
             else:
                 inputFileString += "\n\nanteproc_h anteproc_param " + str(H1_job) + " useReferenceAntennaFactors true"
@@ -404,7 +404,7 @@ def main():
 
             elif L1_job == 34:
                 inputFileString += "\n\nanteproc_l anteproc_param 34 useReferenceAntennaFactors false"                
-                anteprocLParamsList[33['useReferenceAntennaFactors'] = False
+                anteprocLParamsList[33]['useReferenceAntennaFactors'] = False
 
             else:
                 inputFileString += "\n\nanteproc_l anteproc_param " + str(L1_job) + " useReferenceAntennaFactors true"
