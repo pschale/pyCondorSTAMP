@@ -606,7 +606,7 @@ def main():
                 
                 stochtrackParamsList.append(deepcopy(jobDictionary))
                 stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['job_group']=  job_group
-                stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['jobNum'] = current_job
+                stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
                 H1AnteprocJobNums.add(jobNum1)
                 L1AnteprocJobNums.add(jobNum2)
                 
@@ -620,7 +620,7 @@ def main():
             
             stochtrackParamsList.append(deepcopy(jobDictionary))
             stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['job_group'] = job_group
-            stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['jobNum'] = current_job
+            stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
             H1AnteprocJobNums.add(jobNum1)
             L1AnteprocJobNums.add(jobNum2)
 
@@ -910,7 +910,7 @@ def main():
             else:
                 jobs[job]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[job]["grandStochtrackParams"]["params"], anteprocParameter, anteproc_grand_stochtrack_values[anteprocParameter])
     
-    
+    '''
         # cycle through jobs
     print("Creating job directories")
     for job in jobs:
@@ -946,7 +946,7 @@ def main():
     
             # NOTE: recording any directories other than the base job directory may not have any value
             # because the internal structure of each job is identical.
-    
+    '''
         # build dag directory, support directories
     dagDir = create_dir(baseDir + "/dag")
     dagLogDir = create_dir(dagDir + "/dagLogs")
@@ -1070,7 +1070,11 @@ def main():
         extract_from_gpu = False
 
     print("Creating dag and sub files")
-    create_anteproc_dag_v6(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, newJobPath, H1_jobs, L1_jobs, anteprocJobs, multiple_job_group_version, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = restrict_cpus, no_job_retry = no_job_retry, extract_from_gpu = extract_from_gpu, single_cpu = input_params['single_cpu'])
+    #create_anteproc_dag_v6(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, newJobPath, H1_jobs, L1_jobs, anteprocJobs, multiple_job_group_version, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = restrict_cpus, no_job_retry = no_job_retry, extract_from_gpu = extract_from_gpu, single_cpu = input_params['single_cpu'])
+    
+    anteprocSub = write_anteproc_sub_file(input_params['anteprocMemory'], anteprocExecutable_script_file, dagDir, accountingGroup)
+    stochtrackSub = write_stochtrack_sub_file(input_params['grandStochtrackMemory'], grandStochtrack_script_file, dagDir, accountingGroup, doGPU, numCPU)
+    write_dag(dagDir, anteproc_dir, newJobPath, H1AnteprocJobNums, L1AnteprocJobNums, anteprocSub, stochtrackParamsList, stochtrackSub, input_params['maxJobsAnteproc'], input_params['maxJobsGrandStochtrack'])
     
     print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
     

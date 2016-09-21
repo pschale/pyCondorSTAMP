@@ -360,3 +360,89 @@ def create_anteproc_dag_v6(job_dictionary, grand_stochtrack_executable, matlab_m
     with open(filename, "w") as outfile:
         outfile.write(dag_string)
     return filename
+    
+def write_anteproc_sub_file(memory, anteprocSH, dagDir, accountingGroup):
+
+    contents = "universe = vanilla\ngetenv = True\nrequest_memory = " + str(memory) + "\n"
+    contents += "executable = " + anteprocSH + "\n"
+    contents += "log = " + dagDir + "/dagLogs/anteproc$(jobNumber).log\n"
+    contents += "error = " + dagDir + "/dagLogs/logs/anteproc$(jobNumber).err\n"
+    contents += "output = " + dagDir + "/dagLogs/logs/anteproc$(jobNumber).out\n"
+    contents += '''arguments = " $(paramFile) $(jobFile) $(jobNum) "\n'''
+    contents += "notification = error\n"
+    contents += "accounting_group = " + accountingGroup + "\n"
+    contents += "queue 1"
+    
+    with open(dagDir + "/anteproc.sub", "w") as h:
+        print >> h, contents
+        
+    return dagDir + "/anteproc.sub"
+        
+def write_anteproc_stochtrack_file(memory, grandStochtrackSH, dagDir, accountingGroup, doGPU, numCPU):
+
+    if doGPU:
+        memory = 4000
+    contents = "universe = vanilla\ngetenv = True\nrequest_memory = " + str(memory) + "\n"
+    if doGPU:
+        contents += "request_gpus = 1"
+    elif numCPU > 1:
+        contents += "request_cpus = " + str(numCPU)
+    contents += "executable = " + grandStochtrackSH + "\n"
+    contents += "log = " + dagDir + "/dagLogs/grand_stochtrack$(jobNumber).log\n"
+    contents += "error = " + dagDir + "/dagLogs/logs/grand_stochtrack$(jobNumber).err\n"
+    contents += "output = " + dagDir + "/dagLogs/logs/grand_stochtrack$(jobNumber).out\n"
+    contents += '''arguments = " $(paramPath) $(jobNum) "\n'''
+    contents += "notification = error\n"
+    contents += "accounting_group = " + accountingGroup + "\n"
+    contents += "queue 1"
+    
+    with open(dagDir + "/grand_stochtrack.sub", "w") as h:
+        print >> h, contents
+    
+    return dagDir + "/grand_stochtrack.sub"
+    
+def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums, L1AnteprocJobNums, anteprocSub, stochtrackParamsList, stochtrackSub, maxJobsAnteproc, maxJobsGrandStochtrack):
+
+    output = ""
+    jobCounter = 0
+    for jobNum in H1AnteprocJobNums:
+        
+        output += "JOB " + str(jobCounter) + " " + anteprocSub + "\nRETRY " + str(jobCounter) + " 2\n"
+        output += "VARS " + str(jobCounter) + "jobNumber=\"" + str(jobCounter) + "\" \"paramFile=" + anteprocDir + "/H1-anteproc_params_" + str(jobNum) + ".txt\"\n"
+        output += "jobFile=\"" + jobFile + "\" jobNum=\"" + str(jobNum) + "\"\n"
+        output += "CATEGORY " + str(jobCounter) + " ANTEPROC\n\n"
+        jobCounter += 1
+        
+    for jobNum in L1AnteprocJobNums:
+        
+        output += "JOB " + str(jobCounter) + " " + anteprocExecutable + "\nRETRY " + str(jobCounter) + " 2\n"
+        output += "VARS " + str(jobCounter) + "jobNumber=\"" + str(jobCounter) + "\" \"paramFile=" + anteprocDir + "/H1-anteproc_params_" + str(jobNum) + ".txt\"\n"
+        output += "jobFile=\"" + jobFile + "\" jobNum=\"" + str(jobNum) + "\"\n"
+        output += "CATEGORY " + str(jobCounter) + " ANTEPROC\n\n"
+        jobCounter += 1
+    
+    cutoff = jobCounter
+        
+    for jobDict in stochtrackParamsList:
+    
+        output += "JOB " + str(jobCounter) + " " + stochtrackSub + "\nRETRY " + str(jobCounter) + " 2\n"
+        output += "VARS " + str(jobCounter) + "jobNumber=\"" + str(jobCounter) + "\" \"paramPath=" + jobDict["stochtrackInputDir"] + "/params_new.mat"
+        output += "jobNum=\"" + str(jobDict['grandStochtrackParams']['params']['jobNumber']) + "\"\n"
+        output += "CATEGORY " + str(jobCounter) + " GRANDSTOCHTRACK\n\n"
+        jobCounter += 1
+        
+    output += "\n\n"
+    
+    output += "PARENT " + " ".join([str(i) for i in range(0, cutoff)])
+    output += " CHILD " + " ".join([str(i) for i in range(cutoff, jobCounter)])
+    
+    output += "\n\n\n\n\n\n"
+    
+    output += "MAXJOBS ANTEPROC " + str(maxJobsAnteproc) + "\n"
+    output += "MAXJOBS GRANDSTOCHTRACK " + str(maxJobsGrandStochtrack)
+    
+    with open(dagDir + "/stampAnalysis.dag", "w") as h:
+        print >> h, output        
+    
+ 
+  
