@@ -167,7 +167,11 @@ def getDefaultCommonParams():
                             "glitch": {
                                 "doCoincidentCut": 0,
                                 "doCut": 0,
-                                "numBands": 1
+                                "numBands": 1,
+                                "Xi_min": 0.93,
+                                "Xi_max": 1.07,
+                                "Xi_frac": 0.027,
+                                "AP_thresh": 2
                             },
                             "glitchinj": 0,
                             "increment": 1.2,

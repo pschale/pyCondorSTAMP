@@ -346,7 +346,10 @@ def main():
     
     
     #Now build the job-specific parameters for anteproc - only needed for injections
+
     if input_params['injection_bool']:
+        anteprocHParamsList = [{}] * (max(tempNumbersH) + 1)
+        anteprocLParamsList = [{}] * (max(tempNumbersL) + 1)
         anteprocParamsDictionary = {'anteproc_h' : {'anteproc_param': {}}, 'anteproc_l' : {'anteproc_param' : {}}}
         for H1_job_index in tempNumbersH:
             H1_job = H1_job_index + 1
@@ -362,24 +365,24 @@ def main():
             if not input_params['relative_direction']:
                 inputFileString += "\n\n" + "anteproc_h anteproc_param " + str(H1_job) + " stamp.ra " + str(input_params['RA'])
                 inputFileString += "\n" + "anteproc_h anteproc_param " + str(H1_job) + " stamp.decl " + str(input_params['DEC'])
-                anteprocParamsDictionary['anteproc_h']['anteproc_param'][str(H1_job)]['stamp']['ra'] = input_params['RA']
-                anteprocParamsDictionary['anteproc_h']['anteproc_param'][str(H1_job)]['stamp']['decl'] = input_params['DEC']
+                anteprocHParamsList[H1_job_index]['stamp.ra'] = input_params['RA']
+                anteprocHParamsList[H1_job_index]['stamp.decl'] = input_params['DEC']
 
             elif H1_job == 34:
                 inputFileString += "\n\nanteproc_h anteproc_param 34 useReferenceAntennaFactors false"
-                anteprocParamsDictionary['anteproc_h']['anteproc_param']['34']['useReferenceAntennaFactors'] = False
+                anteprocHParamsList[33['useReferenceAntennaFactors'] = False
 
             else:
                 inputFileString += "\n\nanteproc_h anteproc_param " + str(H1_job) + " useReferenceAntennaFactors true"
-                anteprocParamsDictionary['anteproc_h']['anteproc_param'][str(H1_job)]['useReferenceAntennaFactors'] = True
+                anteprocHParamsList[H1_job_index]['useReferenceAntennaFactors'] = True
 
             if input_params['onTheFly']:
                 inputFileString += "\n" + "anteproc_h anteproc_param " + str(H1_job) + " stamp.start " + str(job1_hstart+2)
-                anteprocParamsDictionary['anteproc_h']['anteproc_param'][str(H1_job)]['stamp']['start'] = job1_hstart+2
+                anteprocHParamsList[H1_job_index]['stamp.start'] = job1_hstart+2  
 
             else:
                 inputFileString += "\n" + "anteproc_h stamp.startGPS " + str(job1_hstart+2)
-                anteprocParamsDictionary['anteproc_h']['stamp']['startGPS'] = job1_hstart+2
+                anteprocHParamsList[H1_job_index]['stamp.startGPS'] = job1_hstart+2
 
 
         for L1_job_index in tempNumbersL:
@@ -396,22 +399,23 @@ def main():
             if not input_params['relative_direction']:
                 inputFileString += "\n\n" + "anteproc_l anteproc_param " + str(L1_job) + " stamp.ra " + str(input_params['RA'])
                 inputFileString += "\n" + "anteproc_l anteproc_param " + str(L1_job) + " stamp.decl " + str(input_params['DEC'])
-                anteprocParamsDictionary['anteproc_l']['anteproc_param'][str(H1_job)]['stamp']['ra'] = input_params['RA']
-                anteprocParamsDictionary['anteproc_l']['anteproc_param'][str(H1_job)]['stamp']['decl'] = input_params['DEC']
+                anteprocLParamsList[L1_job_index]['stamp.ra'] = input_params['RA']
+                anteprocLParamsList[L1_job_index]['stamp.decl'] = input_params['DEC']
+
             elif L1_job == 34:
                 inputFileString += "\n\nanteproc_l anteproc_param 34 useReferenceAntennaFactors false"                
-                anteprocParamsDictionary['anteproc_l']['anteproc_param']['34']['useReferenceAntennaFactors'] = False
+                anteprocLParamsList[33['useReferenceAntennaFactors'] = False
 
             else:
                 inputFileString += "\n\nanteproc_l anteproc_param " + str(L1_job) + " useReferenceAntennaFactors true"
-                anteprocParamsDictionary['anteproc_l']['anteproc_param'][str(H1_job)]['useReferenceAntennaFactors'] = True
+                anteprocLParamsList[L1_job_index]['useReferenceAntennaFactors'] = True
 
             if input_params['onTheFly']:
                 inputFileString += "\n" + "anteproc_l anteproc_param " + str(L1_job) + " stamp.start " + str(job1_hstart+2)
-                anteprocParamsDictionary['anteproc_l']['anteproc_param'][str(H1_job)]['stamp']['start'] = job1_hstart+2
+                anteprocLParamsList[L1_job_index]['stamp.start'] = job1_hstart+2
             else:
                 inputFileString += "\n" + "anteproc_l stamp.startGPS " + str(job1_hstart+2)
-                anteprocParamsDictionary['anteproc_l']['stamp']['startGPS'] = job1_hstart+2
+                anteprocLParamsList[L1_job_index]['stamp.startGPS'] = job1_hstart+2
     
 
         if input_params['onTheFly']:
@@ -827,8 +831,9 @@ def main():
     for jobNum in H1AnteprocJobNums:
         
         temp_anteproc_h_dict = deepcopy(commonParamsDictionary['anteproc_h'])
-        temp_anteproc_h_dict['stamp.ra'] = temp_anteproc_h_dict['stamp']['ra']
-        temp_anteproc_h_dict['stamp.decl'] = temp_anteproc_h_dict['stamp']['decl']
+        temp_anteproc_h_dict.update(anteprocHParamsList[jobNum-1])
+        for key, val in temp_anteproc_h_dict['stamp']:
+            temp_anteproc_h_dict['stamp.' + key] = val
         temp_anteproc_h_dict.pop('stamp')
         anteproc_dict = deepcopy(commonParamsDictionary['anteproc'])
         anteproc_dict.update(temp_anteproc_h_dict)
@@ -841,12 +846,14 @@ def main():
             
     for jobNum in L1AnteprocJobNums:
         
-        temp_anteproc_h_dict = deepcopy(commonParamsDictionary['anteproc_l'])
-        temp_anteproc_h_dict['stamp.ra'] = temp_anteproc_h_dict['stamp']['ra']
-        temp_anteproc_h_dict['stamp.decl'] = temp_anteproc_h_dict['stamp']['decl']
-        temp_anteproc_h_dict.pop('stamp')
+        temp_anteproc_l_dict = deepcopy(commonParamsDictionary['anteproc_l'])
+        temp_anteproc_l_dict.update(anteprocLParamsList[jobNum - 1])
+        for key, val in temp_anteproc_l_dict['stamp']:
+            temp_anteproc_l_dict['stamp.' + key] = val
+        temp_anteproc_l_dict.pop('stamp')
+        
         anteproc_dict = deepcopy(commonParamsDictionary['anteproc'])
-        anteproc_dict.update(temp_anteproc_h_dict)
+        anteproc_dict.update(temp_anteproc_l_dict)
         anteproc_dict['ifo1'] = "L1"
         anteproc_dict['frameType1'] = "L1_" + input_params['frame_type']
         anteproc_dict['ASQchannel1'] = input_params['channel']
