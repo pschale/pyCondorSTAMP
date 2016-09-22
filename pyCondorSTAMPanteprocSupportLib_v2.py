@@ -698,7 +698,7 @@ def generate_summary(params_dict, output_dir):
     with open(glueFileLocation(output_dir, 'summary.txt'), "w") as h:
         print >> h, output_str
         
-def recursive_ints_to_floats(dict)
+def recursive_ints_to_floats(dict):
 
     for key, val in dict:
         if isinstance(val, dict):
