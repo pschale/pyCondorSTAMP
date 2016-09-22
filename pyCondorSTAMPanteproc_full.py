@@ -833,7 +833,7 @@ def main():
     for jobNum in H1AnteprocJobNums:
         
         temp_anteproc_h_dict = deepcopy(commonParamsDictionary['anteproc_h'])
-        temp_anteproc_h_dict.update(anteprocHParamsList[jobNum-1])
+        temp_anteproc_h_dict = deepupdate(temp_anteproc_h_dict, anteprocHParamsList[jobNum - 1])
         for key, val in temp_anteproc_h_dict['stamp']:
             temp_anteproc_h_dict['stamp.' + key] = val
         temp_anteproc_h_dict.pop('stamp')
@@ -849,7 +849,7 @@ def main():
     for jobNum in L1AnteprocJobNums:
         
         temp_anteproc_l_dict = deepcopy(commonParamsDictionary['anteproc_l'])
-        temp_anteproc_l_dict.update(anteprocLParamsList[jobNum - 1])
+        temp_anteproc_l_dict = deepupdate(temp_anteproc_l_dict, anteprocLParamsList[jobNum - 1])
         for key, val in temp_anteproc_l_dict['stamp']:
             temp_anteproc_l_dict['stamp.' + key] = val
         temp_anteproc_l_dict.pop('stamp')

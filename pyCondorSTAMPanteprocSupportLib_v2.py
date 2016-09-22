@@ -5,6 +5,7 @@ from generateInputFileLib import glueFileLocation
 import numpy as np
 import random
 from os import getcwd
+import collections
 
 def parse_jobs(raw_data):
     'Helper function to parse jobs for STAMP'
@@ -711,6 +712,15 @@ def recursive_ints_to_floats(in_dict):
         in_dict[key] = floated_val
     
     return in_dict
+    
+def update(d, u):
+    for k, v in u.iteritems():
+        if isinstance(v, collections.Mapping):
+            r = update(d.get(k, {}), v)
+            d[k] = r
+        else:
+            d[k] = u[k]
+    return d
         
         
 def get_default_params():
