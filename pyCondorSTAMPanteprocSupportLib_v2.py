@@ -690,9 +690,11 @@ def generate_summary(params_dict, output_dir):
     output_str += "\n\nThe rest of the parameters\n\n"
     
     for key in params_dict:
-        if not params_dict[key] == default_params_dict[key]:
-            output_str += key + "\t" + str(params_dict[key]) + "\n"
-        
+        try:
+            if not params_dict[key] == default_params_dict[key]:
+                output_str += key + "\t" + str(params_dict[key]) + "\n"
+        except KeyError:
+            output_str += key + "\t" + str(params_dict[key]) + "\n"        
     with open(glueFileLocation(output_dir, 'summary.txt'), "w") as h:
         print >> h, output_str
         
