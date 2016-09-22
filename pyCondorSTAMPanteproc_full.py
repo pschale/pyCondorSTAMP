@@ -209,7 +209,7 @@ def main():
     
     if input_params['singletrack_bool']:
         inputFileString += '\n\n' + "grandStochtrack stochtrack.singletrack.doSingletrack true"
-        inputFileString += "\n" + "grandStochtrack stochtrack.singletrack.trackInputFiles " + input_params['singletrack_input_files']
+        inputFileString += "\n" + "grandStochtrack stochtrack.singletrack.trackInputFiles " + ",".join(input_params['singletrack_input_files'])
         commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['doSingletrack'] = True
         commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['trackInputFiles'] = array(input_params['singletrack_input_files'], dtype=object)
         
