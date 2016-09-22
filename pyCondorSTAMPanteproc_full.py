@@ -183,7 +183,7 @@ def main():
             commonParamsDictionary['anteproc_l']['stampinj'] = True
             commonParamsDictionary['anteproc_l']['stamp']['alpha'] = input_params['stamp_alpha']
             commonParamsDictionary['anteproc_l']['stamp']['iota'] = wave_iota
-            commonParamsDictionary['anteproc_l']['stamp']['psi'] = wavestamp_psi
+            commonParamsDictionary['anteproc_l']['stamp']['psi'] = wave_psi
             
             
         else:
