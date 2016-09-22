@@ -992,6 +992,7 @@ def main():
             create_fake_cache_and_time_file(tempJobData[0], tempJobData[1], "L", tempJob, fakeCacheDir)
             
     for job in stochtrackParamsList:
+        job = recursive_ints_to_floats(job)
         sio.savemat(job['stochtrackInputDir'] + "/params_new.mat", job['grandStochtrackParams'])
         
     # write preproc parameter files for each job
