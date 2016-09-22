@@ -898,8 +898,8 @@ def main():
         
         stochtrackParamsList[i]["jobDir"] = jobDir
         stochtrackParamsList[i]["stochtrackInputDir"] = create_dir(jobDir + "/grandstochtrackInput")
-        stochtrackParamsList[i]["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandstochtrackOutput")
-        stochtrackParamsList[i]["plotDir"] = create_dir(jobDir + "/grandstochtrackOutput" + "/plots")
+        stochtrackParamsList[i]["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandStochtrackOutput")
+        stochtrackParamsList[i]["plotDir"] = create_dir(jobDir + "/grandStochtrackOutput" + "/plots")
         
     
     for job in jobs:
@@ -1060,7 +1060,7 @@ def main():
     #webGen.make_display_page(directory, saveDir, subDirList, subSubDir, plotTypeList, plotTypeDict, outputFileName)
     print('DEBUG NOTE: Maybe figure out how to variablize "grandstochtrackOutput/plots" in next line?')
     print("Creating webpage")
-    webGen.make_display_page("jobs", baseDir, jobOrderWeb, "grandstochtrackOutput/plots", plotTypeList, plotTypeDict, outFile)
+    webGen.make_display_page("jobs", baseDir, jobOrderWeb, "grandStochtrackOutput/plots", plotTypeList, plotTypeDict, outFile)
     
     # build DAGs
     # preproc DAG
