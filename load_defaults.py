@@ -121,6 +121,8 @@ def getDefaultCommonParams():
     
         "grandStochtrack" : {"fmin": 40,
                             "fmax": 2500,
+                            "hstart": 1000000000,
+                            "hstop": 1000000001,
                             "saveMat": False,
                             "savePlots": True,
                             "seed": -1,
