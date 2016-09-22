@@ -725,7 +725,13 @@ def get_default_params():
 
     "lines_to_cut" : [52, 53, 57, 58, 59, 60, 61, 62, 63, 64, 85, 108, 119, 120, 121, 178, 179, 180, 181, 182, 239, 240, 241, 300, 360, 372, 400, 404, 480, 1380, 1560, 1740],
 
-    "search_type" : "offsource",
+    "accountingGroup": "ligo.dev.s6.burst.sgr_qpo.stamp",
+    "anteprocMemory": 2048,
+    "grandStochtrackMemory": 4000,
+    "doGPU": False,
+    "numCPU" : 1,
+    "maxJobsAnteproc": 20,
+    "maxJobsGrandStochtrack" : 100,
 
     "anteproc_bool" : True,
     "burstegard" : False,
