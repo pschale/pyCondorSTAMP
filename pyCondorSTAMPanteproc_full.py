@@ -538,7 +538,7 @@ def main():
         
         #jobDictionary = {"preproc" : {}, "grandStochtrack": {"anteproc" : {}}}
         jobDictionary = {'grandStochtrackParams': {'params':deepcopy(commonParamsDictionary['grandStochtrack'])}}
-        job_dir = baseDir + "/plots/job_group_1/job_" + str(current_job + 1)
+        job_dir = baseDir + "/jobs/job_group_1/job_" + str(current_job + 1)
         jobDictionary["grandStochtrackParams"]["params"]["plotdir"] = job_dir + "/grandStochtrackOutput/plots/"
         jobDictionary["grandStochtrackParams"]["params"]["outputfilename"] = job_dir + "/grandStochtrackOutput/map"
         jobDictionary["grandStochtrackParams"]["params"]["ofile"] = job_dir + "/grandStochtrackOutput/bknd"
