@@ -705,6 +705,8 @@ def recursive_ints_to_floats(in_dict):
             floated_val = recursive_ints_to_floats(val)
         elif isinstance(val, int):
             floated_val = float(val)
+        else:
+            floated_val = val
             
         in_dict[key] = floated_val
     
