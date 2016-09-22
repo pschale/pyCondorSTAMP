@@ -26,7 +26,7 @@
 
 "accountingGroup": "ligo.dev.s6.burst.sgr_qpo.stamp",
 "anteprocMemory": 2048,
-"stochtrackMemeory": 4000,
+"grandStochtrackMemory": 4000,
 "doGPU": false,
 "numCPU" : 1,
 "maxJobsAnteproc": 20,

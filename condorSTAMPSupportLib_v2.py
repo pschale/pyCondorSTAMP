@@ -415,7 +415,7 @@ def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums, L1AnteprocJobNums
         
     for jobNum in L1AnteprocJobNums:
         
-        output += "JOB " + str(jobCounter) + " " + anteprocExecutable + "\nRETRY " + str(jobCounter) + " 2\n"
+        output += "JOB " + str(jobCounter) + " " + anteprocSub + "\nRETRY " + str(jobCounter) + " 2\n"
         output += "VARS " + str(jobCounter) + "jobNumber=\"" + str(jobCounter) + "\" \"paramFile=" + anteprocDir + "/H1-anteproc_params_" + str(jobNum) + ".txt\"\n"
         output += "jobFile=\"" + jobFile + "\" jobNum=\"" + str(jobNum) + "\"\n"
         output += "CATEGORY " + str(jobCounter) + " ANTEPROC\n\n"
