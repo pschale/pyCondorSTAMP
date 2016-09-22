@@ -702,9 +702,11 @@ def recursive_ints_to_floats(in_dict):
 
     for key, val in in_dict.iteritems():
         if isinstance(val, dict):
-            return recursive_ints_to_floats(val)
+            floated_val = recursive_ints_to_floats(val)
         elif isinstance(val, int):
-            in_dict[key] = float(val)
+            floated_val = float(val)
+            
+        in_dict[key] = floated_val
     
     return in_dict
         
