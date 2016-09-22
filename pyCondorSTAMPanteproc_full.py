@@ -178,12 +178,12 @@ def main():
     anteproc_l stamp.psi """ + str(wave_psi)
             commonParamsDictionary['anteproc_h']['stampinj'] = True
             commonParamsDictionary['anteproc_h']['stamp']['alpha'] = input_params['stamp_alpha']
-            commonParamsDictionary['anteproc_h']['stamp']['iota'] = input_params['stamp_iota']
-            commonParamsDictionary['anteproc_h']['stamp']['psi'] = input_params['stamp_psi']           
+            commonParamsDictionary['anteproc_h']['stamp']['iota'] = wave_iota
+            commonParamsDictionary['anteproc_h']['stamp']['psi'] = wave_psi         
             commonParamsDictionary['anteproc_l']['stampinj'] = True
             commonParamsDictionary['anteproc_l']['stamp']['alpha'] = input_params['stamp_alpha']
-            commonParamsDictionary['anteproc_l']['stamp']['iota'] = input_params['stamp_iota']
-            commonParamsDictionary['anteproc_l']['stamp']['psi'] = input_params['stamp_psi']
+            commonParamsDictionary['anteproc_l']['stamp']['iota'] = wave_iota
+            commonParamsDictionary['anteproc_l']['stamp']['psi'] = wavestamp_psi
             
             
         else:
@@ -199,7 +199,7 @@ def main():
     anteproc_l stamp.iota 0
     anteproc_l stamp.psi 0"""
             commonParamsDictionary['anteproc_h']['stampinj'] = True
-            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = input_params['wave_alpha']
+            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = input_params['stamp_alpha']
             commonParamsDictionary['anteproc_h']['stamp']['iota'] = 0
             commonParamsDictionary['anteproc_h']['stamp']['psi'] = 0           
             commonParamsDictionary['anteproc_l']['stampinj'] = True
