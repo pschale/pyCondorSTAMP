@@ -1,7 +1,7 @@
 #pyCondorSTAMPanteproc_full.py
 from __future__ import division
 from generateInputFileLib import *
-from numpy import argsort, sqrt, arccos, pi
+from numpy import argsort, sqrt, arccos, pi, array, object
 from pyCondorSTAMPLib import *
 from pyCondorSTAMPanteprocSupportLib_v2 import *
 from preprocSupportLib import *
@@ -211,7 +211,7 @@ def main():
         inputFileString += '\n\n' + "grandStochtrack stochtrack.singletrack.doSingletrack true"
         inputFileString += "\n" + "grandStochtrack stochtrack.singletrack.trackInputFiles " + input_params['singletrack_input_files']
         commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['doSingletrack'] = True
-        commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['trackInputFiles'] = input_params['singletrack_input_files']
+        commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['trackInputFiles'] = array(input_params['singletrack_input_files'], dtype=object)
         
     if input_params['set_stochtrack_seed']:
         inputFileString += "\n\n" + "grandStochtrack stochtrack.doSeed true"
