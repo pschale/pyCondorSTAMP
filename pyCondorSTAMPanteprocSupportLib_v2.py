@@ -716,7 +716,7 @@ def recursive_ints_to_floats(in_dict):
 def deepupdate(d, u):
     for k, v in u.iteritems():
         if isinstance(v, collections.Mapping):
-            r = update(d.get(k, {}), v)
+            r = deepupdate(d.get(k, {}), v)
             d[k] = r
         else:
             d[k] = u[k]
