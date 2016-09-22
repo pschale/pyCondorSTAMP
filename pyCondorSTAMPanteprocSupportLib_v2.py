@@ -700,7 +700,7 @@ def generate_summary(params_dict, output_dir):
         
 def recursive_ints_to_floats(dict):
 
-    for key, val in dict:
+    for key, val in dict.iteritems():
         if isinstance(val, dict):
             return recursive_ints_to_floats(val)
         elif isinstance(val, int):
