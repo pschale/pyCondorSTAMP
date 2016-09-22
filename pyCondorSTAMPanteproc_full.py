@@ -177,7 +177,7 @@ def main():
     anteproc_l stamp.iota """ + str(wave_iota) + """
     anteproc_l stamp.psi """ + str(wave_psi)
             commonParamsDictionary['anteproc_h']['stampinj'] = True
-            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = input_params['wave_alpha']
+            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = input_params['stamp_alpha']
             commonParamsDictionary['anteproc_h']['stamp']['iota'] = input_params['stamp_iota']
             commonParamsDictionary['anteproc_h']['stamp']['psi'] = input_params['stamp_psi']           
             commonParamsDictionary['anteproc_l']['stampinj'] = True
@@ -897,7 +897,7 @@ def main():
         jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(stochtrackParamsList[i]["grandStochtrackParams"]["params"]["job_group"]) + "/job_" + str(i + 1))
         
         stochtrackParamsList[i]["jobDir"] = jobDir
-        stochtrackParamsList[i]["stochtrackInputDir"] = create_dir(jobDir + "/grandstochtrackInput")
+        stochtrackParamsList[i]["stochtrackInputDir"] = create_dir(jobDir + "/grandStochtrackInput")
         stochtrackParamsList[i]["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandStochtrackOutput")
         stochtrackParamsList[i]["plotDir"] = create_dir(jobDir + "/grandStochtrackOutput" + "/plots")
         
