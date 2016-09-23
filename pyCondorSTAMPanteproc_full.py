@@ -347,8 +347,8 @@ def main():
     
     
     #Now build the job-specific parameters for anteproc - only needed for injections
-    anteprocHParamsList = [{'stamp':{}}] * (max(tempNumbersH) + 1)
-    anteprocLParamsList = [{'stamp':{}}] * (max(tempNumbersL) + 1)
+    anteprocHParamsList = [{'stamp':{}} for i in range(0, max(tempNumbersH) + 1)]
+    anteprocLParamsList = [{'stamp':{}} for i in range(0, max(tempNumbersL) + 1)]
     if input_params['injection_bool']:
 
         for H1_job_index in tempNumbersH:
