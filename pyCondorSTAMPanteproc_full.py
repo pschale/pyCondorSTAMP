@@ -96,7 +96,6 @@ def main():
     
     commonParamsDictionary = getDefaultCommonParams()   
     #commonParamsDictionary = {'grandStochtrack': {'stochtrack': {'singletrack': {}}}, 'anteproc_h': {'stamp': {}}, 'anteproc_l': {'stamp': {}}, 'preproc': {}}
-    anteprocParamsDictionary = {}
     stochtrackParamsDictionary = {}
 
     #load default file
@@ -352,7 +351,6 @@ def main():
     anteprocLParamsList = [{'stamp':{}}] * (max(tempNumbersL) + 1)
     if input_params['injection_bool']:
 
-        anteprocParamsDictionary = {'anteproc_h' : {'anteproc_param': {}}, 'anteproc_l' : {'anteproc_param' : {}}}
         for H1_job_index in tempNumbersH:
             H1_job = H1_job_index + 1
             job1StartTime = times[H1_job_index][1]
@@ -1091,7 +1089,8 @@ def main():
     import pprint
     pprint.pprint(jobs, open(glueFileLocation(input_params['outputDir'], "jobs_dict.txt"), "w"))
     pprint.pprint(commonParamsDictionary, open(glueFileLocation(input_params['outputDir'], "commonParams_dict.txt"), "w"))
-    pprint.pprint(anteprocParamsDictionary, open(glueFileLocation(input_params['outputDir'], "anteprocParams_dict.txt"), "w"))
+    pprint.pprint(anteprocHParamsList, open(glueFileLocation(input_params['outputDir'], "anteprocHParams_list.txt"), "w"))
+    pprint.pprint(anteprocLParamsList, open(glueFileLocation(input_params['outputDir'], "anteprocLParams_list.txt"), "w"))
     pprint.pprint(stochtrackParamsList, open(glueFileLocation(input_params['outputDir'], "stochtrackParams_list.txt"), "w"))
 
 if __name__ == "__main__":
