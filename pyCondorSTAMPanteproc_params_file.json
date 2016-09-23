@@ -32,6 +32,9 @@
 "maxJobsAnteproc": 20,
 "maxJobsGrandStochtrack" : 100,
 
+"job_start_shift": 18,
+"job_duration": 1602,
+
 "relative_direction" : true,
 "_comment" : "Setting the above to true will make the analysis look at the relative sky position that is given by the absolute coordinates at the trigger time",
 
