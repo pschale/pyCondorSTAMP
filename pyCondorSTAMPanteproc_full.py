@@ -453,7 +453,7 @@ def main():
             if jobIndex1 == 33:
                 jobDictionary["grandStochtrackParams"]["params"]["useReferenceAntennaFactors"] = False
 
-            elif "grandStochtrack useReferenceAntennaFactors" in params:
+            elif input_params['relative_direction']:
                 del params["grandStochtrack useReferenceAntennaFactors"]
                 jobDictionary["grandStochtrackParams"]["params"].pop("useReferenceAntennaFactors", None)
     
