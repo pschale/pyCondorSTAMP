@@ -445,9 +445,9 @@ def main():
     anteproc_l stamp.tau """ + str(wave_tau)
             
             commonParamsDictionary['anteproc_h']['stamp']['inj_type'] = "fly"
-            commonParamsDictionary['anteproc_h']['stamp']['waveform'] = "half_sg"
+            commonParamsDictionary['anteproc_h']['stamp']['fly_waveform'] = "half_sg"
             commonParamsDictionary['anteproc_l']['stamp']['inj_type'] = "fly"
-            commonParamsDictionary['anteproc_l']['stamp']['waveform'] = "half_sg"
+            commonParamsDictionary['anteproc_l']['stamp']['fly_waveform'] = "half_sg"
 
             commonParamsDictionary['anteproc_h']['stamp']['h0'] = sqrt(0.5)
             commonParamsDictionary['anteproc_h']['stamp']['f0'] = input_params['wave_frequency']
