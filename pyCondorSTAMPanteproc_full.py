@@ -834,7 +834,7 @@ def main():
         
         temp_anteproc_h_dict = deepcopy(commonParamsDictionary['anteproc_h'])
         temp_anteproc_h_dict = deepupdate(temp_anteproc_h_dict, anteprocHParamsList[jobNum - 1])
-        for key, val in temp_anteproc_h_dict['stamp']:
+        for key, val in temp_anteproc_h_dict['stamp'].iteritems():
             temp_anteproc_h_dict['stamp.' + key] = val
         temp_anteproc_h_dict.pop('stamp')
         anteproc_dict = deepcopy(commonParamsDictionary['anteproc'])
@@ -850,7 +850,7 @@ def main():
         
         temp_anteproc_l_dict = deepcopy(commonParamsDictionary['anteproc_l'])
         temp_anteproc_l_dict = deepupdate(temp_anteproc_l_dict, anteprocLParamsList[jobNum - 1])
-        for key, val in temp_anteproc_l_dict['stamp']:
+        for key, val in temp_anteproc_l_dict['stamp'].iteritems():
             temp_anteproc_l_dict['stamp.' + key] = val
         temp_anteproc_l_dict.pop('stamp')
         
