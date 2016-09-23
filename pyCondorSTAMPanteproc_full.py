@@ -509,8 +509,8 @@ def main():
     
     # load data from jobFile    
 
-    H1_jobs = set(H1_jobs)
-    L1_jobs = set(L1_jobs)
+    H1_jobs = set(tempNumbersH)
+    L1_jobs = set(tempNumbersL)
 
     
     newAdjustedJobPath = adjust_job_file(jobPath, supportDir, input_params['job_duration'], input_params['job_start_shift'])
