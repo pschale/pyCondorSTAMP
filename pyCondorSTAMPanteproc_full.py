@@ -684,7 +684,7 @@ def main():
     # build DAGs
     # preproc DAG
     # build submission file
-    doGPU = jobs["constants"]["grandStochtrackParams"]["params"]["doGPU"]
+    doGPU = input_params["doGPU"]
     if doGPU and not input_params['burstegard']:
         extract_from_gpu = True
     else:
