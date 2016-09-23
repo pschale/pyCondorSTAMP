@@ -454,7 +454,6 @@ def main():
                 jobDictionary["grandStochtrackParams"]["params"]["useReferenceAntennaFactors"] = False
 
             elif input_params['relative_direction']:
-                del params["grandStochtrack useReferenceAntennaFactors"]
                 jobDictionary["grandStochtrackParams"]["params"].pop("useReferenceAntennaFactors", None)
     
         if input_params['injection_bool'] and not input_params['onTheFly']:
