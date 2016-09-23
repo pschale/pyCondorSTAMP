@@ -636,7 +636,7 @@ def main():
     for tempJob in set(H1_jobs):
         print("Finding frames for job " + str(tempJob) + " for H1")
         #tempJobData = jobDataDict[str(tempJob)]
-        if input_params["simulated"] == "false":
+        if not input_params["simulated"]:
             temp_frames = create_frame_file_list("H1_" + input_params['frame_type'], times[H1_job_index][1] - 2, times[H1_job_index][1] + 1602, "H")
             create_cache_and_time_file(temp_frames, "H",tempJob,cacheDir, archived_frames_okay = archived_frames_okay)
         else:
@@ -644,7 +644,7 @@ def main():
     for tempJob in set(L1_jobs):
         print("Finding frames for job " + str(tempJob) + " for L1")
         #tempJobData = jobDataDict[str(tempJob)]
-        if input_params["simulated"] == "false":
+        if not input_params["simulated"]:
             temp_frames = create_frame_file_list("L1_" + input_params['frame_type'], times[L1_job_index][1] - 2, times[L1_job_index][1] + 1602, "L")
             create_cache_and_time_file(temp_frames, "L",tempJob,cacheDir, archived_frames_okay = archived_frames_okay)
         else:
