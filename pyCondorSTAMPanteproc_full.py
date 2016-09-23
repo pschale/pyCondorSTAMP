@@ -579,13 +579,7 @@ def main():
     if input_params["simulated"]:
         with open(anteproc_dir + "/seeds_for_simulated_data.txt", "w") as outfile:
             json.dump(organizedSeeds, outfile, sort_keys = True, indent = 4)
-    if "num_jobs_to_vary" in varyingAnteprocVariables:
-        print("\nVariable parameter option active.\n")
-        with open(anteproc_dir + "/varying_parameters_input_record.txt", "w") as outfile:
-            json.dump(varyingAnteprocVariables, outfile, sort_keys = True, indent = 4)
-    else:
-        print("\nVariable parameter option not active.\nIf it's supposed to be active, add 'anteproc_varying_param num_jobs_to_vary' option to input parameter file.\n")
-    
+  
     added_anteproc_dict = {"loadFiles": True,
                             "timeShift1": 0,
                             "timeShift2": 0,
