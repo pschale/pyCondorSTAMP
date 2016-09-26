@@ -817,7 +817,7 @@ def main():
         injectionStartTimes = generate_random_start_times(jobs, varyingAnteprocVariables, frontStartTime, backStartTime)
     else:
         injectionStartTimes = None
-    
+    '''
     anteprocJobs, used_seeds, organizedSeeds = anteproc_job_specific_setup(H1_jobs, "H1",
             anteproc_dir, jobs, anteproc_H, used_seeds, organizedSeeds, multiple_waveforms, waveforms, anteprocDefaultData,
             anteprocJobs, varyingAnteprocVariables, anteprocJobDictTracker = anteprocJobDictTracker, injectionStartTimes = injectionStartTimes)
@@ -825,7 +825,7 @@ def main():
     anteprocJobs, used_seeds, organizedSeeds = anteproc_job_specific_setup(L1_jobs, "L1",
             anteproc_dir, jobs, anteproc_L, used_seeds, organizedSeeds, multiple_waveforms, waveforms, anteprocDefaultData,
             anteprocJobs, varyingAnteprocVariables, anteprocJobDictTracker = anteprocJobDictTracker, injectionStartTimes = injectionStartTimes)
-            
+    '''      
     #new loop to make anteproc files
     
     for jobNum in H1AnteprocJobNums:
@@ -861,20 +861,21 @@ def main():
         with open(anteproc_dir + "/L1-anteproc_params_" + str(jobNum) + "new.txt", 'w') as h:
             print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])        
       
-        
-    if jobs["constants"]["anteprocParamsH"]["doDetectorNoiseSim"] == "true" or jobs["constants"]["anteprocParamsL"]["doDetectorNoiseSim"] == "true":
+    '''
+    if input_params['simulated']:
         with open(anteproc_dir + "/seeds_for_simulated_data.txt", "w") as outfile:
             json.dump(organizedSeeds, outfile, sort_keys = True, indent = 4)
+    
     if "num_jobs_to_vary" in varyingAnteprocVariables:
         print("\nVariable parameter option active.\n")
         with open(anteproc_dir + "/varying_parameters_input_record.txt", "w") as outfile:
             json.dump(varyingAnteprocVariables, outfile, sort_keys = True, indent = 4)
     else:
         print("\nVariable parameter option not active.\nIf it's supposed to be active, add 'anteproc_varying_param num_jobs_to_vary' option to input parameter file.\n")
-    
-    anteproc_grand_stochtrack_values["anteproc.inmats1"] = anteproc_dir + "/H-H1_map"
-    anteproc_grand_stochtrack_values["anteproc.inmats2"] = anteproc_dir + "/L-L1_map"
-    anteproc_grand_stochtrack_values["anteproc.jobfile"] = newAdjustedJobPath
+    '''
+    #anteproc_grand_stochtrack_values["anteproc.inmats1"] = anteproc_dir + "/H-H1_map"
+    #anteproc_grand_stochtrack_values["anteproc.inmats2"] = anteproc_dir + "/L-L1_map"
+    #anteproc_grand_stochtrack_values["anteproc.jobfile"] = newAdjustedJobPath
     
     added_anteproc_dict = {"loadFiles": True,
                             "timeShift1": 0,
@@ -901,7 +902,7 @@ def main():
         stochtrackParamsList[i]["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandStochtrackOutput")
         stochtrackParamsList[i]["plotDir"] = create_dir(jobDir + "/grandStochtrackOutput" + "/plots")
         
-    
+    '''
     for job in jobs:
             #"adjust inmats entries here maybe if needed? yes."
         for anteprocParameter in anteprocOrder:
@@ -909,7 +910,7 @@ def main():
                 jobs[job]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[job]["grandStochtrackParams"]["params"], anteprocParameter, anteproc_grand_stochtrack_values[anteprocParameter] + "_" + jobs[job]["injection_tags"])
             else:
                 jobs[job]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[job]["grandStochtrackParams"]["params"], anteprocParameter, anteproc_grand_stochtrack_values[anteprocParameter])
-    
+    '''
     '''
         # cycle through jobs
     print("Creating job directories")
@@ -957,7 +958,7 @@ def main():
     
     print("Creating shell scripts")
     grandStochtrack_script_file = dagDir + "/grand_stochtrack.sh"
-    if jobs['constants']['grandStochtrackParams']['params']['savePlots']:
+    if commonParamsDictionary['grandStochtrack']['savePlots']:
         write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutable, STAMP_setup_script)
     else:
         write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutableNoPlots, STAMP_setup_script)
