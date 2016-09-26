@@ -674,8 +674,8 @@ def main():
     jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms, varyingAnteprocVariables = parse_jobs(rawData)
 
 
-    H1_jobs = set(H1_jobs)
-    L1_jobs = set(L1_jobs)
+    H1_jobs = set(tempNumbersH)
+    L1_jobs = set(tempNumbersL)
     
     job_group_iterator = 1
     for job in jobs:
