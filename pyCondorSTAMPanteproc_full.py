@@ -671,12 +671,12 @@ def main():
     
     # parse jobs
     
-    jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms, varyingAnteprocVariables = parse_jobs(rawData)
+    #jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms, varyingAnteprocVariables = parse_jobs(rawData)
 
 
     H1_jobs = set(tempNumbersH)
     L1_jobs = set(tempNumbersL)
-    
+    '''
     job_group_iterator = 1
     for job in jobs:
         if job != "constants":
@@ -701,23 +701,23 @@ def main():
                      "anteproc.inmats1",
                      "anteproc.inmats2",
                      "anteproc.jobfile"]
-    
+    '''
     # set job durations
-    print("Code currently not set up to handle 'hstart' or 'hstop' individually without the other in specific jobs or 'constants'.")
+    #print("Code currently not set up to handle 'hstart' or 'hstop' individually without the other in specific jobs or 'constants'.")
     
-    if commentsToPrintIfVerbose and verbose:
-        print(commentsToPrintIfVerbose)
+    #if commentsToPrintIfVerbose and verbose:
+     #   print(commentsToPrintIfVerbose)
     
     # TODO: Warnings and error catching involving default job number and undefined job numbers
-    print("\n\nRemember: Finish this part.\n\n")
+    #print("\n\nRemember: Finish this part.\n\n")
     
-    if jobDuplicates:
-        ans = raw_input("Duplicate jobs exist.  Continue? (y/n)")
-        if not ans == 'y':
-            raise pyCondorSTAMPanteprocError("Process Terminated")
+    #if jobDuplicates:
+    #    ans = raw_input("Duplicate jobs exist.  Continue? (y/n)")
+    #    if not ans == 'y':
+    #        raise pyCondorSTAMPanteprocError("Process Terminated")
     
     # update default dictionary
-    defaultDictionary = load_default_dict(jobs['constants']['grandStochtrackParams']['params'] , defaultDictionary)
+    #defaultDictionary = load_default_dict(jobs['constants']['grandStochtrackParams']['params'] , defaultDictionary)
     
 
     
@@ -737,13 +737,14 @@ def main():
     #				some other thing?
     #				plotDir
     
+    '''
     if "num_jobs_to_vary" in varyingAnteprocVariables:
         multiple_job_group_version = True
     else:
         multiple_job_group_version = False
     
     cacheFilesCreated = []
-    
+
     anteprocJobs = {}
     anteprocJobs["H1"] = {}
     anteprocJobs["L1"] = {}
@@ -752,6 +753,7 @@ def main():
     organizedSeeds["L1"] = {}
     used_seeds = [jobs["constants"]["anteprocHjob_seeds"][x] for x in jobs["constants"]["anteprocHjob_seeds"]]
     used_seeds += [jobs["constants"]["anteprocLjob_seeds"][x] for x in jobs["constants"]["anteprocLjob_seeds"]]
+    '''
         # Build base analysis directory
         # stochtrack_condor_job_group_num
     
@@ -787,10 +789,12 @@ def main():
 
     
         # load default anteproc - this is already done
+    '''
     with open(input_params['anteprocDefault'], 'r') as infile:
         anteprocDefaultData = [line.split() for line in infile]
     
     #this is done already above
+
     if cacheDir:
         anteproc_H, anteproc_L = anteproc_setup(anteproc_dir, anteprocDefaultData, jobs, cacheDir)
     else:
@@ -801,6 +805,7 @@ def main():
     anteproc_L["ASQchannel1"] = input_params['channel']
     anteproc_L["frameType1"] = "L1_" + input_params['frame_type']
     
+    
     multiple_waveforms = False
     
     if "stampinj" in anteproc_H and "stampinj" in anteproc_L:
@@ -810,6 +815,7 @@ def main():
             raise pyCondorSTAMPanteprocError("Warning, injections settings in detectors do not match, one has 'stampinj = true' and one has 'stampinj = false'. Please edit code for further capabilities of this behavior is intentional.")
     elif "stampinj" in anteproc_H or "stampinj" in anteproc_L:
         raise pyCondorSTAMPanteprocError("Warning, injections settings in detectors do not match, one has 'stampinj' and one does not. Please edit code for further capabilities of this behavior is intentional.")
+    
     anteprocJobDictTracker = createPreprocessingJobDependentDict(jobs)
     if "varying_injection_start" in jobs["constants"]:
         frontStartTime = jobs["constants"]["varying_injection_start"][0]
@@ -817,7 +823,7 @@ def main():
         injectionStartTimes = generate_random_start_times(jobs, varyingAnteprocVariables, frontStartTime, backStartTime)
     else:
         injectionStartTimes = None
-    '''
+    
     anteprocJobs, used_seeds, organizedSeeds = anteproc_job_specific_setup(H1_jobs, "H1",
             anteproc_dir, jobs, anteproc_H, used_seeds, organizedSeeds, multiple_waveforms, waveforms, anteprocDefaultData,
             anteprocJobs, varyingAnteprocVariables, anteprocJobDictTracker = anteprocJobDictTracker, injectionStartTimes = injectionStartTimes)
@@ -978,7 +984,7 @@ def main():
     for tempJob in set(H1_jobs):
         print("Finding frames for job " + str(tempJob) + " for H1")
         #tempJobData = jobDataDict[str(tempJob)]
-        if anteproc_H["doDetectorNoiseSim"] == "false":
+        if not input_params['simulated']:
             temp_frames = create_frame_file_list("H1_" + input_params['frame_type'], str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "H")
             create_cache_and_time_file(temp_frames, "H",tempJob+1,cacheDir, archived_frames_okay = archived_frames_okay)
         else:
@@ -986,7 +992,7 @@ def main():
     for tempJob in set(L1_jobs):
         print("Finding frames for job " + str(tempJob) + " for L1")
         #tempJobData = jobDataDict[str(tempJob)]
-        if anteproc_L["doDetectorNoiseSim"] == "false":
+        if not input_params['simulated']:
             temp_frames = create_frame_file_list("L1_" + input_params['frame_type'], str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "L")
             create_cache_and_time_file(temp_frames, "L",tempJob+1,cacheDir, archived_frames_okay = archived_frames_okay)
         else:
