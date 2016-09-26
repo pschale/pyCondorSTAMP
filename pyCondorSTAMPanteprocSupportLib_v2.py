@@ -485,21 +485,21 @@ def handle_varying_variables_and_save_anteproc_paramfile(varying_anteproc_variab
 
                     temp_anteproc_name = anteproc_file_name[:anteproc_file_name.rindex(".")] + file_name_modifier + "_" + specific_job + ".txt"
 
-                    save_anteproc_paramfile(anteproc_dict, temp_anteproc_name, anteproc_default_data)
+                    #save_anteproc_paramfile(anteproc_dict, temp_anteproc_name, anteproc_default_data)
                     anteproc_file_names += [temp_anteproc_name]
 
                     anteproc_dict["stamp.start"] = temp_start_time
             else:
                 anteproc_dict["outputfilename"] = temp_output_name
                 temp_anteproc_name = anteproc_file_name[:anteproc_file_name.rindex(".")] + file_name_modifier + ".txt"
-                save_anteproc_paramfile(anteproc_dict, temp_anteproc_name, anteproc_default_data)
+                #save_anteproc_paramfile(anteproc_dict, temp_anteproc_name, anteproc_default_data)
                 anteproc_file_names += [temp_anteproc_name]
 
         anteproc_dict["outputfilename"] = base_output_file_name
 
     else:
 
-        save_anteproc_paramfile(anteproc_dict, anteproc_file_name, anteproc_default_data)
+        #save_anteproc_paramfile(anteproc_dict, anteproc_file_name, anteproc_default_data)
         anteproc_file_names += [anteproc_file_name]
 
     return anteproc_file_names
