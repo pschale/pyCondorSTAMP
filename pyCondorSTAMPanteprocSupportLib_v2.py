@@ -363,13 +363,13 @@ def adjusted_job_file_name(filePath, outputDirectory):
         outputPath = outputDirectory + "/" + fileName
     return outputPath
 
-def adjust_job_file(filePath, outputDirectory, job_dictionary):
+def adjust_job_file(filePath, outputDirectory, job_duration, job_start_shift):
     outputPath = adjusted_job_file_name(filePath, outputDirectory)
     #NSPI = int(job_dictionary["constants"]["preprocParams"]["numSegmentsPerInterval"])
     #bufferSecs = int(job_dictionary["constants"]["preprocParams"]["bufferSecs1"])
     #numSegmentsPerInterval
-    start_shift = int(job_dictionary["constants"]["job_start_shift"])
-    duration = int(job_dictionary["constants"]["job_duration"])
+    start_shift = int(job_start_shift)
+    duration = int(job_duration)
     with open(filePath, "r") as infile:
         data = [[int(x) for x in line.split()] for line in infile]
     data2 = [[x[0], x[1] + start_shift, x[1] + start_shift + duration, duration] for x in data]
