@@ -978,18 +978,18 @@ def main():
         print("Finding frames for job " + str(tempJob) + " for H1")
         tempJobData = jobDataDict[str(tempJob)]
         if anteproc_H["doDetectorNoiseSim"] == "false":
-            temp_frames = create_frame_file_list("H1_" + input_params['frame_type'], tempJobData[0], tempJobData[1], "H")
+            temp_frames = create_frame_file_list("H1_" + input_params['frame_type'], times[H1_job_index][1] - 2, times[H1_job_index][1] + 1602, "H")
             create_cache_and_time_file(temp_frames, "H",tempJob,cacheDir, archived_frames_okay = archived_frames_okay)
         else:
-            create_fake_cache_and_time_file(tempJobData[0], tempJobData[1], "H", tempJob, fakeCacheDir)
+            create_fake_cache_and_time_file(times[H1_job_index][1] - 2, times[H1_job_index][1] + 1602, "H", tempJob, fakeCacheDir)
     for tempJob in set(L1_jobs):
         print("Finding frames for job " + str(tempJob) + " for L1")
         tempJobData = jobDataDict[str(tempJob)]
         if anteproc_L["doDetectorNoiseSim"] == "false":
-            temp_frames = create_frame_file_list("L1_" + input_params['frame_type'], tempJobData[0], tempJobData[1], "L")
+            temp_frames = create_frame_file_list("L1_" + input_params['frame_type'], times[L1_job_index][1] - 2, times[L1_job_index][1] + 1602, "L")
             create_cache_and_time_file(temp_frames, "L",tempJob,cacheDir, archived_frames_okay = archived_frames_okay)
         else:
-            create_fake_cache_and_time_file(tempJobData[0], tempJobData[1], "L", tempJob, fakeCacheDir)
+            create_fake_cache_and_time_file(times[H1_job_index][1] - 2, times[H1_job_index][1] + 1602, "L", tempJob, fakeCacheDir)
             
     for job in stochtrackParamsList:
         job['grandStochtrackParams'] = recursive_ints_to_floats(job['grandStochtrackParams'])
@@ -1038,6 +1038,7 @@ def main():
     # order plots by job
     
     # This line likely needs fixing if it's going to work with the variable parameters. otherwise it's fine.
+    '''
     jobTempDict = dict((int(job[job.index("_")+1:]),{"job" : job, "job dir" : "job_group_" + jobs[job]["job_group"] + "/" + job}) for job in [x for x in jobs if x != "constants"])
     
     if input_params['burstegard']:
@@ -1061,11 +1062,11 @@ def main():
     print('DEBUG NOTE: Maybe figure out how to variablize "grandstochtrackOutput/plots" in next line?')
     print("Creating webpage")
     webGen.make_display_page("jobs", baseDir, jobOrderWeb, "grandStochtrackOutput/plots", plotTypeList, plotTypeDict, outFile)
-    
+    '''
     # build DAGs
     # preproc DAG
     # build submission file
-    doGPU = jobs["constants"]["grandStochtrackParams"]["params"]["doGPU"]
+    doGPU = input_params["doGPU"]
     if doGPU and not input_params['burstegard']:
         extract_from_gpu = True
     else:
