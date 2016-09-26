@@ -979,7 +979,7 @@ def main():
         #tempJobData = jobDataDict[str(tempJob)]
         if anteproc_H["doDetectorNoiseSim"] == "false":
             temp_frames = create_frame_file_list("H1_" + input_params['frame_type'], str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "H")
-            create_cache_and_time_file(temp_frames, "H",tempJob,cacheDir, archived_frames_okay = archived_frames_okay)
+            create_cache_and_time_file(temp_frames, "H",tempJob+1,cacheDir, archived_frames_okay = archived_frames_okay)
         else:
             create_fake_cache_and_time_file(str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "H", tempJob, fakeCacheDir)
     for tempJob in set(L1_jobs):
@@ -987,7 +987,7 @@ def main():
         #tempJobData = jobDataDict[str(tempJob)]
         if anteproc_L["doDetectorNoiseSim"] == "false":
             temp_frames = create_frame_file_list("L1_" + input_params['frame_type'], str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "L")
-            create_cache_and_time_file(temp_frames, "L",tempJob,cacheDir, archived_frames_okay = archived_frames_okay)
+            create_cache_and_time_file(temp_frames, "L",tempJob+1,cacheDir, archived_frames_okay = archived_frames_okay)
         else:
             create_fake_cache_and_time_file(str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "L", tempJob, fakeCacheDir)
             
