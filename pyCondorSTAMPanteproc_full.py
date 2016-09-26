@@ -671,12 +671,12 @@ def main():
     
     # parse jobs
     
-    #jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms, varyingAnteprocVariables = parse_jobs(rawData)
+    jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms, varyingAnteprocVariables = parse_jobs(rawData)
 
 
     H1_jobs = set(tempNumbersH)
     L1_jobs = set(tempNumbersL)
-    '''
+    
     job_group_iterator = 1
     for job in jobs:
         if job != "constants":
@@ -685,7 +685,7 @@ def main():
                     job_group_iterator += 1
                 jobs[job]["job_group"] = str(job_group_iterator)
                 job_groups += [str(job_group_iterator)]
-    
+    '''
     anteproc_grand_stochtrack_values = {"anteproc.loadFiles": True,
                                         "anteproc.timeShift1": 0,
                                         "anteproc.timeShift2": 0,
