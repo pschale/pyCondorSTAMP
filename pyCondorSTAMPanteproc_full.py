@@ -671,7 +671,7 @@ def main():
     
     # parse jobs
     
-    jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms, varyingAnteprocVariables = parse_jobs(rawData)
+    #jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms, varyingAnteprocVariables = parse_jobs(rawData)
 
 
     H1_jobs = set(tempNumbersH)
@@ -761,8 +761,9 @@ def main():
 
     
     #newAdjustedJobPath = adjust_job_file(jobPath, supportDir, jobs)
-    
-    newAdjustedJobPath = glueFileLocation(supportDir, jobPath[len(jobPath)-jobPath[::-1].index('/')::])
+    jobFileName = jobPath[len(jobPath)-jobPath[::-1].index('/')::]
+    adjustedJobFileName = jobFileName[:jobFileName.index(".txt")] + "_postprocessing" + jobFileName[jobFileName.index(".txt"):]
+    newAdjustedJobPath = glueFileLocation(supportDir, adjustedJobFileName)
     with open(input_params['jobFile']) as h:
         jobData = [[int(x) for x in line.split()] for line in h]
     adjustedJobData = [[x[0], x[1] + input_params['job_start_shift'], x[1] + input_params['job_start_shift'] + input_params['job_duration'], input_params['job_duration']] for x in jobData]
