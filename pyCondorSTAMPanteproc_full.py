@@ -777,7 +777,7 @@ def main():
     anteproc_dir = create_dir(baseDir + "/anteproc_data")
     commonParamsDictionary['anteproc_h']["outputfiledir"] = anteproc_dir + "/"
     commonParamsDictionary['anteproc_l']["outputfiledir"] = anteproc_dir + "/"  
-    if jobs["constants"]["anteprocParamsH"]["doDetectorNoiseSim"] == "false":
+    if not input_params['simulated']:
         cacheDir = create_dir(baseDir + "/cache_files") + "/"
         fakeCacheDir = None
         commonParamsDictionary['anteproc_h']["gpsTimesPath1"] = cacheDir
