@@ -767,7 +767,7 @@ def main():
         jobData = [[int(x) for x in line.split()] for line in h]
     adjustedJobData = [[x[0], x[1] + input_params['job_start_shift'], x[1] + input_params['job_start_shift'] + input_params['job_duration'], input_params['job_duration']] for x in jobData]
     adjustedJobText = "\n".join(" ".join(str(x) for x in line) for line in adjustedJobData)
-    with open(newAdjustedJobPath) as h:   
+    with open(newAdjustedJobPath, "w") as h:   
         print >> h, adjustedJobText 
         # create directory to host all of the jobs. maybe drop the cachefiles in here too?
     jobsBaseDir = create_dir(baseDir + "/jobs")
