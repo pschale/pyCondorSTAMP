@@ -1102,7 +1102,7 @@ def main():
     
     # run top DAG
     import pprint
-    pprint.pprint(jobs, open(glueFileLocation(input_params['outputDir'], "jobs_dict.txt"), "w"))
+    #pprint.pprint(jobs, open(glueFileLocation(input_params['outputDir'], "jobs_dict.txt"), "w"))
     pprint.pprint(commonParamsDictionary, open(glueFileLocation(input_params['outputDir'], "commonParams_dict.txt"), "w"))
     pprint.pprint(anteprocHParamsList, open(glueFileLocation(input_params['outputDir'], "anteprocHParams_list.txt"), "w"))
     pprint.pprint(anteprocLParamsList, open(glueFileLocation(input_params['outputDir'], "anteprocLParams_list.txt"), "w"))
