@@ -626,7 +626,7 @@ def main():
 
 
     
-    saveText(glueFileLocation(input_params['outputDir'], "config_file.txt"), text_output)
+    #saveText(glueFileLocation(input_params['outputDir'], "config_file.txt"), text_output)
     
     
     ###################################################################################
@@ -659,15 +659,15 @@ def main():
     grandStochtrackExecutableNoPlots = glueFileLocation(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack_nojvm")
     
     # load info from config file
-    rawData = read_text_file(configPath, ' ')
+    #rawData = read_text_file(configPath, ' ')
     
     # load default dictionary if selected
     # TODO: fix this for option to exclude default dictionary if wished
-    defaultDictionary = load_dict_from_json(input_params['defaultDictionaryPath'])
+    #defaultDictionary = load_dict_from_json(input_params['defaultDictionaryPath'])
     
     # load data from jobFile
-    with open(jobPath, "r") as infile:
-        jobDataDict = dict((x.split()[0], x.split()[1:]) for x in infile)
+    #with open(jobPath, "r") as infile:
+    #    jobDataDict = dict((x.split()[0], x.split()[1:]) for x in infile)
     
     # parse jobs
     
