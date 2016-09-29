@@ -381,13 +381,8 @@ def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums, L1AnteprocJobNums
 def get_default_params():
     return {"outputDir" : "/home/paul.schale/public_html/STAMP_outputs",
 
-    "default_config_file" : "inputFileBase_v6_job_shift.txt",
-    "defaultDictionaryPath" : "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/defaultStochtrack.json",
-    "anteprocDefault" : "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/anteproc_defaults.txt",
     "STAMP2_installation_dir" : "/home/paul.schale/STAMP/stamp2/",
     "matlabMatrixExtractionExectuable" : "/home/quitzow/GIT/Development_Branches/MatlabExecutableDuctTape/getSNRandCluster",
-
-
 
     "jobFile" : "/home/paul.schale/job_files/oct_7_O1_job.txt",
     "triggerNumber" : 1003,
@@ -401,8 +396,6 @@ def get_default_params():
     "T" : 1000,
     "F" : 3000,
     
-    "single_cpu" : True,
-
     "relative_direction" : True,
 
     "lines_to_cut" : [52, 53, 57, 58, 59, 60, 61, 62, 63, 64, 85, 108, 119, 120, 121, 178, 179, 180, 181, 182, 239, 240, 241, 300, 360, 372, 400, 404, 480, 1380, 1560, 1740],
