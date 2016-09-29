@@ -2,12 +2,7 @@
 from __future__ import division
 from generateInputFileLib import *
 from numpy import argsort, sqrt, arccos, pi, array, object
-from pyCondorSTAMPLib import *
-from pyCondorSTAMPanteprocSupportLib_v2 import *
-from preprocSupportLib import *
-from grandStochtrackSupportLib import *
-from condorSTAMPSupportLib_v2 import *
-import webpageGenerateLib as webGen
+from pyCondorSTAMPLib_v2 import *
 import scipy.io as sio
 import random
 import json
@@ -510,7 +505,6 @@ def main():
     
 
     
-    #newAdjustedJobPath = adjust_job_file(jobPath, supportDir, jobs)
     jobFileName = jobPath[len(jobPath)-jobPath[::-1].index('/')::]
     adjustedJobFileName = jobFileName[:jobFileName.index(".txt")] + "_postprocessing" + jobFileName[jobFileName.index(".txt"):]
     newAdjustedJobPath = glueFileLocation(supportDir, adjustedJobFileName)
