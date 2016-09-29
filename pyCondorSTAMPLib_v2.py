@@ -175,6 +175,28 @@ def deepupdate(d, u):
         else:
             d[k] = u[k]
     return d
+    
+def write_grandstochtrack_bash_script(file_name, executable, STAMP_export_script, memory_limit = 14000000):
+    output_string = """#!/bin/bash
+
+source """ + STAMP_export_script + """
+
+ulimit -v """ + str(memory_limit) + """
+
+""" + executable + """ $1 $2"""
+    with open(file_name, "w") as outfile:
+        outfile.write(output_string)
+
+def write_anteproc_bash_script(file_name, executable, STAMP_export_script, memory_limit = 14000000):
+    output_string = """#!/bin/bash
+
+source """ + STAMP_export_script + """
+
+ulimit -v """ + str(memory_limit) + """
+
+""" + executable + """ $1 $2 $3"""
+    with open(file_name, "w") as outfile:
+        outfile.write(output_string)
         
 def write_anteproc_sub_file(memory, anteprocSH, dagDir, accountingGroup):
 
