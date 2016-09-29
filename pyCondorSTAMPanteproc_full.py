@@ -553,31 +553,31 @@ def main():
     
         if input_params['injection_bool'] and not input_params['relative_direction']:
             #params["preproc stamp.startGPS"] = int(jobH1StartTime)
-            params["preproc stamp.ra"] = input_params['RA']
+            #params["preproc stamp.ra"] = input_params['RA']
             jobDictionary["preproc"]["stamp"]["ra"] = input_params['RA']
     
         if not input_params['relative_direction']:
-            params["grandStochtrack ra"] = input_params['RA']
+            #params["grandStochtrack ra"] = input_params['RA']
             jobDictionary["grandStochtrackParams"]["params"]["ra"] = input_params['RA']
 
         if input_params['remove_cluster']:
-            params["grandStochtrack clusterFile"] = source_file_dict[jobIndex1][jobIndex2]
+            #params["grandStochtrack clusterFile"] = source_file_dict[jobIndex1][jobIndex2]
             jobDictionary["grandStochtrackParams"]["params"]["clusterFile"] = source_file_dict[jobIndex1][jobIndex2]
     
-        params["preproc job"] = jobNum1#this needed anymore?
+        #params["preproc job"] = jobNum1#this needed anymore?
         jobDictionary["preprocJobs"] = jobNum1
     
         if input_params['anteproc_bool']:
-            params["grandStochtrack anteproc.jobNum1"] = jobNum1
-            params["grandStochtrack anteproc.jobNum2"] = jobNum2
+            #params["grandStochtrack anteproc.jobNum1"] = jobNum1
+            #params["grandStochtrack anteproc.jobNum2"] = jobNum2
             jobDictionary["grandStochtrackParams"]["params"]["anteproc"]["jobNum1"] = jobNum1
             jobDictionary["grandStochtrackParams"]["params"]["anteproc"]["jobNum2"] = jobNum2
     
         else:
-            params["preproc doShift1"] = 0
-            params["preproc ShiftTime1"] = 0
-            params["preproc doShift2"] = 1
-            params["preproc ShiftTime2"] = base_shift + timeShift - 1
+            #params["preproc doShift1"] = 0
+            #params["preproc ShiftTime1"] = 0
+            #params["preproc doShift2"] = 1
+            #params["preproc ShiftTime2"] = base_shift + timeShift - 1
             jobDictionary["preproc"]["doShift1"] = 0
             jobDictionary["preproc"]["ShiftTime1"] = 0
             jobDictionary["preproc"]["doShift2"] = 1
@@ -586,23 +586,20 @@ def main():
     
         if input_params['relative_direction']:
             if jobIndex1 == 33:
-                params["grandStochtrack useReferenceAntennaFactors"] = "false"
+                #params["grandStochtrack useReferenceAntennaFactors"] = "false"
                 jobDictionary["grandStochtrackParams"]["params"]["useReferenceAntennaFactors"] = False
 
-            elif "grandStochtrack useReferenceAntennaFactors" in params:
-                del params["grandStochtrack useReferenceAntennaFactors"]
-                jobDictionary["grandStochtrackParams"]["params"].pop("useReferenceAntennaFactors", None)
-    
+
         if input_params['injection_bool'] and not input_params['onTheFly']:
             for temp_waveform in waveformFileNames:
-                params["injection_tag"] = temp_waveform
+                #params["injection_tag"] = temp_waveform
                 jobDictionary["injection_tag"] = temp_waveform
                 current_job += 1
-                temp_output = ""
-                temp_output += "job " + str(current_job) + "\n"
-                temp_output += "job_group " + str(job_group) + "\n"
-                temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])    
-                text_output += "\n\n" + temp_output
+                #temp_output = ""
+                #temp_output += "job " + str(current_job) + "\n"
+                #temp_output += "job_group " + str(job_group) + "\n"
+                #temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])    
+                #text_output += "\n\n" + temp_output
                 
                 stochtrackParamsList.append(deepcopy(jobDictionary))
                 stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['job_group']=  job_group
@@ -612,11 +609,11 @@ def main():
                 
         else:
             current_job +=1
-            temp_output = ""
-            temp_output += "job " + str(current_job) + "\n"
-            temp_output += "job_group " + str(job_group) + "\n"
-            temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])
-            text_output += "\n\n" + temp_output
+            #temp_output = ""
+            #temp_output += "job " + str(current_job) + "\n"
+            #temp_output += "job_group " + str(job_group) + "\n"
+            #temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])
+            #text_output += "\n\n" + temp_output
             
             stochtrackParamsList.append(deepcopy(jobDictionary))
             stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['job_group'] = job_group
