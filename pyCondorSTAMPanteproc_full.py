@@ -415,7 +415,6 @@ def main():
         job1StartTime = times[jobIndex1][1]
         job1EndTime = times[jobIndex1][2]
         
-        #jobDictionary = {"preproc" : {}, "grandStochtrack": {"anteproc" : {}}}
         jobDictionary = {'grandStochtrackParams': {'params':deepcopy(commonParamsDictionary['grandStochtrack'])}}
         job_dir = baseDir + "/jobs/job_group_1/job_" + str(current_job + 1)
         jobDictionary["grandStochtrackParams"]["params"]["plotdir"] = job_dir + "/grandStochtrackOutput/plots/"
@@ -431,32 +430,21 @@ def main():
         job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job_hstart + 400
     
         if input_params['injection_bool'] and not input_params['relative_direction']:
-            #params["preproc stamp.startGPS"] = int(jobH1StartTime)
-            #params["preproc stamp.ra"] = input_params['RA']
             jobDictionary["preproc"]["stamp"]["ra"] = input_params['RA']
     
         if not input_params['relative_direction']:
-            #params["grandStochtrack ra"] = input_params['RA']
             jobDictionary["grandStochtrackParams"]["params"]["ra"] = input_params['RA']
 
         if input_params['remove_cluster']:
-            #params["grandStochtrack clusterFile"] = source_file_dict[jobIndex1][jobIndex2]
             jobDictionary["grandStochtrackParams"]["params"]["clusterFile"] = source_file_dict[jobIndex1][jobIndex2]
     
-        #params["preproc job"] = jobNum1#this needed anymore?
         jobDictionary["preprocJobs"] = jobNum1
     
         if input_params['anteproc_bool']:
-            #params["grandStochtrack anteproc.jobNum1"] = jobNum1
-            #params["grandStochtrack anteproc.jobNum2"] = jobNum2
             jobDictionary["grandStochtrackParams"]["params"]["anteproc"]["jobNum1"] = jobNum1
             jobDictionary["grandStochtrackParams"]["params"]["anteproc"]["jobNum2"] = jobNum2
     
         else:
-            #params["preproc doShift1"] = 0
-            #params["preproc ShiftTime1"] = 0
-            #params["preproc doShift2"] = 1
-            #params["preproc ShiftTime2"] = base_shift + timeShift - 1
             jobDictionary["preproc"]["doShift1"] = 0
             jobDictionary["preproc"]["ShiftTime1"] = 0
             jobDictionary["preproc"]["doShift2"] = 1
@@ -465,20 +453,13 @@ def main():
     
         if input_params['relative_direction']:
             if jobIndex1 == 33:
-                #params["grandStochtrack useReferenceAntennaFactors"] = "false"
                 jobDictionary["grandStochtrackParams"]["params"]["useReferenceAntennaFactors"] = False
 
 
         if input_params['injection_bool'] and not input_params['onTheFly']:
             for temp_waveform in waveformFileNames:
-                #params["injection_tag"] = temp_waveform
                 jobDictionary["injection_tag"] = temp_waveform
                 current_job += 1
-                #temp_output = ""
-                #temp_output += "job " + str(current_job) + "\n"
-                #temp_output += "job_group " + str(job_group) + "\n"
-                #temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])    
-                #text_output += "\n\n" + temp_output
                 
                 stochtrackParamsList.append(deepcopy(jobDictionary))
                 stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['job_group']=  job_group
@@ -488,11 +469,6 @@ def main():
                 
         else:
             current_job +=1
-            #temp_output = ""
-            #temp_output += "job " + str(current_job) + "\n"
-            #temp_output += "job_group " + str(job_group) + "\n"
-            #temp_output += "\n".join([str(x) + " " + str(params[x]) for x in params])
-            #text_output += "\n\n" + temp_output
             
             stochtrackParamsList.append(deepcopy(jobDictionary))
             stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['job_group'] = job_group
@@ -500,11 +476,6 @@ def main():
             H1AnteprocJobNums.add(jobNum1)
             L1AnteprocJobNums.add(jobNum2)
 
-
-    
-    #saveText(glueFileLocation(input_params['outputDir'], "config_file.txt"), text_output)
-    
-    
     ###################################################################################
     ###################################################################################
     ###################################################################################
@@ -534,105 +505,8 @@ def main():
     grandStochtrackExecutable = glueFileLocation(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack")
     grandStochtrackExecutableNoPlots = glueFileLocation(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack_nojvm")
     
-    # load info from config file
-    #rawData = read_text_file(configPath, ' ')
-    
-    # load default dictionary if selected
-    # TODO: fix this for option to exclude default dictionary if wished
-    #defaultDictionary = load_dict_from_json(input_params['defaultDictionaryPath'])
-    
-    # load data from jobFile
-    #with open(jobPath, "r") as infile:
-    #    jobDataDict = dict((x.split()[0], x.split()[1:]) for x in infile)
-    
-    # parse jobs
-    
-    #jobs, commentsToPrintIfVerbose, job_groups, jobDuplicates, H1_jobs, L1_jobs, waveforms, varyingAnteprocVariables = parse_jobs(rawData)
-
-
     H1_jobs = set(tempNumbersH)
     L1_jobs = set(tempNumbersL)
-    '''
-    job_group_iterator = 1
-    for job in jobs:
-        if job != "constants":
-            if not jobs[job]["job_group"]:
-                while str(job_group_iterator) in job_groups:
-                    job_group_iterator += 1
-                jobs[job]["job_group"] = str(job_group_iterator)
-                job_groups += [str(job_group_iterator)]
-    
-    anteproc_grand_stochtrack_values = {"anteproc.loadFiles": True,
-                                        "anteproc.timeShift1": 0,
-                                        "anteproc.timeShift2": 0,
-                                        "anteproc.jobFileTimeShift": True,
-                                        "anteproc.bkndstudy": False,
-                                        "anteproc.bkndstudydur": 100}
-    anteprocOrder = ["anteproc.loadFiles",
-                     "anteproc.timeShift1",
-                     "anteproc.timeShift2",
-                     "anteproc.jobFileTimeShift",
-                     "anteproc.bkndstudy",
-                     "anteproc.bkndstudydur",
-                     "anteproc.inmats1",
-                     "anteproc.inmats2",
-                     "anteproc.jobfile"]
-    '''
-    # set job durations
-    #print("Code currently not set up to handle 'hstart' or 'hstop' individually without the other in specific jobs or 'constants'.")
-    
-    #if commentsToPrintIfVerbose and verbose:
-     #   print(commentsToPrintIfVerbose)
-    
-    # TODO: Warnings and error catching involving default job number and undefined job numbers
-    #print("\n\nRemember: Finish this part.\n\n")
-    
-    #if jobDuplicates:
-    #    ans = raw_input("Duplicate jobs exist.  Continue? (y/n)")
-    #    if not ans == 'y':
-    #        raise pyCondorSTAMPanteprocError("Process Terminated")
-    
-    # update default dictionary
-    #defaultDictionary = load_default_dict(jobs['constants']['grandStochtrackParams']['params'] , defaultDictionary)
-    
-
-    
-    # create directory structure
-    # Build file system
-    
-    #create directory structure for jobs:
-    #	stochtrack_condor_job_group_num
-    #		README.txt with SNR and other information on all jobs? GPS times as well? Whether there is an injection or not?
-    #		stochtrack_day_job_num (injection? gps time?)
-    #			README.txt with job information? json maybe? job type
-    #			preproc inputs
-    #			inputs for stochtrack clustermap
-    #			grand_stochtrack inputs
-    #			results
-    #				overview mat
-    #				some other thing?
-    #				plotDir
-    
-    '''
-    if "num_jobs_to_vary" in varyingAnteprocVariables:
-        multiple_job_group_version = True
-    else:
-        multiple_job_group_version = False
-    
-    cacheFilesCreated = []
-
-    anteprocJobs = {}
-    anteprocJobs["H1"] = {}
-    anteprocJobs["L1"] = {}
-    organizedSeeds = {}
-    organizedSeeds["H1"] = {}
-    organizedSeeds["L1"] = {}
-    used_seeds = [jobs["constants"]["anteprocHjob_seeds"][x] for x in jobs["constants"]["anteprocHjob_seeds"]]
-    used_seeds += [jobs["constants"]["anteprocLjob_seeds"][x] for x in jobs["constants"]["anteprocLjob_seeds"]]
-    '''
-        # Build base analysis directory
-        # stochtrack_condor_job_group_num
-    
     
 
     
@@ -672,50 +546,6 @@ def main():
     print("Creating anteproc directory and input files")
 
     
-        # load default anteproc - this is already done
-    '''
-    with open(input_params['anteprocDefault'], 'r') as infile:
-        anteprocDefaultData = [line.split() for line in infile]
-    
-    #this is done already above
-
-    if cacheDir:
-        anteproc_H, anteproc_L = anteproc_setup(anteproc_dir, anteprocDefaultData, jobs, cacheDir)
-    else:
-        anteproc_H, anteproc_L = anteproc_setup(anteproc_dir, anteprocDefaultData, jobs, fakeCacheDir)
-        
-    anteproc_H["ASQchannel1"] = input_params['channel']
-    anteproc_H["frameType1"] = "H1_" + input_params['frame_type']
-    anteproc_L["ASQchannel1"] = input_params['channel']
-    anteproc_L["frameType1"] = "L1_" + input_params['frame_type']
-    
-    
-    multiple_waveforms = False
-    
-    if "stampinj" in anteproc_H and "stampinj" in anteproc_L:
-        if len(waveforms) > 0:
-            multiple_waveforms = True
-        if anteproc_H["stampinj"] != anteproc_L["stampinj"]:
-            raise pyCondorSTAMPanteprocError("Warning, injections settings in detectors do not match, one has 'stampinj = true' and one has 'stampinj = false'. Please edit code for further capabilities of this behavior is intentional.")
-    elif "stampinj" in anteproc_H or "stampinj" in anteproc_L:
-        raise pyCondorSTAMPanteprocError("Warning, injections settings in detectors do not match, one has 'stampinj' and one does not. Please edit code for further capabilities of this behavior is intentional.")
-    
-    anteprocJobDictTracker = createPreprocessingJobDependentDict(jobs)
-    if "varying_injection_start" in jobs["constants"]:
-        frontStartTime = jobs["constants"]["varying_injection_start"][0]
-        backStartTime = jobs["constants"]["varying_injection_start"][1]
-        injectionStartTimes = generate_random_start_times(jobs, varyingAnteprocVariables, frontStartTime, backStartTime)
-    else:
-        injectionStartTimes = None
-    
-    anteprocJobs, used_seeds, organizedSeeds = anteproc_job_specific_setup(H1_jobs, "H1",
-            anteproc_dir, jobs, anteproc_H, used_seeds, organizedSeeds, multiple_waveforms, waveforms, anteprocDefaultData,
-            anteprocJobs, varyingAnteprocVariables, anteprocJobDictTracker = anteprocJobDictTracker, injectionStartTimes = injectionStartTimes)
-    
-    anteprocJobs, used_seeds, organizedSeeds = anteproc_job_specific_setup(L1_jobs, "L1",
-            anteproc_dir, jobs, anteproc_L, used_seeds, organizedSeeds, multiple_waveforms, waveforms, anteprocDefaultData,
-            anteprocJobs, varyingAnteprocVariables, anteprocJobDictTracker = anteprocJobDictTracker, injectionStartTimes = injectionStartTimes)
-    '''      
     #new loop to make anteproc files
     
     for jobNum in H1AnteprocJobNums:
@@ -750,22 +580,6 @@ def main():
         
         with open(anteproc_dir + "/L1-anteproc_params_" + str(jobNum) + "new.txt", 'w') as h:
             print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])        
-      
-    '''
-    if input_params['simulated']:
-        with open(anteproc_dir + "/seeds_for_simulated_data.txt", "w") as outfile:
-            json.dump(organizedSeeds, outfile, sort_keys = True, indent = 4)
-    
-    if "num_jobs_to_vary" in varyingAnteprocVariables:
-        print("\nVariable parameter option active.\n")
-        with open(anteproc_dir + "/varying_parameters_input_record.txt", "w") as outfile:
-            json.dump(varyingAnteprocVariables, outfile, sort_keys = True, indent = 4)
-    else:
-        print("\nVariable parameter option not active.\nIf it's supposed to be active, add 'anteproc_varying_param num_jobs_to_vary' option to input parameter file.\n")
-    '''
-    #anteproc_grand_stochtrack_values["anteproc.inmats1"] = anteproc_dir + "/H-H1_map"
-    #anteproc_grand_stochtrack_values["anteproc.inmats2"] = anteproc_dir + "/L-L1_map"
-    #anteproc_grand_stochtrack_values["anteproc.jobfile"] = newAdjustedJobPath
     
     added_anteproc_dict = {"loadFiles": True,
                             "timeShift1": 0,
@@ -792,52 +606,6 @@ def main():
         stochtrackParamsList[i]["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandStochtrackOutput")
         stochtrackParamsList[i]["plotDir"] = create_dir(jobDir + "/grandStochtrackOutput" + "/plots")
         
-    '''
-    for job in jobs:
-            #"adjust inmats entries here maybe if needed? yes."
-        for anteprocParameter in anteprocOrder:
-            if (anteprocParameter == "anteproc.inmats1" or anteprocParameter == "anteproc.inmats2") and "injection_tags" in jobs[job]:
-                jobs[job]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[job]["grandStochtrackParams"]["params"], anteprocParameter, anteproc_grand_stochtrack_values[anteprocParameter] + "_" + jobs[job]["injection_tags"])
-            else:
-                jobs[job]["grandStochtrackParams"]["params"] = nested_dict_entry(jobs[job]["grandStochtrackParams"]["params"], anteprocParameter, anteproc_grand_stochtrack_values[anteprocParameter])
-    '''
-    '''
-        # cycle through jobs
-    print("Creating job directories")
-    for job in jobs:
-        if job != "constants":
-            jobs[job]["jobDir"] = []
-            jobs[job]["stochtrackInputDir"] = []
-            jobs[job]["grandstochtrackOutputDir"] = []
-            jobs[job]["plotDir"] = []
-    
-            if multiple_job_group_version:
-                for index in range(varyingAnteprocVariables["num_jobs_to_vary"]):
-                    temp_number = index + 1
-                    temp_suffix = "_v" + str(temp_number)
-                    jobs = create_job_directories(jobs, jobsBaseDir, job, temp_suffix)
-            else:
-                jobs = create_job_directories(jobs, jobsBaseDir, job)
-                """# stochtrack_day_job_num (injection? gps time?)
-                jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + jobs[job]["job_group"] + "/" + job)
-                jobs[job]["jobDir"] = jobDir
-    
-    #			inputs for stochtrack clustermap in text file (put this here or in the "/params" directory)
-    #			grand_stochtrack inputs
-                stochtrackInputDir = create_dir(jobDir + "/grandstochtrackInput")
-                jobs[job]["stochtrackInputDir"] = stochtrackInputDir
-    #			results
-                grandstochtrackOutputDir = create_dir(jobDir + "/grandstochtrackOutput")
-                jobs[job]["grandstochtrackOutputDir"] = grandstochtrackOutputDir
-    #				overview mat
-    #				some other thing?
-    #				plotDir
-                plotDir = create_dir(grandstochtrackOutputDir + "/plots")
-                jobs[job]["plotDir"] = plotDir"""
-    
-            # NOTE: recording any directories other than the base job directory may not have any value
-            # because the internal structure of each job is identical.
-    '''
         # build dag directory, support directories
     dagDir = create_dir(baseDir + "/dag")
     dagLogDir = create_dir(dagDir + "/dagLogs")
@@ -886,77 +654,7 @@ def main():
         job['grandStochtrackParams'] = recursive_ints_to_floats(job['grandStochtrackParams'])
         sio.savemat(job['stochtrackInputDir'] + "/params_new.mat", job['grandStochtrackParams'])
         
-    # write preproc parameter files for each job
-    '''
-    print("Saving grand_stochtrack paramter files")
-    for job in jobs:
-        if job != "constants":
-            jobs[job]["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
-            # write stochtrack parameter files for each job
-            jobs[job]['grandStochtrackParams']['params'] = load_default_dict(jobs[job]['grandStochtrackParams']['params'] , defaultDictionary)
-            print("The way this following line is done needs to be reviewed.")
-            jobs[job]['grandStochtrackParams'] = load_default_dict(jobs[job]['grandStochtrackParams'], jobs["constants"]['grandStochtrackParams'])
     
-            # new for loop to handle possible multiple job group versions due to variable parameters
-            for temp_index in range(len(jobs[job]["plotDir"])):
-                temp_number = temp_index+1
-                if "varying_injection_start" in jobs["constants"]:
-                    temp_suffix = "_v" + str(temp_number) + "_" + job
-                else:
-                    temp_suffix = "_v" + str(temp_number)
-    
-                # put output directories in grand_stochtrack dictionary
-                jobs[job]["grandStochtrackParams"]["params"]["plotdir"] = jobs[job]["plotDir"][temp_index] + "/"
-                jobs[job]["grandStochtrackParams"]["params"]["outputfilename"] = jobs[job]["grandstochtrackOutputDir"][temp_index] + "/map"
-                jobs[job]["grandStochtrackParams"]["params"]["ofile"] = jobs[job]["grandstochtrackOutputDir"][temp_index] + "/bknd"
-                if "lonetrack" in jobs["constants"]["grandStochtrackParams"]["params"]["stochtrack"]:
-                    if jobs["constants"]["grandStochtrackParams"]["params"]["stochtrack"]["lonetrack"] == 1:
-                        temp_directory = create_dir(jobs[job]["grandStochtrackParams"]["params"]["plotdir"]+"tmp")
-                        jobs[job]["grandStochtrackParams"]["params"]["lonetrackdir"] = temp_directory + "/"
-    
-                if multiple_job_group_version:
-                    base_inmat1 = jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats1"]
-                    base_inmat2 = jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats2"]
-                    jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats1"] = base_inmat1 + temp_suffix
-                    jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats2"] = base_inmat2 + temp_suffix
-    
-                sio.savemat(jobs[job]["stochtrackInputDir"][temp_index] + "/" + "params.mat", jobs[job]["grandStochtrackParams"])
-    
-                if multiple_job_group_version:
-                    jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats1"] = base_inmat1
-                    jobs[job]["grandStochtrackParams"]["params"]["anteproc"]["inmats2"] = base_inmat2
-    '''
-    # order plots by job
-    
-    # This line likely needs fixing if it's going to work with the variable parameters. otherwise it's fine.
-    '''
-    jobTempDict = dict((int(job[job.index("_")+1:]),{"job" : job, "job dir" : "job_group_" + jobs[job]["job_group"] + "/" + job}) for job in [x for x in jobs if x != "constants"])
-    
-    if input_params['burstegard']:
-        plotTypeList = ["SNR", "Largest Cluster", "All Clusters", "sig map", "y map", "Xi snr map"]
-        plotTypeDict = {"SNR" : "snr.png", "Largest Cluster" : "large_cluster.png", "All Clusters": "all_clusters.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
-    elif all_clusters:
-        plotTypeList = ["SNR", "Loudest Cluster (stochtrack)", "Largest Cluster (burstegard)", "All Clusters (burstegard)", "sig map", "y map", "Xi snr map"]
-        plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster (stochtrack)" : "rmap.png", "Largest Cluster (burstegard)" : "large_cluster.png", "All Clusters (burstegard)": "all_clusters.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
-    else:
-        plotTypeList = ["SNR", "Loudest Cluster", "sig map", "y map", "Xi snr map"]
-        plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster" : "rmap.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
-    
-    outFile = "pageDisplayTest.html"
-    
-    jobNumOrder = [jobNum for jobNum in jobTempDict]
-    jobNumOrder.sort()
-    jobOrder = [jobTempDict[jobNum]["job"] for jobNum in jobNumOrder]
-    jobOrderWeb = [jobTempDict[jobNum]["job dir"] for jobNum in jobNumOrder]
-    
-    #webGen.make_display_page(directory, saveDir, subDirList, subSubDir, plotTypeList, plotTypeDict, outputFileName)
-    print('DEBUG NOTE: Maybe figure out how to variablize "grandstochtrackOutput/plots" in next line?')
-    print("Creating webpage")
-    webGen.make_display_page("jobs", baseDir, jobOrderWeb, "grandStochtrackOutput/plots", plotTypeList, plotTypeDict, outFile)
-    '''
-    # build DAGs
-    # preproc DAG
-    # build submission file
     doGPU = input_params["doGPU"]
     if doGPU and not input_params['burstegard']:
         extract_from_gpu = True
@@ -964,7 +662,6 @@ def main():
         extract_from_gpu = False
 
     print("Creating dag and sub files")
-    #create_anteproc_dag_v6(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, newJobPath, H1_jobs, L1_jobs, anteprocJobs, multiple_job_group_version, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = restrict_cpus, no_job_retry = no_job_retry, extract_from_gpu = extract_from_gpu, single_cpu = input_params['single_cpu'])
     
     anteprocSub = write_anteproc_sub_file(input_params['anteprocMemory'], anteprocExecutable_script_file, dagDir, input_params['accountingGroup'])
     stochtrackSub = write_stochtrack_sub_file(input_params['grandStochtrackMemory'], grandStochtrack_script_file, dagDir, input_params['accountingGroup'], input_params['doGPU'], input_params['numCPU'])
@@ -977,9 +674,7 @@ def main():
     
     # create webpage
     
-    # run top DAG
     import pprint
-    #pprint.pprint(jobs, open(glueFileLocation(input_params['outputDir'], "jobs_dict.txt"), "w"))
     pprint.pprint(commonParamsDictionary, open(glueFileLocation(input_params['outputDir'], "commonParams_dict.txt"), "w"))
     pprint.pprint(anteprocHParamsList, open(glueFileLocation(input_params['outputDir'], "anteprocHParams_list.txt"), "w"))
     pprint.pprint(anteprocLParamsList, open(glueFileLocation(input_params['outputDir'], "anteprocLParams_list.txt"), "w"))
