@@ -32,6 +32,31 @@ def dated_dir(name, date = None, iterate_name = True):
     newDir = create_dir(dated_name, iterate_name)
 
     return newDir
+    
+def create_dir(name, iterate_name = True):
+
+    # set default directory name
+    newDir = name
+    # If directory doesn't exist, create
+    if not os.path.exists(name):
+        os.makedirs(name)
+
+    # Otherwise, if iterate_name is set to true, iterate version number
+    # to create new directory
+    elif iterate_name:
+        # Set initial version number
+        version = 2
+        # set base name to add version number to
+        base_name = name + "_v"
+        # while directory exists, iterate version number
+        while os.path.exists(base_name + str(version)):
+            version += 1
+        # overwrite directory name
+        newDir = base_name + str(version)
+        # make new directory
+        os.makedirs(newDir)
+
+    return newDir
 
 def convert_cosiota_to_iota(temp_param, temp_val):
     if temp_param == "stamp.iota":
