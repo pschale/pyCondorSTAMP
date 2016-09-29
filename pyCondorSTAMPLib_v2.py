@@ -57,6 +57,16 @@ def create_dir(name, iterate_name = True):
         makedirs(newDir)
 
     return newDir
+    
+def copy_input_file(filePath, outputDirectory):
+
+    outputPath = new_input_file_name(filePath, outputDirectory)
+    #print(filePath)# debug
+    with open(filePath, "r") as infile:
+        text = [line for line in infile]
+    with open(outputPath,"w") as outfile:
+        outfile.write("".join(line for line in text))
+    return outputPath
 
 def convert_cosiota_to_iota(temp_param, temp_val):
     if temp_param == "stamp.iota":
