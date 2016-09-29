@@ -98,64 +98,40 @@ def main():
     #commonParamsDictionary = {'grandStochtrack': {'stochtrack': {'singletrack': {}}}, 'anteproc_h': {'stamp': {}}, 'anteproc_l': {'stamp': {}}, 'preproc': {}}
     stochtrackParamsDictionary = {}
 
-    #load default file
-    #THING TO FIX: read in the default config file into the dictionary
-    inputFileData = readFile(make_file_path_absolute(input_params['default_config_file']))
-    inputFileString = "\n".join(" ".join(x for x in line) for line in inputFileData)
-    
-    inputFileString += "\n\n" + "grandStochtrack stochtrack.T " + str(input_params['T'])
-    inputFileString += "\n" + "grandStochtrack stochtrack.F " + str(input_params['F'])
     commonParamsDictionary['grandStochtrack']['stochtrack']['T'] = input_params['T']
     commonParamsDictionary['grandStochtrack']['stochtrack']['F'] = input_params['F']
     
     times = [[int(y) for y in x] for x in readFile(input_params['jobFile'])]
     
     if input_params['burstegard']:
-        inputFileString += "\n\n" + "grandStochtrack doBurstegard true"
         commonParamsDictionary['grandStochtrack']['doBurstegard'] = True
     else:
         if input_params['long_pixel']:
-            inputFileString += "\n\n" + "anteproc_h segmentDuration 4"
-            inputFileString += "\n\n" + "anteproc_l segmentDuration 4"
             commonParamsDictionary['anteproc_h']['segmentDuration'] = 4
             commonParamsDictionary['anteproc_l']['segmentDuration'] = 4
         else:
-            inputFileString += "\n\n" + "anteproc_h segmentDuration 1"
-            inputFileString += "\n\n" + "anteproc_l segmentDuration 1"
             commonParamsDictionary['anteproc_h']['segmentDuration'] = 1
             commonParamsDictionary['anteproc_l']['segmentDuration'] = 1
             
-        inputFileString += "\n\n" + "grandStochtrack doStochtrack true"
         commonParamsDictionary['grandStochtrack']['doStochtrack'] = True
         
         if input_params['long_pixel']:
-            inputFileString += "\n\n" + "grandStochtrack stochtrack.mindur 25"
-            inputFileString += "\n\n" + "preproc segmentDuration 4"
             commonParamsDictionary['grandStochtrack']['stochtrack']['mindur'] = 25
             commonParamsDictionary['preproc']['segmentDuration'] = 4
 
         else:
-            inputFileString += "\n\n" + "grandStochtrack stochtrack.mindur 100"
-            inputFileString += "\n\n" + "grandStochtrack stochtrack.F 600"
             commonParamsDictionary['grandStochtrack']['stochtrack']['mindur'] = 100
             commonParamsDictionary['grandStochtrack']['stochtrack']['F'] = 600
     
     if input_params['simulated']:
-        inputFileString += "\n\n" + "anteproc_h doDetectorNoiseSim true"
-        inputFileString += "\n\n" + "anteproc_l doDetectorNoiseSim true"
-        inputFileString += "\n\n" + "anteproc_h DetectorNoiseFile " + input_params['LHO_Welch_PSD_file']
-        inputFileString += "\n\n" + "anteproc_l DetectorNoiseFile " + input_params['LLO_Welch_PSD_file']
         commonParamsDictionary['anteproc_h']['doDetectorNoiseSim'] = True
         commonParamsDictionary['anteproc_l']['doDetectorNoiseSim'] = True
         commonParamsDictionary['anteproc_h']['DetectorNoiseFile'] = input_params['LHO_Welch_PSD_file']
         commonParamsDictionary['anteproc_l']['DetectorNoiseFile'] = input_params['LLO_Welch_PSD_file']
 
         if not input_params['show_plots_when_simulated']:
-            inputFileString += "\n\n" + "grandStochtrack savePlots false"
             commonParamsDictionary['grandStochtrack']['savePlots'] = False
     else:
-        inputFileString += "\n\n" + "anteproc_h doDetectorNoiseSim false"
-        inputFileString += "\n\n" + "anteproc_l doDetectorNoiseSim false"        
         commonParamsDictionary['anteproc_h']['doDetectorNoiseSim'] = False
         commonParamsDictionary['anteproc_l']['doDetectorNoiseSim'] = False
     
@@ -164,17 +140,6 @@ def main():
     if input_params['injection_bool']:
         if input_params['onTheFly']:
             # stamp_alpha was waveformPowerAmplitudeScaling here
-            inputFileString += "\n\n" + """anteproc_h stampinj true
-    anteproc_h stamp.alpha """ + str(input_params['stamp_alpha']) + """
-    
-    anteproc_h stamp.iota """ + str(wave_iota) + """
-    anteproc_h stamp.psi """ + str(wave_psi) + """
-    
-    anteproc_l stampinj true
-    anteproc_l stamp.alpha """ + str(input_params['stamp_alpha']) + """
-    
-    anteproc_l stamp.iota """ + str(wave_iota) + """
-    anteproc_l stamp.psi """ + str(wave_psi)
             commonParamsDictionary['anteproc_h']['stampinj'] = True
             commonParamsDictionary['anteproc_h']['stamp']['alpha'] = input_params['stamp_alpha']
             commonParamsDictionary['anteproc_h']['stamp']['iota'] = wave_iota
@@ -186,17 +151,6 @@ def main():
             
             
         else:
-            inputFileString += "\n\n" + """anteproc_h stampinj true
-    anteproc_h stamp.alpha """ + str(input_params['stamp_alpha']) + """
-    
-    anteproc_h stamp.iota 0
-    anteproc_h stamp.psi 0
-    
-    anteproc_l stampinj true
-    anteproc_l stamp.alpha """ + str(input_params['stamp_alpha']) + """
-    
-    anteproc_l stamp.iota 0
-    anteproc_l stamp.psi 0"""
             commonParamsDictionary['anteproc_h']['stampinj'] = True
             commonParamsDictionary['anteproc_h']['stamp']['alpha'] = input_params['stamp_alpha']
             commonParamsDictionary['anteproc_h']['stamp']['iota'] = 0
@@ -207,29 +161,21 @@ def main():
             commonParamsDictionary['anteproc_l']['stamp']['psi'] = 0
     
     if input_params['singletrack_bool']:
-        inputFileString += '\n\n' + "grandStochtrack stochtrack.singletrack.doSingletrack true"
-        inputFileString += "\n" + "grandStochtrack stochtrack.singletrack.trackInputFiles " + ",".join(input_params['singletrack_input_files'])
         commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['doSingletrack'] = True
         commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['trackInputFiles'] = array(input_params['singletrack_input_files'], dtype=object)
     else:
         commonParamsDictionary['grandStochtrack']['stochtrack'].pop('singletrack')
         
     if input_params['set_stochtrack_seed']:
-        inputFileString += "\n\n" + "grandStochtrack stochtrack.doSeed true"
-        inputFileString += "\n\n" + "grandStochtrack stochtrack.seed 2015"
         commonParamsDictionary['grandStochtrack']['stochtrack']['doSeed'] = True
         commonParamsDictionary['grandStochtrack']['stochtrack']['seed'] = 2015
         
     if input_params['maxband']:
         if input_params['maxband_mode'] == "percent":
-            inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxbandPercentage true"
-            inputFileString += "\n\n" + "grandStochtrack stochtrack.maxbandPercentage " + str(input_params['maxband'])
             commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxBandPercentage'] = True
             commonParamsDictionary['grandStochtrack']['stochtrack']['maxbandPercentage'] = input_params['maxband']
             print("WARNING - doMaxbandPercentage is active - this only works with STAMP revision 12522 or later")
         elif input_params['maxband_mode'] == "absolute":
-            inputFileString += "\n\n" + "grandStochtrack stochtrack.doMaxbandPercentage false"
-            inputFileString += "\n\n" + "grandStochtrack stochtrack.maxband " + str(input_params['maxband'])
             commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxBandPercentage'] = False
             commonParamsDictionary['grandStochtrack']['stochtrack']['maxband'] = input_params['maxband']
 
@@ -238,37 +184,26 @@ def main():
             raise pyCondorSTAMPanteprocError("Unrecognized option for maxband_mode: " + input_params['maxband_mode'] + ".  Must be either 'percent' or 'absolute'")
     
     if not input_params['long_pixel']:
-        inputFileString += "\n\n" + "job_start_shift 6"
-        inputFileString += "\n\n" + "job_duration 400"
         commonParamsDictionary['job_start_shift'] = 6
         commonParamsDictionary['job_duration'] = 400
     
     if input_params['simulated'] and onsource and input_params['pre_seed']:
-        inputFileString += "\n\n" + "anteproc_h job_seed 1 2694478780"
-        inputFileString += "\n\n" + "anteproc_l job_seed 1 4222550304"
         commonParamsDictionary['anteproc_h']['job_seed'] = 2694478780        
         commonParamsDictionary['anteproc_h']['job_seed'] = 4222550304
         #NEED TO FIGURE OUT HOW THIS ONE WORKS
-
     
     job_group = 1
     
     params = {}
     
     if not input_params['relative_direction']:
-        params["granchStochtrack ra"] = input_params['RA']
-        params["grandStochtrack dec"] = input_params['DEC']
         commonParamsDictionary['grandStochtrack']['ra'] = input_params['RA']
         commonParamsDictionary['grandStochtrack']['dec'] = input_params['DEC']
     
     if input_params['injection_bool'] and not input_params['onTheFly']:
-        params["preproc stamp.file"] = injection_file
-        params["preproc stamp.alpha"] = 1e-40
         commonParamsDictionary['preproc']['stamp']['file'] = injection_file
         commonParamsDictionary['preproc']['stamp']['alpha'] = 1e-40
         
-    
-    
     #this ensures there's enough data to be able to estimate the background
     # 9-NumberofSegmentsPerInterval (NSPI), -1 (take out the pixel that's being analyzed), /2 to get one side of those
     # *4 (pixel duration) 2 + (buffer seconds), + 2 (window started 2 seconds before trigger time)
@@ -363,25 +298,19 @@ def main():
             job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job1_hstart + 400
     
             if not input_params['relative_direction']:
-                inputFileString += "\n\n" + "anteproc_h anteproc_param " + str(H1_job) + " stamp.ra " + str(input_params['RA'])
-                inputFileString += "\n" + "anteproc_h anteproc_param " + str(H1_job) + " stamp.decl " + str(input_params['DEC'])
                 anteprocHParamsList[H1_job_index]['stamp.ra'] = input_params['RA']
                 anteprocHParamsList[H1_job_index]['stamp.decl'] = input_params['DEC']
 
             elif H1_job == 34:
-                inputFileString += "\n\nanteproc_h anteproc_param 34 useReferenceAntennaFactors false"
                 anteprocHParamsList[33]['useReferenceAntennaFactors'] = False
 
             else:
-                inputFileString += "\n\nanteproc_h anteproc_param " + str(H1_job) + " useReferenceAntennaFactors true"
                 anteprocHParamsList[H1_job_index]['useReferenceAntennaFactors'] = True
 
             if input_params['onTheFly']:
-                inputFileString += "\n" + "anteproc_h anteproc_param " + str(H1_job) + " stamp.start " + str(job1_hstart+2)
                 anteprocHParamsList[H1_job_index]['stamp.start'] = job1_hstart+2  
 
             else:
-                inputFileString += "\n" + "anteproc_h stamp.startGPS " + str(job1_hstart+2)
                 anteprocHParamsList[H1_job_index]['stamp.startGPS'] = job1_hstart+2
 
 
@@ -397,51 +326,24 @@ def main():
             job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job1_hstart + 400
         
             if not input_params['relative_direction']:
-                inputFileString += "\n\n" + "anteproc_l anteproc_param " + str(L1_job) + " stamp.ra " + str(input_params['RA'])
-                inputFileString += "\n" + "anteproc_l anteproc_param " + str(L1_job) + " stamp.decl " + str(input_params['DEC'])
                 anteprocLParamsList[L1_job_index]['stamp.ra'] = input_params['RA']
                 anteprocLParamsList[L1_job_index]['stamp.decl'] = input_params['DEC']
 
             elif L1_job == 34:
-                inputFileString += "\n\nanteproc_l anteproc_param 34 useReferenceAntennaFactors false"                
                 anteprocLParamsList[33]['useReferenceAntennaFactors'] = False
 
             else:
-                inputFileString += "\n\nanteproc_l anteproc_param " + str(L1_job) + " useReferenceAntennaFactors true"
                 anteprocLParamsList[L1_job_index]['useReferenceAntennaFactors'] = True
 
             if input_params['onTheFly']:
-                inputFileString += "\n" + "anteproc_l anteproc_param " + str(L1_job) + " stamp.start " + str(job1_hstart+2)
                 anteprocLParamsList[L1_job_index]['stamp.start'] = job1_hstart+2
             else:
-                inputFileString += "\n" + "anteproc_l stamp.startGPS " + str(job1_hstart+2)
                 anteprocLParamsList[L1_job_index]['stamp.startGPS'] = job1_hstart+2
     
 
         if input_params['onTheFly']:
             #here we put in parameters for the on-the-fly injection, including waveform, frequency, amplitude (sqrt(2)/2, so that
             # they sum in quadrature to 1
-            inputFileString += """
-    
-    anteproc_h stamp.inj_type fly
-    anteproc_h stamp.fly_waveform half_sg
-    anteproc_l stamp.inj_type fly
-    anteproc_l stamp.fly_waveform half_sg
-    
-    anteproc_h stamp.h0 """ + str(sqrt(0.5)) + """
-    anteproc_h stamp.f0 """ + str(input_params['wave_frequency']) + """
-    anteproc_h stamp.phi0 0
-    anteproc_h stamp.fdot 0
-    anteproc_h stamp.duration """ + str(wave_duration) + """
-    anteproc_h stamp.tau """ + str(wave_tau) + """
-    
-    anteproc_l stamp.h0 """ + str(sqrt(0.5)) + """
-    anteproc_l stamp.f0 """ + str(input_params['wave_frequency']) + """
-    anteproc_l stamp.phi0 0
-    anteproc_l stamp.fdot 0
-    anteproc_l stamp.duration """ + str(wave_duration) + """
-    anteproc_l stamp.tau """ + str(wave_tau)
-            
             commonParamsDictionary['anteproc_h']['stamp']['inj_type'] = "fly"
             commonParamsDictionary['anteproc_h']['stamp']['fly_waveform'] = "half_sg"
             commonParamsDictionary['anteproc_l']['stamp']['inj_type'] = "fly"
@@ -463,7 +365,6 @@ def main():
 
             
         else:
-            inputFileString += "\n\n" + "\n".join(" ".join(x for x in ["waveform", temp_name, glueFileLocation(waveformDirectory, temp_name + waveformFileExtention)]) for temp_name in waveformFileNames)
             for waveform in waveformFileNames:
                 commonParamsDictionary["waveform"][waveform] = glueFileLocation(waveformDirectory, temp_name + waveformFileExtention)
     
@@ -472,18 +373,6 @@ def main():
     
         refTime = input_params['triggerTime'] - 2
     
-        inputFileString += "\n\ngrandStochtrack useReferenceAntennaFactors true"
-        inputFileString += "\n\ngrandStochtrack referenceGPSTime " + str(refTime)
-        inputFileString += "\nanteproc_h referenceGPSTime " + str(refTime)
-        inputFileString += "\nanteproc_l referenceGPSTime " + str(refTime)
-    
-        inputFileString += "\n\ngrandStochtrack ra " + str(input_params['RA'])
-        inputFileString += "\ngrandStochtrack dec " + str(input_params['DEC'])
-        inputFileString += "\n\nanteproc_h stamp.ra " + str(input_params['RA'])
-        inputFileString += "\nanteproc_h stamp.decl " + str(input_params['DEC'])
-        inputFileString += "\n\nanteproc_l stamp.ra " + str(input_params['RA'])
-        inputFileString += "\nanteproc_l stamp.decl " + str(input_params['DEC'])
-        
         commonParamsDictionary['grandStochtrack']['useReferenceAntennaFactors'] = True
         commonParamsDictionary['grandStochtrack']['referenceGPSTime'] = refTime
         commonParamsDictionary['anteproc_h']['referenceGPSTime'] = refTime
@@ -498,31 +387,21 @@ def main():
 
     
     if input_params['constant_f_window']:
-        inputFileString += "\n\ngrandStochtrack fmin 40"
-        inputFileString += "\ngrandStochtrack fmax 2500"
         commonParamsDictionary['grandStochtrack']['fmin'] = 40
         commonParamsDictionary['grandStochtrack']['fmax'] = 2500
 
     if input_params['constant_f_mask']:
-        inputFileString += "\n\ngrandStochtrack StampFreqsToRemove [" + ", ".join(str(x) for x in input_params['lines_to_cut']) + "]"
         commonParamsDictionary['grandStochtrack']['StampFreqsToRemove'] = input_params['lines_to_cut']
     
     if input_params['remove_cluster']:
-        inputFileString += "\n\ngrandStochtrack maskCluster true"
         commonParamsDictionary['grandStochtrack']['maskCluster'] = True
     
     if input_params['include_variations']:
-        inputFileString += "\n\nanteproc_varying_param num_jobs_to_vary " + str(input_params['number_variation_jobs'])
-        inputFileString += "".join("\nanteproc_varying_param " + " ".join(str(y) for y in x) for x in input_params['anteproc_varying_param'])
         commonParamsDictionary['grandStochtrack']['maskCluster'] = True
     
     if input_params['injection_random_start_time']:
-        start_variation_line = "varying_injection_start -2 " + str(1604 - wave_duration - 2) #check what this does exactly
-
-        inputFileString += "\n" + start_variation_line
         commonParamsDictionary['varying_injection_start'] = [-2, 1604 - wave_duration - 2]
     
-    text_output = inputFileString
     
     
     #this for loop builds each individual job
