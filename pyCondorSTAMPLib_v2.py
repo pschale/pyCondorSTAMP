@@ -3,7 +3,7 @@
 from __future__ import division
 import numpy as np
 from os import getcwd, path, makedirs
-import collections, datetime, random
+import collections, datetime, random, subprocess
 
 
 def glueFileLocation(directory, filename):
@@ -80,6 +80,25 @@ def new_input_file_name(filePath, outputDirectory):
     else:
         outputPath = outputDirectory + "/" + fileName
     return outputPath
+    
+def create_frame_file_list(frame_type, start_time, end_time, observatory):
+
+    # search for file location for a given frame type during specified times
+    data_find = ['gw_data_find','-s', start_time, '-e', end_time, '-o',
+                 observatory, '--url-type', 'file', '--lal-cache', '--type',
+                 frame_type]
+
+    frame_locations_raw = subprocess.Popen(data_find, stdout = subprocess.PIPE, stderr=subprocess.PIPE).communicate()#[0]
+    if frame_locations_raw[1]:
+        print(frame_locations_raw[1])
+        print("The following shell command caused the above message:")
+        raise pyCondorSTAMPanteprocError(str(frame_locations_raw[1]) + "\nCaused by the following shell command:\n" + " ".join(data_find))
+    #frame_locations = frame_locations_raw.split("\n")
+    #print(frame_locations_raw)
+    frame_locations = [x[x.find("localhost") + len("localhost"):] for x in frame_locations_raw[0].split("\n") if x]
+
+    # create frame list
+    return frame_locations
 
 def convert_cosiota_to_iota(temp_param, temp_val):
     if temp_param == "stamp.iota":
