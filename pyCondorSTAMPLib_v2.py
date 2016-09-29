@@ -58,6 +58,11 @@ def create_dir(name, iterate_name = True):
 
     return newDir
     
+def readFile(file_name, delimeter = None):
+    with open(file_name, "r") as infile:
+        content = [x.split(delimeter) for x in infile]
+    return content
+    
 def copy_input_file(filePath, outputDirectory):
 
     outputPath = new_input_file_name(filePath, outputDirectory)
