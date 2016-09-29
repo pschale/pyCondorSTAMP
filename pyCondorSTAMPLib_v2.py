@@ -21,6 +21,19 @@ def glueFileLocation(directory, filename):
             output = directory + "/" + filename
     return output
 
+def dated_dir(name, date = None, iterate_name = True):
+
+    # If date empty, get time and date
+    if not date:
+        date = datetime.datetime.now()
+    # create dated name
+    dated_name = name + "-" + str(date.year) + "_" + str(date.month) + \
+                 "_" + str(date.day)
+    # create directory
+    newDir = create_dir(dated_name, iterate_name)
+
+    return newDir
+
 def convert_cosiota_to_iota(temp_param, temp_val):
     if temp_param == "stamp.iota":
         print("\nWARNING: Parameter " + temp_param + " found. Special case to vary in cos(iota) instead of iota. Edit code to change this option.")
