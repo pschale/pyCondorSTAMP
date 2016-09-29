@@ -68,6 +68,19 @@ def copy_input_file(filePath, outputDirectory):
         outfile.write("".join(line for line in text))
     return outputPath
 
+def new_input_file_name(filePath, outputDirectory):
+    if "/" in filePath:
+        reversePath = filePath[::-1]
+        reverseName = reversePath[:reversePath.index("/")]
+        fileName = reverseName[::-1]
+    else:
+        fileName = filePath
+    if outputDirectory[-1] == "/":
+        outputPath = outputDirectory + fileName
+    else:
+        outputPath = outputDirectory + "/" + fileName
+    return outputPath
+
 def convert_cosiota_to_iota(temp_param, temp_val):
     if temp_param == "stamp.iota":
         print("\nWARNING: Parameter " + temp_param + " found. Special case to vary in cos(iota) instead of iota. Edit code to change this option.")
