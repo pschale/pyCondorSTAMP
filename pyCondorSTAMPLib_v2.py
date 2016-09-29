@@ -99,6 +99,79 @@ def create_frame_file_list(frame_type, start_time, end_time, observatory):
 
     # create frame list
     return frame_locations
+    
+# Helper function to grab time data from frame name
+def frame_start_time(frame_path):
+    if "/" in frame_path:
+        frame_name = frame_path[::-1]
+        frame_name = frame_name[:frame_name.index("/")]
+        frame_name = frame_name[::-1]
+        #frame_name = frame_path[::-1][:frame_path[::-1].index("/")][::-1] #?
+    else:
+        frame_name = frame_path
+    #print(frame_name)
+    #print(len(frame_name))
+    frame_time = frame_name[frame_name.index("-") + 1:]
+    frame_time = frame_time[frame_time.index("-") + 1:]
+    frame_time = frame_time[:frame_time.index("-")]
+    #print("Check if number: " + frame_time)
+    return frame_time
+
+# Helper function to create a file from the list of frame file locations
+def create_cache_and_time_file(frame_list,observatory,jobNumber,jobCacheDir, archived_frames_okay = False):
+
+    # make list of times
+    time_list = [frame_start_time(x) for x in frame_list if x]
+    time_string = "\n".join(x for x in time_list)
+    # create string to write to file
+
+    output_string = "\n".join(x for x in frame_list)
+    # create list to hold list of files in archive directory
+
+    archived = [x for x in frame_list if "archive" in x]
+
+    # check data for possibly archived data
+    if archived:
+        if archived_frames_okay:
+            for line in archived:
+                print(line)
+        else:
+            display_files = ask_yes_no("Some frame files during the time \
+specified may have to be loaded from tape. Display frame files in 'archive' \
+directory? ('y' or 'n'): ")
+
+            if display_files == 'y':
+                for line in archived:
+                    print(line)
+
+            continue_program = ask_yes_no("Continue program? ('y' or 'n'): ")
+
+            if continue_program == 'n':
+                pyCondorSTAMPanteprocError("Program execution ended")
+
+    # create file
+    modifier = observatory + "." + str(jobNumber) + ".txt"
+    with open(jobCacheDir + "/frameFiles" + modifier, "w") as outfile:
+        outfile.write(output_string)
+    with open(jobCacheDir + "/gpsTimes" + modifier, "w") as outfile:
+        outfile.write(time_string)
+
+# Helper function to create a file from the list of frame file locations
+def create_fake_cache_and_time_file(start_time, end_time, observatory, jobNumber, jobCacheDir):
+
+    # calculate job duration
+    tempJobDur = str(int(float(end_time) - float(start_time)))
+    # create fake frame name and string to write to channel
+    output_string = "/FAKEDATA/" + observatory + "-FAKE-" + str(int(start_time)) + "-" + tempJobDur + ".gwf\n"
+    time_string = str(int(start_time)) + "\n"
+
+    # create file
+    modifier = observatory + "." + str(jobNumber) + ".txt"
+    with open(jobCacheDir + "/frameFiles" + modifier, "w") as outfile:
+        outfile.write(output_string)
+    with open(jobCacheDir + "/gpsTimes" + modifier, "w") as outfile:
+        outfile.write(time_string)
+
 
 def convert_cosiota_to_iota(temp_param, temp_val):
     if temp_param == "stamp.iota":
