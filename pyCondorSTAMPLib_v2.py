@@ -2,7 +2,7 @@
 
 from __future__ import division
 import numpy as np
-from os import getcwd
+from os import getcwd, path, makedirs
 import collections, datetime, random
 
 
@@ -38,8 +38,8 @@ def create_dir(name, iterate_name = True):
     # set default directory name
     newDir = name
     # If directory doesn't exist, create
-    if not os.path.exists(name):
-        os.makedirs(name)
+    if not path.exists(name):
+        makedirs(name)
 
     # Otherwise, if iterate_name is set to true, iterate version number
     # to create new directory
@@ -49,12 +49,12 @@ def create_dir(name, iterate_name = True):
         # set base name to add version number to
         base_name = name + "_v"
         # while directory exists, iterate version number
-        while os.path.exists(base_name + str(version)):
+        while path.exists(base_name + str(version)):
             version += 1
         # overwrite directory name
         newDir = base_name + str(version)
         # make new directory
-        os.makedirs(newDir)
+        makedirs(newDir)
 
     return newDir
 
