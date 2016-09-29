@@ -2,9 +2,8 @@
 
 from __future__ import division
 import numpy as np
-import random
 from os import getcwd
-import collections
+import collections, datetime, random
 
 
 def glueFileLocation(directory, filename):
