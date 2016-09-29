@@ -1,6 +1,5 @@
 #pyCondorSTAMPanteproc_full.py
 from __future__ import division
-from generateInputFileLib import *
 from numpy import argsort, sqrt, arccos, pi, array, object
 from pyCondorSTAMPLib_v2 import *
 import scipy.io as sio
