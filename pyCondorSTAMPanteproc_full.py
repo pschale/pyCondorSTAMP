@@ -650,7 +650,7 @@ def main():
     
     anteprocSub = write_anteproc_sub_file(input_params['anteprocMemory'], anteprocExecutable_script_file, dagDir, input_params['accountingGroup'])
     stochtrackSub = write_stochtrack_sub_file(input_params['grandStochtrackMemory'], grandStochtrack_script_file, dagDir, input_params['accountingGroup'], input_params['doGPU'], input_params['numCPU'])
-    webDisplaySub = write_webpage_sub_file(webPageSH, dagDir, accountingGroup)
+    webDisplaySub = write_webpage_sub_file(webPageSH, dagDir, input_params['accountingGroup'])
     write_dag(dagDir, anteproc_dir, newJobPath, H1AnteprocJobNums, L1AnteprocJobNums, anteprocSub, stochtrackParamsList, stochtrackSub, input_params['maxJobsAnteproc'], input_params['maxJobsGrandStochtrack'], webDisplaySub, baseDir)
         
     #create summary of parameters
