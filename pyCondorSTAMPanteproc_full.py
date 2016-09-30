@@ -81,18 +81,19 @@ def main():
     configPath = os.path.join(input_params['outputDir'], "config_file.txt")
     outputDir = make_file_path_absolute(input_params['outputDir'])
     outputDir += "stamp_analysis_anteproc" if input_params['outputDir'][-1] == "/" else "/stamp_analysis_anteproc"
+    
     baseDir = dated_dir(outputDir)
-            # copy input parameter file and jobs file into a support directory here
-        # support directory
+    
     supportDir = create_dir(baseDir + "/input_files")
-        # copy input files to this directory
+    jobsBaseDir = create_dir(baseDir + "/jobs")
+
+    # copy input files to this directory
     copy_input_file(configPath, supportDir)
     copy_input_file(params_file_path, supportDir)
     newJobPath = copy_input_file(jobPath, supportDir)
     
     
     commonParamsDictionary = getDefaultCommonParams()   
-    #commonParamsDictionary = {'grandStochtrack': {'stochtrack': {'singletrack': {}}}, 'anteproc_h': {'stamp': {}}, 'anteproc_l': {'stamp': {}}, 'preproc': {}}
     stochtrackParamsDictionary = {}
 
     commonParamsDictionary['grandStochtrack']['stochtrack']['T'] = input_params['T']
@@ -481,43 +482,27 @@ def main():
     #########
     ###################################################################################
     ###################################################################################
-    ###################################################################################
-    
-    
+    ###################################################################################    
 
-    archived_frames_okay = True
-    all_clusters = False
-    restrict_cpus = True
-    no_job_retry = False
-    
-
-    
-    STAMP_setup_script = os.path.join(input_params['STAMP2_installation_dir'], "test/stamp_setup.sh")
-    # set other defaults this way too instead of definining them inside the preprocSupportLib.py file
-    
     # paths to executables
+    STAMP_setup_script = os.path.join(input_params['STAMP2_installation_dir'], "test/stamp_setup.sh")    
     anteprocExecutable = os.path.join(input_params['STAMP2_installation_dir'], "compilationScripts/anteproc")
     grandStochtrackExecutable = os.path.join(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack")
     grandStochtrackExecutableNoPlots = os.path.join(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack_nojvm")
-    
-    H1_jobs = set(tempNumbersH)
-    L1_jobs = set(tempNumbersL)
-    
 
     
     jobFileName = jobPath[len(jobPath)-jobPath[::-1].index('/')::]
     adjustedJobFileName = jobFileName[:jobFileName.index(".txt")] + "_postprocessing" + jobFileName[jobFileName.index(".txt"):]
     newAdjustedJobPath = os.path.join(supportDir, adjustedJobFileName)
+    
     with open(input_params['jobFile']) as h:
         jobData = [[int(x) for x in line.split()] for line in h]
     adjustedJobData = [[x[0], x[1] + input_params['job_start_shift'], x[1] + input_params['job_start_shift'] + input_params['job_duration'], input_params['job_duration']] for x in jobData]
     adjustedJobText = "\n".join(" ".join(str(x) for x in line) for line in adjustedJobData)
     with open(newAdjustedJobPath, "w") as h:   
         print >> h, adjustedJobText 
-        # create directory to host all of the jobs. maybe drop the cachefiles in here too?
-    jobsBaseDir = create_dir(baseDir + "/jobs")
     
-        # create cachefile directory
+    # create cachefile directory
     print("Creating cache directory")
     anteproc_dir = create_dir(baseDir + "/anteproc_data")
     commonParamsDictionary['anteproc_h']["outputfiledir"] = anteproc_dir + "/"
@@ -627,22 +612,26 @@ def main():
     # If relative injection value set, override any existing injection time with calculated relative injection time.
     
     # find frame files
-    for tempJob in set(H1_jobs):
+    for tempJob in set(tempNumbersH):
         print("Finding frames for job " + str(tempJob) + " for H1")
-        #tempJobData = jobDataDict[str(tempJob)]
         if not input_params['simulated']:
             temp_frames = create_frame_file_list("H1_" + input_params['frame_type'], str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "H")
-            create_cache_and_time_file(temp_frames, "H",tempJob+1,cacheDir, archived_frames_okay = archived_frames_okay)
+            archived_H = create_cache_and_time_file(temp_frames, "H",tempJob+1, cacheDir)
         else:
             create_fake_cache_and_time_file(str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "H", tempJob, fakeCacheDir)
-    for tempJob in set(L1_jobs):
+    for tempJob in set(tempNumbersL):
         print("Finding frames for job " + str(tempJob) + " for L1")
-        #tempJobData = jobDataDict[str(tempJob)]
         if not input_params['simulated']:
             temp_frames = create_frame_file_list("L1_" + input_params['frame_type'], str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "L")
-            create_cache_and_time_file(temp_frames, "L",tempJob+1,cacheDir, archived_frames_okay = archived_frames_okay)
+            archived_L = create_cache_and_time_file(temp_frames, "L",tempJob+1, cacheDir)
         else:
             create_fake_cache_and_time_file(str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "L", tempJob, fakeCacheDir)
+            
+    if archived_H or archived_L:
+        print("WARNING: some needed frames have been archived and will take longer to read off of tape")
+        print(archived_H)
+        print(archived_L)
+        print("WARNING: these jobs will take a long time")
             
     for job in stochtrackParamsList:
         job['grandStochtrackParams'] = recursive_ints_to_floats(job['grandStochtrackParams'])
@@ -660,9 +649,7 @@ def main():
     anteprocSub = write_anteproc_sub_file(input_params['anteprocMemory'], anteprocExecutable_script_file, dagDir, input_params['accountingGroup'])
     stochtrackSub = write_stochtrack_sub_file(input_params['grandStochtrackMemory'], grandStochtrack_script_file, dagDir, input_params['accountingGroup'], input_params['doGPU'], input_params['numCPU'])
     write_dag(dagDir, anteproc_dir, newJobPath, H1AnteprocJobNums, L1AnteprocJobNums, anteprocSub, stochtrackParamsList, stochtrackSub, input_params['maxJobsAnteproc'], input_params['maxJobsGrandStochtrack'])
-    
-    print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
-    
+        
     #create summary of parameters
     generate_summary(input_params, baseDir)
     

@@ -109,7 +109,7 @@ def frame_start_time(frame_path):
     return frame_time
 
 # Helper function to create a file from the list of frame file locations
-def create_cache_and_time_file(frame_list,observatory,jobNumber,jobCacheDir, archived_frames_okay = False):
+def create_cache_and_time_file(frame_list,observatory,jobNumber,jobCacheDir):
 
     # make list of times
     time_list = [frame_start_time(x) for x in frame_list if x]
@@ -121,31 +121,14 @@ def create_cache_and_time_file(frame_list,observatory,jobNumber,jobCacheDir, arc
 
     archived = [x for x in frame_list if "archive" in x]
 
-    # check data for possibly archived data
-    if archived:
-        if archived_frames_okay:
-            for line in archived:
-                print(line)
-        else:
-            display_files = ask_yes_no("Some frame files during the time \
-specified may have to be loaded from tape. Display frame files in 'archive' \
-directory? ('y' or 'n'): ")
-
-            if display_files == 'y':
-                for line in archived:
-                    print(line)
-
-            continue_program = ask_yes_no("Continue program? ('y' or 'n'): ")
-
-            if continue_program == 'n':
-                pyCondorSTAMPanteprocError("Program execution ended")
-
     # create file
     modifier = observatory + "." + str(jobNumber) + ".txt"
     with open(jobCacheDir + "/frameFiles" + modifier, "w") as outfile:
         outfile.write(output_string)
     with open(jobCacheDir + "/gpsTimes" + modifier, "w") as outfile:
         outfile.write(time_string)
+        
+    return archived
 
 # Helper function to create a file from the list of frame file locations
 def create_fake_cache_and_time_file(start_time, end_time, observatory, jobNumber, jobCacheDir):
