@@ -6,20 +6,6 @@ from os import getcwd, path, makedirs
 import collections, datetime, random, subprocess
 
 
-def glueFileLocation(directory, filename):
-    output = None
-    if directory[-1] == "/":
-        if filename[0] == "/":
-            output = directory + filename[1:]
-        else:
-            output = directory + filename
-    else:
-        if filename[0] == "/":
-            output = directory + filename
-        else:
-            output = directory + "/" + filename
-    return output
-
 def dated_dir(name, date = None, iterate_name = True):
 
     # If date empty, get time and date
@@ -247,7 +233,7 @@ def generate_summary(params_dict, output_dir):
                 output_str += key + "\t" + str(params_dict[key]) + "\n"
         except KeyError:
             output_str += key + "\t" + str(params_dict[key]) + "\n"        
-    with open(glueFileLocation(output_dir, 'summary.txt'), "w") as h:
+    with open(os.path.join(output_dir, 'summary.txt'), "w") as h:
         print >> h, output_str
         
 def recursive_ints_to_floats(in_dict):

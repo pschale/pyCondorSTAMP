@@ -16,6 +16,8 @@ def main():
     
     parser.add_option("-p", "--params-file", dest = "params_file",
                       help = "Path to params file")
+    parser.add_option("-v", "--verbose", dest = "verbose",
+                        help = "prints out dictionaries to file at end")
     
     (options, args) = parser.parse_args()
     
@@ -76,7 +78,7 @@ def main():
         input_params['single_cpu'] = True
     
     jobPath = make_file_path_absolute(input_params['jobFile'])
-    configPath = glueFileLocation(input_params['outputDir'], "config_file.txt")
+    configPath = os.path.join(input_params['outputDir'], "config_file.txt")
     outputDir = make_file_path_absolute(input_params['outputDir'])
     outputDir += "stamp_analysis_anteproc" if input_params['outputDir'][-1] == "/" else "/stamp_analysis_anteproc"
     baseDir = dated_dir(outputDir)
@@ -361,7 +363,7 @@ def main():
             
         else:
             for waveform in waveformFileNames:
-                commonParamsDictionary["waveform"][waveform] = glueFileLocation(waveformDirectory, temp_name + waveformFileExtention)
+                commonParamsDictionary["waveform"][waveform] = os.path.join(waveformDirectory, temp_name + waveformFileExtention)
     
     
     if input_params['relative_direction']:
@@ -483,8 +485,6 @@ def main():
     
     
 
-    
-    verbose = False
     archived_frames_okay = True
     all_clusters = False
     restrict_cpus = True
@@ -492,13 +492,13 @@ def main():
     
 
     
-    STAMP_setup_script = glueFileLocation(input_params['STAMP2_installation_dir'], "test/stamp_setup.sh")
+    STAMP_setup_script = os.path.join(input_params['STAMP2_installation_dir'], "test/stamp_setup.sh")
     # set other defaults this way too instead of definining them inside the preprocSupportLib.py file
     
     # paths to executables
-    anteprocExecutable = glueFileLocation(input_params['STAMP2_installation_dir'], "compilationScripts/anteproc")
-    grandStochtrackExecutable = glueFileLocation(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack")
-    grandStochtrackExecutableNoPlots = glueFileLocation(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack_nojvm")
+    anteprocExecutable = os.path.join(input_params['STAMP2_installation_dir'], "compilationScripts/anteproc")
+    grandStochtrackExecutable = os.path.join(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack")
+    grandStochtrackExecutableNoPlots = os.path.join(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack_nojvm")
     
     H1_jobs = set(tempNumbersH)
     L1_jobs = set(tempNumbersL)
@@ -507,7 +507,7 @@ def main():
     
     jobFileName = jobPath[len(jobPath)-jobPath[::-1].index('/')::]
     adjustedJobFileName = jobFileName[:jobFileName.index(".txt")] + "_postprocessing" + jobFileName[jobFileName.index(".txt"):]
-    newAdjustedJobPath = glueFileLocation(supportDir, adjustedJobFileName)
+    newAdjustedJobPath = os.path.join(supportDir, adjustedJobFileName)
     with open(input_params['jobFile']) as h:
         jobData = [[int(x) for x in line.split()] for line in h]
     adjustedJobData = [[x[0], x[1] + input_params['job_start_shift'], x[1] + input_params['job_start_shift'] + input_params['job_duration'], input_params['job_duration']] for x in jobData]
@@ -668,13 +668,12 @@ def main():
     
     webpage.load_conf_cp_webfiles(baseDir)
     
-    # create webpage
-    
-    import pprint
-    pprint.pprint(commonParamsDictionary, open(glueFileLocation(input_params['outputDir'], "commonParams_dict.txt"), "w"))
-    pprint.pprint(anteprocHParamsList, open(glueFileLocation(input_params['outputDir'], "anteprocHParams_list.txt"), "w"))
-    pprint.pprint(anteprocLParamsList, open(glueFileLocation(input_params['outputDir'], "anteprocLParams_list.txt"), "w"))
-    pprint.pprint(stochtrackParamsList, open(glueFileLocation(input_params['outputDir'], "stochtrackParams_list.txt"), "w"))
+    if options.verbose:
+        import pprint
+        pprint.pprint(commonParamsDictionary, open(os.path.join(baseDir, "commonParams_dict.txt"), "w"))
+        pprint.pprint(anteprocHParamsList, open(os.path.join(baseDir, "anteprocHParams_list.txt"), "w"))
+        pprint.pprint(anteprocLParamsList, open(os.path.join(baseDir, "anteprocLParams_list.txt"), "w"))
+        pprint.pprint(stochtrackParamsList, open(os.path.join(baseDir, "stochtrackParams_list.txt"), "w"))
 
 if __name__ == "__main__":
     main()
