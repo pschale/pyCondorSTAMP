@@ -307,6 +307,7 @@ def write_stochtrack_sub_file(memory, grandStochtrackSH, dagDir, accountingGroup
     
 def write_webpage_sub_file(webPageSH, dagDir, accountingGroup):
 
+    contents = "universe = vanilla\ngetenv = True\n"
     contents += "executable = " + webPageSH + "\n"
     contents += "log = " + dagDir + "/dagLogs/web_display$(jobNumber).log\n"
     contents += "error = " + dagDir + "/dagLogs/logs/web_display$(jobNumber).err\n"
