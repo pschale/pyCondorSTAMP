@@ -303,8 +303,28 @@ def write_stochtrack_sub_file(memory, grandStochtrackSH, dagDir, accountingGroup
         print >> h, contents
     
     return dagDir + "/grand_stochtrack.sub"
+
     
-def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums, L1AnteprocJobNums, anteprocSub, stochtrackParamsList, stochtrackSub, maxJobsAnteproc, maxJobsGrandStochtrack):
+def write_webpage_sub_file(webPageSH, dagDir, accountingGroup):
+
+    contents += "executable = " + webPageSH + "\n"
+    contents += "log = " + dagDir + "/dagLogs/web_display$(jobNumber).log\n"
+    contents += "error = " + dagDir + "/dagLogs/logs/web_display$(jobNumber).err\n"
+    contents += "output = " + dagDir + "/dagLogs/logs/web_display$(jobNumber).out\n"
+    contents += '''arguments = " $(cmd_line_args)"\n'''
+    contents += "notification = error\n"
+    contents += "accounting_group = " + accountingGroup + "\n"
+    contents += "queue 1"
+    
+    with open(dagDir + "/web_display.sub", "w") as h:
+        print >> h, contents
+    
+    return dagDir + "/web_display.sub"
+
+    contents = "universe = vanilla\ngetenv = True\nrequest_memory = " + str(memory) + "\n"
+
+    
+def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums, L1AnteprocJobNums, anteprocSub, stochtrackParamsList, stochtrackSub, maxJobsAnteproc, maxJobsGrandStochtrack, webDisplaySub, baseDir):
 
     output = ""
     jobCounter = 0
@@ -334,15 +354,22 @@ def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums, L1AnteprocJobNums
         output += "CATEGORY " + str(jobCounter) + " GRANDSTOCHTRACK\n\n"
         jobCounter += 1
         
+    output += "JOB " + str(jobCounter) + " " + webDisplaySub + "\nRETRY " + str(jobCounter) + " 2\n"
+    output += "VARS " + str(jobCounter) + " jobNumber=\"" + str(jobCounter) + "\" cmd_line_args=\" -d " + baseDir + "\"\n"
+    output += "CATEGORY " + str(jobCounter) + " WEBPAGE\n\n"
+        
     output += "\n\n"
     
     output += "PARENT " + " ".join([str(i) for i in range(0, cutoff)])
-    output += " CHILD " + " ".join([str(i) for i in range(cutoff, jobCounter)])
+    output += " CHILD " + " ".join([str(i) for i in range(cutoff, jobCounter)]) +"\n"
+    output += "PARENT " + " ".join([str(i) for i in range(cutoff, jobCounter)])
+    output += " CHILD " + " " + str(jobCounter)
     
     output += "\n\n\n\n\n\n"
     
     output += "MAXJOBS ANTEPROC " + str(maxJobsAnteproc) + "\n"
-    output += "MAXJOBS GRANDSTOCHTRACK " + str(maxJobsGrandStochtrack)
+    output += "MAXJOBS GRANDSTOCHTRACK " + str(maxJobsGrandStochtrack) + "\n"
+    output += "MAXJOBS WEBPAGE 1"
     
     with open(dagDir + "/stampAnalysis.dag", "w") as h:
         print >> h, output 
