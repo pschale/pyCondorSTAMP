@@ -216,7 +216,7 @@ def generate_summary(params_dict, output_dir):
                 output_str += key + "\t" + str(params_dict[key]) + "\n"
         except KeyError:
             output_str += key + "\t" + str(params_dict[key]) + "\n"        
-    with open(os.path.join(output_dir, 'summary.txt'), "w") as h:
+    with open(path.join(output_dir, 'summary.txt'), "w") as h:
         print >> h, output_str
         
 def recursive_ints_to_floats(in_dict):
