@@ -35,48 +35,9 @@ def getSNR(inputFile):
         data = sio.loadmat(inputFile)
         #SNR = data['stoch_out'][0,0].max_SNR[0,0]
         SNR = data['stoch_out']['max_SNR'][0,0][0,0]
-        """try:
-            data = sio.loadmat(inputFile)
-            #SNR = data['stoch_out'][0,0].max_SNR[0,0]
-            SNR = data['stoch_out']['max_SNR'][0,0][0,0]
-        except:
-            output_dir = ""
-            if "/" in inputFile:
-                temp_dir = inputFile[::-1]
-                temp_dir = temp_dir[temp_dir.index('/'):]
-                output_dir = temp_dir[::-1]
-            tempSNRfile = output_dir + "max_snr.txt"
-            with open(tempSNRfile, "r") as infile:
-                data = [float(x) for x in infile]
-            SNR = data[0]"""
     else:
         SNR = None
     return SNR
-
-"""def getSNR(inputFile):
-    if inputFile:
-        try:
-            data = sio.loadmat(inputFile)
-            SNR = data['stoch_out'][0,0].max_SNR[0,0]
-        except:
-            output_dir = ""
-            if "/" in inputFile:
-                temp_dir = inputFile[::-1]
-                temp_dir = temp_dir[temp_dir.index('/'):]
-                output_dir = temp_dir[::-1]
-            outputFile = output_dir + "pythonSNRtemp.mat"
-            matlabExecutablePath = "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/readSaveMatrix"
-            print("attempting to read " + inputFile)
-            tempOutput = subprocess.Popen([matlabExecutablePath, inputFile, outputFile, 'stoch_out', 'max_SNR'], stdout = subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-            if tempOutput[1]:
-                print(tempOutput[1])
-                raw_input("press enter to continue")
-                SNR = None
-            else:
-                SNR = getSNRother(outputFile)
-    else:
-        SNR = None
-    return SNR"""
 
 def getSNRother(inputFile):
     if inputFile:
@@ -85,16 +46,6 @@ def getSNRother(inputFile):
     else:
         SNR = None
     return SNR
-
-"""
-def getSNR(inputFile):
-    if inputFile:
-        data = sio.loadmat(inputFile)
-        SNR = data['stoch_out'][0,0].max_SNR[0,0]
-    else:
-        SNR = None
-    return SNR
-"""
 
 def getAlpha(inputFile):
     alpha = None
@@ -403,11 +354,6 @@ class search_run_info_no_alphas(object):
         print("Loading job groups")
         job_group_dirs = [glueFileLocation(self.jobs_base_dir, x) for x in os.listdir(self.jobs_base_dir) if "group" in x]
         self.job_groups = [job_group_no_alphas(x) for x in job_group_dirs]
-        """temp_extra_jobs = [glueFileLocation(self.jobs_base_dir, x) for x in os.listdir(self.jobs_base_dir) if "job" in x]
-        extra_jobs = [x for x in temp_extra_jobs if x not in job_group_dirs]
-        if extra_jobs:
-            extra_group = job_group()
-            extra_group.group_short_name = "groupless """
 
     def get_snrs(self):
         print("Getting SNRs")
@@ -463,24 +409,11 @@ class search_run_info_no_alphas_v2(object):
         print("Loading job groups")
         job_group_dirs = [glueFileLocation(self.jobs_base_dir, x) for x in os.listdir(self.jobs_base_dir) if "group" in x]
         self.job_groups = [job_group_no_alphas_v2(x) for x in job_group_dirs]
-        """temp_extra_jobs = [glueFileLocation(self.jobs_base_dir, x) for x in os.listdir(self.jobs_base_dir) if "job" in x]
-        extra_jobs = [x for x in temp_extra_jobs if x not in job_group_dirs]
-        if extra_jobs:
-            extra_group = job_group()
-            extra_group.group_short_name = "groupless """
 
     def get_snrs(self):
         print("Getting SNRs")
         temp_snrs = [x for group in self.job_groups for x in group.get_snrs()]
         return temp_snrs
-
-   # def get_alphas(self):
-    #    temp_alphas = [x for group in self.job_groups for x in group.get_alphas()]
-     #   return temp_alphas
-
-    # Todo to get paths to plots
-    #def get_relative_paths(self):
-    #    temp_paths = [glueFileLocation("jobs", )
 
     def get_high_snrs(self):
         print("Getting loudest group SNRs")

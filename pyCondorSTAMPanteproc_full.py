@@ -9,6 +9,7 @@ import os
 from optparse import OptionParser
 from load_defaults import getDefaultCommonParams
 from copy import deepcopy
+from webdisplay import webpage
 
 def main():
     parser = OptionParser()
@@ -664,6 +665,8 @@ def main():
     
     #create summary of parameters
     generate_summary(input_params, baseDir)
+    
+    webpage.load_conf_cp_webfiles(baseDir)
     
     # create webpage
     
