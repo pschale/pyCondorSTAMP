@@ -212,11 +212,7 @@ def main():
     
     # analysis starts 2 pixels before trigger time
     trigger_hStart = input_params['triggerTime'] - 2
-    
-    deltaTotal = []
-    jobPairs = []
-    jobPairsTotal = 1000 #number of background job pairs set
-    
+        
     #Next section finds the job number PAIRS run by stochtrack, and job NUMBERS run by anteproc
     
     if upper_limits:
@@ -262,17 +258,20 @@ def main():
         sortedJobPairs = [[x,x] for x in job_index_list_1] + [[x,x] for x in job_index_list_2]
     
     elif offsource:
+        deltaTotal = []
+        jobPairs = []
         for index1, job1 in enumerate(times):
             for index2, job2 in enumerate(times):
                 if index1 != index2:
                     deltaTotal += [abs(triggerJobStart - job1[1]) + abs(triggerJobStart - job2[1])]
                     jobPairs += [[index1, index2]]
-        sortedIndices = argsort(deltaTotal)[:jobPairsTotal]
+        sortedIndices = argsort(deltaTotal)[:input_params['maxNumJobPairs']]
         sortedJobPairs = [jobPairs[x] for x in sortedIndices]
         
     else:
         print("Error: need to define search type correctly")
         raise
+        
     #These are the job indices run by anteproc 
     tempNumbersH = list(set([x[0] for x in sortedJobPairs])) #job indices
     tempNumbersL = list(set([x[1] for x in sortedJobPairs])) #job indices
@@ -495,6 +494,7 @@ def main():
     adjustedJobFileName = jobFileName[:jobFileName.index(".txt")] + "_postprocessing" + jobFileName[jobFileName.index(".txt"):]
     newAdjustedJobPath = os.path.join(supportDir, adjustedJobFileName)
     
+    print("Creating ajusted job file")
     with open(input_params['jobFile']) as h:
         jobData = [[int(x) for x in line.split()] for line in h]
     adjustedJobData = [[x[0], x[1] + input_params['job_start_shift'], x[1] + input_params['job_start_shift'] + input_params['job_duration'], input_params['job_duration']] for x in jobData]
@@ -522,11 +522,11 @@ def main():
         commonParamsDictionary['anteproc_l']["gpsTimesPath1"] = fakeCacheDir
         commonParamsDictionary['anteproc_l']["frameCachePath1"] = fakeCacheDir
     
-    print("Creating anteproc directory and input files")
 
     
     #new loop to make anteproc files
-    
+    print("Creating anteproc directory and input files")
+
     for jobNum in H1AnteprocJobNums:
         
         temp_anteproc_h_dict = deepcopy(commonParamsDictionary['anteproc_h'])

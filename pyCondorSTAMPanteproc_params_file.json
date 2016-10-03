@@ -18,6 +18,7 @@
 "T" : 1000,
 "F" : 3000,
 "_comment" : "T is number of times clustering algorithm runs, F is number of tracks each run",
+"maxNumJobPairs": 1000,
 
 "accountingGroup": "ligo.dev.s6.burst.sgr_qpo.stamp",
 "anteprocMemory": 2048,
