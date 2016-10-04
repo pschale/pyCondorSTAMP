@@ -431,8 +431,7 @@ def main():
         jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
         jobDictionary['grandStochtrackParams']['params']['anteproc']["jobfile"] = newAdjustedJobPath
         
-        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(jobDictionary["grandStochtrackParams"]["params"]["job_group"]) + "/job_" + str(i + 1))
-        
+        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(job_group) + "/job_" + str(i + 1))
         jobDictionary["jobDir"] = jobDir
         jobDictionary["stochtrackInputDir"] = create_dir(jobDir + "/grandStochtrackInput")
         jobDictionary["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandStochtrackOutput")
@@ -483,11 +482,13 @@ def main():
                 stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
                 H1AnteprocJobNums.add(jobNum1)
                 L1AnteprocJobNums.add(jobNum2)
+
                 current_job += 1
         else:    
             stochtrackParamsList.append(deepcopy(jobDictionary))
             stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['job_group'] = job_group
             stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
+
             H1AnteprocJobNums.add(jobNum1)
             L1AnteprocJobNums.add(jobNum2)
             current_job +=1
