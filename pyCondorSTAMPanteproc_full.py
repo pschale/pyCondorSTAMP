@@ -16,7 +16,8 @@ def main():
     
     parser.add_option("-p", "--params-file", dest = "params_file",
                       help = "Path to params file")
-    parser.add_option("-v", "--verbose", dest = "verbose",
+    parser.add_option("-v", "--verbose", 
+                        action = "store_true", dest = "verbose", default = False,
                         help = "prints out dictionaries to file at end")
     
     (options, args) = parser.parse_args()
