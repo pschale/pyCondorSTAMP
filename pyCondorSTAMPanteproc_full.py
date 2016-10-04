@@ -86,12 +86,17 @@ def main():
     
     supportDir = create_dir(baseDir + "/input_files")
     jobsBaseDir = create_dir(baseDir + "/jobs")
+    anteproc_dir = create_dir(baseDir + "/anteproc_data")
 
     # copy input files to this directory
     copy_input_file(configPath, supportDir)
     copy_input_file(params_file_path, supportDir)
     newJobPath = copy_input_file(jobPath, supportDir)
     
+    #adjust job file
+    jobFileName = jobPath[len(jobPath)-jobPath[::-1].index('/')::]
+    adjustedJobFileName = jobFileName[:jobFileName.index(".txt")] + "_postprocessing" + jobFileName[jobFileName.index(".txt"):]
+    newAdjustedJobPath = os.path.join(supportDir, adjustedJobFileName)
     
     commonParamsDictionary = getDefaultCommonParams()   
     stochtrackParamsDictionary = {}
@@ -399,7 +404,11 @@ def main():
     if input_params['injection_random_start_time']:
         commonParamsDictionary['varying_injection_start'] = [-2, 1604 - wave_duration - 2]
     
-    
+                
+    # build dag directory, support directories
+    dagDir = create_dir(baseDir + "/dag")
+    dagLogDir = create_dir(dagDir + "/dagLogs")
+    logDir = create_dir(dagLogDir + "/logs")
     
     #this for loop builds each individual job
     current_job = 0
@@ -418,7 +427,20 @@ def main():
         jobDictionary["grandStochtrackParams"]["params"]["outputfilename"] = job_dir + "/grandStochtrackOutput/map"
         jobDictionary["grandStochtrackParams"]["params"]["ofile"] = job_dir + "/grandStochtrackOutput/bknd"
         jobDictionary["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
+        jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map"
+        jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
+        jobDictionary['grandStochtrackParams']['params']['anteproc']["jobfile"] = newAdjustedJobPath
         
+        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(jobDictionary["grandStochtrackParams"]["params"]["job_group"]) + "/job_" + str(i + 1))
+        
+        jobDictionary["jobDir"] = jobDir
+        jobDictionary["stochtrackInputDir"] = create_dir(jobDir + "/grandStochtrackInput")
+        jobDictionary["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandStochtrackOutput")
+        jobDictionary["plotDir"] = create_dir(jobDir + "/grandStochtrackOutput" + "/plots")
+        
+        if "injection_tags" in jobDictionary:
+            jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats1'] += "_" + jobDictionary["injection_tags"]
+            jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats2'] += "_" + jobDictionary["injection_tags"]
         if input_params['long_pixel'] or input_params['burstegard']:
             job1_hstart = job1StartTime + (9-1)*4/2+2
         else:
@@ -456,22 +478,20 @@ def main():
         if input_params['injection_bool'] and not input_params['onTheFly']:
             for temp_waveform in waveformFileNames:
                 jobDictionary["injection_tag"] = temp_waveform
-                current_job += 1
-                
                 stochtrackParamsList.append(deepcopy(jobDictionary))
-                stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['job_group']=  job_group
-                stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
+                stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['job_group']=  job_group
+                stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
                 H1AnteprocJobNums.add(jobNum1)
                 L1AnteprocJobNums.add(jobNum2)
-                
-        else:
-            current_job +=1
-            
+                current_job += 1
+        else:    
             stochtrackParamsList.append(deepcopy(jobDictionary))
-            stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['job_group'] = job_group
-            stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
+            stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['job_group'] = job_group
+            stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
             H1AnteprocJobNums.add(jobNum1)
             L1AnteprocJobNums.add(jobNum2)
+            current_job +=1
+            
 
     ###################################################################################
     ###################################################################################
@@ -490,10 +510,6 @@ def main():
     grandStochtrackExecutableNoPlots = os.path.join(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack_nojvm")
 
     
-    jobFileName = jobPath[len(jobPath)-jobPath[::-1].index('/')::]
-    adjustedJobFileName = jobFileName[:jobFileName.index(".txt")] + "_postprocessing" + jobFileName[jobFileName.index(".txt"):]
-    newAdjustedJobPath = os.path.join(supportDir, adjustedJobFileName)
-    
     print("Creating ajusted job file")
     with open(input_params['jobFile']) as h:
         jobData = [[int(x) for x in line.split()] for line in h]
@@ -504,7 +520,6 @@ def main():
     
     # create cachefile directory
     print("Creating cache directory")
-    anteproc_dir = create_dir(baseDir + "/anteproc_data")
     commonParamsDictionary['anteproc_h']["outputfiledir"] = anteproc_dir + "/"
     commonParamsDictionary['anteproc_l']["outputfiledir"] = anteproc_dir + "/"  
     if not input_params['simulated']:
@@ -559,36 +574,7 @@ def main():
         
         with open(anteproc_dir + "/L1-anteproc_params_" + str(jobNum) + ".txt", 'w') as h:
             print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])        
-    
-    added_anteproc_dict = {"loadFiles": True,
-                            "timeShift1": 0,
-                            "timeShift2": 0,
-                            "jobFileTimeShift": True,
-                            "bkndstudy": False,
-                            "bkndstudydur": 100,
-                            "jobfile": newAdjustedJobPath}
-    #NEW LOOP, hopefully replaces next 2 loops
-    #this can likely be moved to much earlier
-    #need to add support for varying parameters
-    for i in range(0, len(stochtrackParamsList)):
-        stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map"
-        stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
-        if "injection_tags" in stochtrackParamsList[i]:
-            stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats1'] += "_" + stochtrackParamsList[i]["injection_tags"]
-            stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats2'] += "_" + stochtrackParamsList[i]["injection_tags"]
-        stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc'].update(added_anteproc_dict)
-        
-        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(stochtrackParamsList[i]["grandStochtrackParams"]["params"]["job_group"]) + "/job_" + str(i + 1))
-        
-        stochtrackParamsList[i]["jobDir"] = jobDir
-        stochtrackParamsList[i]["stochtrackInputDir"] = create_dir(jobDir + "/grandStochtrackInput")
-        stochtrackParamsList[i]["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandStochtrackOutput")
-        stochtrackParamsList[i]["plotDir"] = create_dir(jobDir + "/grandStochtrackOutput" + "/plots")
-        
-        # build dag directory, support directories
-    dagDir = create_dir(baseDir + "/dag")
-    dagLogDir = create_dir(dagDir + "/dagLogs")
-    logDir = create_dir(dagLogDir + "/logs")
+
     
     
     # create grandstochtrack execution script
