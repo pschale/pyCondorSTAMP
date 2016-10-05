@@ -481,9 +481,9 @@ def main():
     print("Creating shell scripts")
     grandStochtrack_script_file = dagDir + "/grand_stochtrack.sh"
     if commonParamsDictionary['grandStochtrack']['savePlots']:
-        write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutable, STAMP_setup_script)
+        write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutable, STAMP_setup_script, input_params['matlab_setup_script'])
     else:
-        write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutableNoPlots, STAMP_setup_script)
+        write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutableNoPlots, STAMP_setup_script, input_params['matlab_setup_script'])
     os.chmod(grandStochtrack_script_file, 0o744)
     
     matlabMatrixExtractionExectuable_script_file = dagDir + "/matlab_matrix_extraction.sh"

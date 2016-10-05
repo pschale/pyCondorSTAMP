@@ -4,6 +4,7 @@
 
 "STAMP2_installation_dir" : "/home/paul.schale/STAMP/stamp2/",
 "matlabMatrixExtractionExectuable" : "/home/quitzow/GIT/Development_Branches/MatlabExecutableDuctTape/getSNRandCluster",
+"matlab_setup_script": "/home/paul.schale/svn/STAMP_08_26_16/STAMPAS/matlab_script_2015a.sh",
 
 "jobFile" : "/home/paul.schale/job_files/oct_7_O1_job.txt",
 "triggerNumber" : 1003,
