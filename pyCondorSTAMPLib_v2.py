@@ -242,27 +242,139 @@ def deepupdate(d, u):
             d[k] = u[k]
     return d
     
-def write_grandstochtrack_bash_script(file_name, executable, STAMP_export_script, memory_limit = 14000000):
-    output_string = """#!/bin/bash
+def getCommonParams(input_params):
+    commonParamsDictionary = getDefaultCommonParams()   
+    
+    if input_params['polarization_smaller_response']: #this might need adjustment for particular triggers
+        wave_iota = 120
+        wave_psi = 45
+    else:
+        wave_iota = 0
+        wave_psi = 0
 
-source """ + STAMP_export_script + """
+    commonParamsDictionary['grandStochtrack']['stochtrack']['T'] = input_params['T']
+    commonParamsDictionary['grandStochtrack']['stochtrack']['F'] = input_params['F']
+    
+    times = [[int(y) for y in x] for x in readFile(input_params['jobFile'])]
+    
+    if input_params['burstegard']:
+        commonParamsDictionary['grandStochtrack']['doBurstegard'] = True
+    else:
+        if input_params['long_pixel']:
+            commonParamsDictionary['anteproc_h']['segmentDuration'] = 4
+            commonParamsDictionary['anteproc_l']['segmentDuration'] = 4
+        else:
+            commonParamsDictionary['anteproc_h']['segmentDuration'] = 1
+            commonParamsDictionary['anteproc_l']['segmentDuration'] = 1
+            
+        commonParamsDictionary['grandStochtrack']['doStochtrack'] = True
+        
+        if input_params['long_pixel']:
+            commonParamsDictionary['grandStochtrack']['stochtrack']['mindur'] = 25
+            commonParamsDictionary['preproc']['segmentDuration'] = 4
 
-ulimit -v """ + str(memory_limit) + """
+        else:
+            commonParamsDictionary['grandStochtrack']['stochtrack']['mindur'] = 100
+            commonParamsDictionary['grandStochtrack']['stochtrack']['F'] = 600
+    
+    if input_params['simulated']:
+        commonParamsDictionary['anteproc_h']['doDetectorNoiseSim'] = True
+        commonParamsDictionary['anteproc_l']['doDetectorNoiseSim'] = True
+        commonParamsDictionary['anteproc_h']['DetectorNoiseFile'] = input_params['LHO_Welch_PSD_file']
+        commonParamsDictionary['anteproc_l']['DetectorNoiseFile'] = input_params['LLO_Welch_PSD_file']
 
-""" + executable + """ $1 $2"""
+        if not input_params['show_plots_when_simulated']:
+            commonParamsDictionary['grandStochtrack']['savePlots'] = False
+    else:
+        commonParamsDictionary['anteproc_h']['doDetectorNoiseSim'] = False
+        commonParamsDictionary['anteproc_l']['doDetectorNoiseSim'] = False
+    
+    
+    # Add in injections (if desired)
+    if input_params['injection_bool']:
+        if input_params['onTheFly']:
+            # stamp_alpha was waveformPowerAmplitudeScaling here
+            commonParamsDictionary['anteproc_h']['stampinj'] = True
+            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = input_params['stamp_alpha']
+            commonParamsDictionary['anteproc_h']['stamp']['iota'] = wave_iota
+            commonParamsDictionary['anteproc_h']['stamp']['psi'] = wave_psi         
+            commonParamsDictionary['anteproc_l']['stampinj'] = True
+            commonParamsDictionary['anteproc_l']['stamp']['alpha'] = input_params['stamp_alpha']
+            commonParamsDictionary['anteproc_l']['stamp']['iota'] = wave_iota
+            commonParamsDictionary['anteproc_l']['stamp']['psi'] = wave_psi
+            
+            
+        else:
+            commonParamsDictionary['anteproc_h']['stampinj'] = True
+            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = input_params['stamp_alpha']
+            commonParamsDictionary['anteproc_h']['stamp']['iota'] = 0
+            commonParamsDictionary['anteproc_h']['stamp']['psi'] = 0           
+            commonParamsDictionary['anteproc_l']['stampinj'] = True
+            commonParamsDictionary['anteproc_l']['stamp']['alpha'] = input_params['stamp_alpha']
+            commonParamsDictionary['anteproc_l']['stamp']['iota'] = 0
+            commonParamsDictionary['anteproc_l']['stamp']['psi'] = 0
+    
+    if input_params['singletrack_bool']:
+        commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['doSingletrack'] = True
+        commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['trackInputFiles'] = array(input_params['singletrack_input_files'], dtype=object)
+    else:
+        commonParamsDictionary['grandStochtrack']['stochtrack'].pop('singletrack')
+        
+    if input_params['set_stochtrack_seed']:
+        commonParamsDictionary['grandStochtrack']['stochtrack']['doSeed'] = True
+        commonParamsDictionary['grandStochtrack']['stochtrack']['seed'] = 2015
+        
+    if input_params['maxband']:
+        if input_params['maxband_mode'] == "percent":
+            commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxBandPercentage'] = True
+            commonParamsDictionary['grandStochtrack']['stochtrack']['maxbandPercentage'] = input_params['maxband']
+            print("WARNING - doMaxbandPercentage is active - this only works with STAMP revision 12522 or later")
+        elif input_params['maxband_mode'] == "absolute":
+            commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxBandPercentage'] = False
+            commonParamsDictionary['grandStochtrack']['stochtrack']['maxband'] = input_params['maxband']
+        else:
+            raise pyCondorSTAMPanteprocError("Unrecognized option for maxband_mode: " + input_params['maxband_mode'] + ".  Must be either 'percent' or 'absolute'")
+    
+    if not input_params['long_pixel']:
+        commonParamsDictionary['job_start_shift'] = 6
+        commonParamsDictionary['job_duration'] = 400
+    
+    if input_params['simulated'] and onsource and input_params['pre_seed']:
+        commonParamsDictionary['anteproc_h']['job_seed'] = 2694478780        
+        commonParamsDictionary['anteproc_h']['job_seed'] = 4222550304
+        #NEED TO FIGURE OUT HOW THIS ONE WORKS
+    
+    if not input_params['relative_direction']:
+        commonParamsDictionary['grandStochtrack']['ra'] = input_params['RA']
+        commonParamsDictionary['grandStochtrack']['dec'] = input_params['DEC']
+    
+    if input_params['injection_bool'] and not input_params['onTheFly']:
+        commonParamsDictionary['preproc']['stamp']['file'] = input_params['injection_file']
+        commonParamsDictionary['preproc']['stamp']['alpha'] = 1e-40
+        
+    if input_params['doGPU']:
+        commonParamsDictionary['doGPU'] = True
+    
+    return commonParamsDictionary
+    
+def write_grandstochtrack_bash_script(file_name, executable, STAMP_export_script, matlab_setup_script, tmemory_limit = 14000000):
+    output_string = "#!/bin/bash\n
+    output_string += "source " + STAMP_export_script + "\n"
+    output_string += "source " + matlab_setut_script + "\n"
+    output_string += "ulimit -v " + str(memory_limit) + "\n"
+    output_string += executable + "$1 $2"
     with open(file_name, "w") as outfile:
-        outfile.write(output_string)
+        print >> outfile, output_string
 
 def write_anteproc_bash_script(file_name, executable, STAMP_export_script, memory_limit = 14000000):
-    output_string = """#!/bin/bash
+    output_string = "#!/bin/bash\n
+    output_string += "source " + STAMP_export_script + "\n"
+    output_string += "source " + matlab_setut_script + "\n"
+    output_string += "ulimit -v " + str(memory_limit) + "\n"
+    output_string += executable + "$1 $2 $3"
 
-source """ + STAMP_export_script + """
-
-ulimit -v """ + str(memory_limit) + """
-
-""" + executable + """ $1 $2 $3"""
     with open(file_name, "w") as outfile:
-        outfile.write(output_string)
+        print >> outfile, output_string
         
 def write_anteproc_sub_file(memory, anteprocSH, dagDir, accountingGroup):
 
@@ -287,9 +399,9 @@ def write_stochtrack_sub_file(memory, grandStochtrackSH, dagDir, accountingGroup
         memory = 4000
     contents = "universe = vanilla\ngetenv = True\nrequest_memory = " + str(memory) + "\n"
     if doGPU:
-        contents += "request_gpus = 1"
+        contents += "request_gpus = 1\n"
     elif numCPU > 1:
-        contents += "request_cpus = " + str(numCPU)
+        contents += "request_cpus = " + str(numCPU) + "\n"
     contents += "executable = " + grandStochtrackSH + "\n"
     contents += "log = " + dagDir + "/dagLogs/grand_stochtrack$(jobNumber).log\n"
     contents += "error = " + dagDir + "/dagLogs/logs/grand_stochtrack$(jobNumber).err\n"
