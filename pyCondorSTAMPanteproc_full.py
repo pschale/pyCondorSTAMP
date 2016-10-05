@@ -486,9 +486,9 @@ def main():
         write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutableNoPlots, STAMP_setup_script, input_params['matlab_setup_script'])
     os.chmod(grandStochtrack_script_file, 0o744)
     
-    matlabMatrixExtractionExectuable_script_file = dagDir + "/matlab_matrix_extraction.sh"
-    write_grandstochtrack_bash_script(matlabMatrixExtractionExectuable_script_file, input_params['matlabMatrixExtractionExectuable'], STAMP_setup_script)
-    os.chmod(matlabMatrixExtractionExectuable_script_file, 0o744)
+    #matlabMatrixExtractionExectuable_script_file = dagDir + "/matlab_matrix_extraction.sh"
+    #write_grandstochtrack_bash_script(matlabMatrixExtractionExectuable_script_file, input_params['matlabMatrixExtractionExectuable'], STAMP_setup_script)
+    #os.chmod(matlabMatrixExtractionExectuable_script_file, 0o744)
     
     anteprocExecutable_script_file = dagDir + "/anteproc.sh"
     write_anteproc_bash_script(anteprocExecutable_script_file, anteprocExecutable, STAMP_setup_script)
