@@ -356,7 +356,7 @@ def getCommonParams(input_params):
     
     return commonParamsDictionary
     
-def write_grandstochtrack_bash_script(file_name, executable, STAMP_export_script, matlab_setup_script, tmemory_limit = 14000000):
+def write_grandstochtrack_bash_script(file_name, executable, STAMP_export_script, matlab_setup_script, memory_limit = 14000000):
     output_string = "#!/bin/bash\n"
     output_string += "source " + STAMP_export_script + "\n"
     output_string += "source " + matlab_setup_script + "\n"
