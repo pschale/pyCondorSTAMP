@@ -352,7 +352,7 @@ def getCommonParams(input_params):
         commonParamsDictionary['preproc']['stamp']['alpha'] = 1e-40
         
     if input_params['doGPU']:
-        commonParamsDictionary['doGPU'] = True
+        commonParamsDictionary['grandStochtrack']['doGPU'] = True
     
     return commonParamsDictionary
     
