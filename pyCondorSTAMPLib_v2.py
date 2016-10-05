@@ -4,6 +4,7 @@ from __future__ import division
 import numpy as np
 from os import getcwd, path, makedirs
 import collections, datetime, random, subprocess
+from load_defaults import getDefaultCommonParams
 
 
 def dated_dir(name, date = None, iterate_name = True):

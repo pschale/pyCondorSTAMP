@@ -7,7 +7,6 @@ import random
 import json
 import os
 from optparse import OptionParser
-from load_defaults import getDefaultCommonParams
 from copy import deepcopy
 from webdisplay import webpage
 
