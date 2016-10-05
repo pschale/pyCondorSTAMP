@@ -99,6 +99,9 @@ def main():
     newAdjustedJobPath = os.path.join(supportDir, adjustedJobFileName)
     
     commonParamsDictionary = getCommonParams(input_params)
+    
+    times = [[int(y) for y in x] for x in readFile(input_params['jobFile'])]
+
         
     job_group = 1
         

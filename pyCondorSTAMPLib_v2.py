@@ -255,9 +255,7 @@ def getCommonParams(input_params):
 
     commonParamsDictionary['grandStochtrack']['stochtrack']['T'] = input_params['T']
     commonParamsDictionary['grandStochtrack']['stochtrack']['F'] = input_params['F']
-    
-    times = [[int(y) for y in x] for x in readFile(input_params['jobFile'])]
-    
+        
     if input_params['burstegard']:
         commonParamsDictionary['grandStochtrack']['doBurstegard'] = True
     else:
