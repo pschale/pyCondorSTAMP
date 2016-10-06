@@ -329,7 +329,7 @@ def main():
         jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
         jobDictionary['grandStochtrackParams']['params']['anteproc']["jobfile"] = newAdjustedJobPath
         
-        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(job_group) + "/job_" + str(i + 1))
+        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(job_group) + "/job_" + str(current_job + 1))
         jobDictionary["jobDir"] = jobDir
         jobDictionary["stochtrackInputDir"] = create_dir(jobDir + "/grandStochtrackInput")
         jobDictionary["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandStochtrackOutput")
