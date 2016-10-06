@@ -1,26 +1,23 @@
 #pyCondorSTAMPanteproc_full.py
 from __future__ import division
-from generateInputFileLib import *
 from numpy import argsort, sqrt, arccos, pi, array, object
-from pyCondorSTAMPLib import *
-from pyCondorSTAMPanteprocSupportLib_v2 import *
-from preprocSupportLib import *
-from grandStochtrackSupportLib import *
-from condorSTAMPSupportLib_v2 import *
-import webpageGenerateLib as webGen
+from pyCondorSTAMPLib_v2 import *
 import scipy.io as sio
 import random
 import json
 import os
 from optparse import OptionParser
-from load_defaults import getDefaultCommonParams
 from copy import deepcopy
+from webdisplay import webpage
 
 def main():
     parser = OptionParser()
     
     parser.add_option("-p", "--params-file", dest = "params_file",
                       help = "Path to params file")
+    parser.add_option("-v", "--verbose", 
+                        action = "store_true", dest = "verbose", default = False,
+                        help = "prints out dictionaries to file at end")
     
     (options, args) = parser.parse_args()
     
@@ -81,124 +78,33 @@ def main():
         input_params['single_cpu'] = True
     
     jobPath = make_file_path_absolute(input_params['jobFile'])
-    configPath = glueFileLocation(input_params['outputDir'], "config_file.txt")
+    configPath = os.path.join(input_params['outputDir'], "config_file.txt")
     outputDir = make_file_path_absolute(input_params['outputDir'])
     outputDir += "stamp_analysis_anteproc" if input_params['outputDir'][-1] == "/" else "/stamp_analysis_anteproc"
+    
     baseDir = dated_dir(outputDir)
-            # copy input parameter file and jobs file into a support directory here
-        # support directory
+    
     supportDir = create_dir(baseDir + "/input_files")
-        # copy input files to this directory
+    jobsBaseDir = create_dir(baseDir + "/jobs")
+    anteproc_dir = create_dir(baseDir + "/anteproc_data")
+
+    # copy input files to this directory
     copy_input_file(configPath, supportDir)
     copy_input_file(params_file_path, supportDir)
     newJobPath = copy_input_file(jobPath, supportDir)
     
+    #adjust job file
+    jobFileName = jobPath[len(jobPath)-jobPath[::-1].index('/')::]
+    adjustedJobFileName = jobFileName[:jobFileName.index(".txt")] + "_postprocessing" + jobFileName[jobFileName.index(".txt"):]
+    newAdjustedJobPath = os.path.join(supportDir, adjustedJobFileName)
     
-    commonParamsDictionary = getDefaultCommonParams()   
-    stochtrackParamsDictionary = {}
-
-    commonParamsDictionary['grandStochtrack']['stochtrack']['T'] = input_params['T']
-    commonParamsDictionary['grandStochtrack']['stochtrack']['F'] = input_params['F']
+    commonParamsDictionary = getCommonParams(input_params)
     
     times = [[int(y) for y in x] for x in readFile(input_params['jobFile'])]
-    
-    if input_params['burstegard']:
-        commonParamsDictionary['grandStochtrack']['doBurstegard'] = True
-    else:
-        if input_params['long_pixel']:
-            commonParamsDictionary['anteproc_h']['segmentDuration'] = 4
-            commonParamsDictionary['anteproc_l']['segmentDuration'] = 4
-        else:
-            commonParamsDictionary['anteproc_h']['segmentDuration'] = 1
-            commonParamsDictionary['anteproc_l']['segmentDuration'] = 1
-            
-        commonParamsDictionary['grandStochtrack']['doStochtrack'] = True
-        
-        if input_params['long_pixel']:
-            commonParamsDictionary['grandStochtrack']['stochtrack']['mindur'] = 25
-            commonParamsDictionary['preproc']['segmentDuration'] = 4
 
-        else:
-            commonParamsDictionary['grandStochtrack']['stochtrack']['mindur'] = 100
-            commonParamsDictionary['grandStochtrack']['stochtrack']['F'] = 600
-    
-    if input_params['simulated']:
-        commonParamsDictionary['anteproc_h']['doDetectorNoiseSim'] = True
-        commonParamsDictionary['anteproc_l']['doDetectorNoiseSim'] = True
-        commonParamsDictionary['anteproc_h']['DetectorNoiseFile'] = input_params['LHO_Welch_PSD_file']
-        commonParamsDictionary['anteproc_l']['DetectorNoiseFile'] = input_params['LLO_Welch_PSD_file']
-
-        if not input_params['show_plots_when_simulated']:
-            commonParamsDictionary['grandStochtrack']['savePlots'] = False
-    else:
-        commonParamsDictionary['anteproc_h']['doDetectorNoiseSim'] = False
-        commonParamsDictionary['anteproc_l']['doDetectorNoiseSim'] = False
-    
-    
-    # Add in injections (if desired)
-    if input_params['injection_bool']:
-        if input_params['onTheFly']:
-            # stamp_alpha was waveformPowerAmplitudeScaling here
-            commonParamsDictionary['anteproc_h']['stampinj'] = True
-            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = input_params['stamp_alpha']
-            commonParamsDictionary['anteproc_h']['stamp']['iota'] = wave_iota
-            commonParamsDictionary['anteproc_h']['stamp']['psi'] = wave_psi         
-            commonParamsDictionary['anteproc_l']['stampinj'] = True
-            commonParamsDictionary['anteproc_l']['stamp']['alpha'] = input_params['stamp_alpha']
-            commonParamsDictionary['anteproc_l']['stamp']['iota'] = wave_iota
-            commonParamsDictionary['anteproc_l']['stamp']['psi'] = wave_psi
-            
-            
-        else:
-            commonParamsDictionary['anteproc_h']['stampinj'] = True
-            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = input_params['stamp_alpha']
-            commonParamsDictionary['anteproc_h']['stamp']['iota'] = 0
-            commonParamsDictionary['anteproc_h']['stamp']['psi'] = 0           
-            commonParamsDictionary['anteproc_l']['stampinj'] = True
-            commonParamsDictionary['anteproc_l']['stamp']['alpha'] = input_params['stamp_alpha']
-            commonParamsDictionary['anteproc_l']['stamp']['iota'] = 0
-            commonParamsDictionary['anteproc_l']['stamp']['psi'] = 0
-    
-    if input_params['singletrack_bool']:
-        commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['doSingletrack'] = True
-        commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['trackInputFiles'] = array(input_params['singletrack_input_files'], dtype=object)
-    else:
-        commonParamsDictionary['grandStochtrack']['stochtrack'].pop('singletrack')
         
-    if input_params['set_stochtrack_seed']:
-        commonParamsDictionary['grandStochtrack']['stochtrack']['doSeed'] = True
-        commonParamsDictionary['grandStochtrack']['stochtrack']['seed'] = 2015
-        
-    if input_params['maxband']:
-        if input_params['maxband_mode'] == "percent":
-            commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxBandPercentage'] = True
-            commonParamsDictionary['grandStochtrack']['stochtrack']['maxbandPercentage'] = input_params['maxband']
-            print("WARNING - doMaxbandPercentage is active - this only works with STAMP revision 12522 or later")
-        elif input_params['maxband_mode'] == "absolute":
-            commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxBandPercentage'] = False
-            commonParamsDictionary['grandStochtrack']['stochtrack']['maxband'] = input_params['maxband']
-
-        else:
-            raise pyCondorSTAMPanteprocError("Unrecognized option for maxband_mode: " + input_params['maxband_mode'] + ".  Must be either 'percent' or 'absolute'")
-    
-    if not input_params['long_pixel']:
-        commonParamsDictionary['job_start_shift'] = 6
-        commonParamsDictionary['job_duration'] = 400
-    
-    if input_params['simulated'] and onsource and input_params['pre_seed']:
-        commonParamsDictionary['anteproc_h']['job_seed'] = 2694478780        
-        commonParamsDictionary['anteproc_h']['job_seed'] = 4222550304
-    
     job_group = 1
         
-    if not input_params['relative_direction']:
-        commonParamsDictionary['grandStochtrack']['ra'] = input_params['RA']
-        commonParamsDictionary['grandStochtrack']['dec'] = input_params['DEC']
-    
-    if input_params['injection_bool'] and not input_params['onTheFly']:
-        commonParamsDictionary['preproc']['stamp']['file'] = injection_file
-        commonParamsDictionary['preproc']['stamp']['alpha'] = 1e-40
-            
     #this ensures there's enough data to be able to estimate the background
     # 9-NumberofSegmentsPerInterval (NSPI), -1 (take out the pixel that's being analyzed), /2 to get one side of those
     # *4 (pixel duration) 2 + (buffer seconds), + 2 (window started 2 seconds before trigger time)
@@ -209,11 +115,7 @@ def main():
     
     # analysis starts 2 pixels before trigger time
     trigger_hStart = input_params['triggerTime'] - 2
-    
-    deltaTotal = []
-    jobPairs = []
-    jobPairsTotal = 1000 #number of background job pairs set
-    
+        
     #Next section finds the job number PAIRS run by stochtrack, and job NUMBERS run by anteproc
     
     if upper_limits:
@@ -259,17 +161,20 @@ def main():
         sortedJobPairs = [[x,x] for x in job_index_list_1] + [[x,x] for x in job_index_list_2]
     
     elif offsource:
+        deltaTotal = []
+        jobPairs = []
         for index1, job1 in enumerate(times):
             for index2, job2 in enumerate(times):
                 if index1 != index2:
                     deltaTotal += [abs(triggerJobStart - job1[1]) + abs(triggerJobStart - job2[1])]
                     jobPairs += [[index1, index2]]
-        sortedIndices = argsort(deltaTotal)[:jobPairsTotal]
+        sortedIndices = argsort(deltaTotal)[:input_params['maxNumJobPairs']]
         sortedJobPairs = [jobPairs[x] for x in sortedIndices]
         
     else:
         print("Error: need to define search type correctly")
         raise
+        
     #These are the job indices run by anteproc 
     tempNumbersH = list(set([x[0] for x in sortedJobPairs])) #job indices
     tempNumbersL = list(set([x[1] for x in sortedJobPairs])) #job indices
@@ -339,7 +244,6 @@ def main():
         if input_params['onTheFly']:
             #here we put in parameters for the on-the-fly injection, including waveform, frequency, amplitude (sqrt(2)/2, so that
             # they sum in quadrature to 1
-            
             commonParamsDictionary['anteproc_h']['stamp']['inj_type'] = "fly"
             commonParamsDictionary['anteproc_h']['stamp']['fly_waveform'] = "half_sg"
             commonParamsDictionary['anteproc_l']['stamp']['inj_type'] = "fly"
@@ -362,13 +266,13 @@ def main():
             
         else:
             for waveform in waveformFileNames:
-                commonParamsDictionary["waveform"][waveform] = glueFileLocation(waveformDirectory, temp_name + waveformFileExtention)
+                commonParamsDictionary["waveform"][waveform] = os.path.join(waveformDirectory, temp_name + waveformFileExtention)
     
     
     if input_params['relative_direction']:
     
         refTime = input_params['triggerTime'] - 2
-        
+    
         commonParamsDictionary['grandStochtrack']['useReferenceAntennaFactors'] = True
         commonParamsDictionary['grandStochtrack']['referenceGPSTime'] = refTime
         commonParamsDictionary['anteproc_h']['referenceGPSTime'] = refTime
@@ -393,13 +297,16 @@ def main():
         commonParamsDictionary['grandStochtrack']['maskCluster'] = True
     
     if input_params['include_variations']:
-        #inputFileString += "\n\nanteproc_varying_param num_jobs_to_vary " + str(input_params['number_variation_jobs'])
-        #inputFileString += "".join("\nanteproc_varying_param " + " ".join(str(y) for y in x) for x in input_params['anteproc_varying_param'])
         commonParamsDictionary['grandStochtrack']['maskCluster'] = True
     
     if input_params['injection_random_start_time']:
         commonParamsDictionary['varying_injection_start'] = [-2, 1604 - wave_duration - 2]
-        
+    
+                
+    # build dag directory, support directories
+    dagDir = create_dir(baseDir + "/dag")
+    dagLogDir = create_dir(dagDir + "/dagLogs")
+    logDir = create_dir(dagLogDir + "/logs")
     
     #this for loop builds each individual job
     current_job = 0
@@ -412,14 +319,25 @@ def main():
         job1StartTime = times[jobIndex1][1]
         job1EndTime = times[jobIndex1][2]
         
-        #jobDictionary = {"preproc" : {}, "grandStochtrack": {"anteproc" : {}}}
         jobDictionary = {'grandStochtrackParams': {'params':deepcopy(commonParamsDictionary['grandStochtrack'])}}
         job_dir = baseDir + "/jobs/job_group_1/job_" + str(current_job + 1)
         jobDictionary["grandStochtrackParams"]["params"]["plotdir"] = job_dir + "/grandStochtrackOutput/plots/"
         jobDictionary["grandStochtrackParams"]["params"]["outputfilename"] = job_dir + "/grandStochtrackOutput/map"
         jobDictionary["grandStochtrackParams"]["params"]["ofile"] = job_dir + "/grandStochtrackOutput/bknd"
         jobDictionary["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
+        jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map"
+        jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
+        jobDictionary['grandStochtrackParams']['params']['anteproc']["jobfile"] = newAdjustedJobPath
         
+        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(job_group) + "/job_" + str(current_job + 1))
+        jobDictionary["jobDir"] = jobDir
+        jobDictionary["stochtrackInputDir"] = create_dir(jobDir + "/grandStochtrackInput")
+        jobDictionary["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandStochtrackOutput")
+        jobDictionary["plotDir"] = create_dir(jobDir + "/grandStochtrackOutput" + "/plots")
+        
+        if "injection_tags" in jobDictionary:
+            jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats1'] += "_" + jobDictionary["injection_tags"]
+            jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats2'] += "_" + jobDictionary["injection_tags"]
         if input_params['long_pixel'] or input_params['burstegard']:
             job1_hstart = job1StartTime + (9-1)*4/2+2
         else:
@@ -453,30 +371,27 @@ def main():
             if jobIndex1 == 33:
                 jobDictionary["grandStochtrackParams"]["params"]["useReferenceAntennaFactors"] = False
 
-            elif input_params['relative_direction']:
-                jobDictionary["grandStochtrackParams"]["params"].pop("useReferenceAntennaFactors", None)
-    
+
         if input_params['injection_bool'] and not input_params['onTheFly']:
             for temp_waveform in waveformFileNames:
                 jobDictionary["injection_tag"] = temp_waveform
-                current_job += 1
-                
                 stochtrackParamsList.append(deepcopy(jobDictionary))
-                stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['job_group']=  job_group
-                stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
+                stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['job_group']=  job_group
+                stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
                 H1AnteprocJobNums.add(jobNum1)
                 L1AnteprocJobNums.add(jobNum2)
-                
-        else:
-            current_job +=1
-            
+
+                current_job += 1
+        else:    
             stochtrackParamsList.append(deepcopy(jobDictionary))
-            stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['job_group'] = job_group
-            stochtrackParamsList[current_job - 1]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
+            stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['job_group'] = job_group
+            stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
+
             H1AnteprocJobNums.add(jobNum1)
             L1AnteprocJobNums.add(jobNum2)
-    
-    
+            current_job +=1
+            
+
     ###################################################################################
     ###################################################################################
     ###################################################################################
@@ -485,45 +400,28 @@ def main():
     #########
     ###################################################################################
     ###################################################################################
-    ###################################################################################
+    ###################################################################################    
 
-    
-    verbose = False
-    archived_frames_okay = True
-    all_clusters = False
-    restrict_cpus = True
-    no_job_retry = False
-    
-
-    
-    STAMP_setup_script = glueFileLocation(input_params['STAMP2_installation_dir'], "test/stamp_setup.sh")
-    # set other defaults this way too instead of definining them inside the preprocSupportLib.py file
-    
     # paths to executables
-    anteprocExecutable = glueFileLocation(input_params['STAMP2_installation_dir'], "compilationScripts/anteproc")
-    grandStochtrackExecutable = glueFileLocation(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack")
-    grandStochtrackExecutableNoPlots = glueFileLocation(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack_nojvm")
-        
-    # load default dictionary if selected
-    # TODO: fix this for option to exclude default dictionary if wished
-    
-    # load data from jobFile    
-
-    H1_jobs = set(tempNumbersH)
-    L1_jobs = set(tempNumbersL)
+    STAMP_setup_script = os.path.join(input_params['STAMP2_installation_dir'], "test/stamp_setup.sh")    
+    anteprocExecutable = os.path.join(input_params['STAMP2_installation_dir'], "compilationScripts/anteproc")
+    grandStochtrackExecutable = os.path.join(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack")
+    grandStochtrackExecutableNoPlots = os.path.join(input_params['STAMP2_installation_dir'], "compilationScripts/grand_stochtrack_nojvm")
 
     
-    newAdjustedJobPath = adjust_job_file(jobPath, supportDir, input_params['job_duration'], input_params['job_start_shift'])
+    print("Creating ajusted job file")
+    with open(input_params['jobFile']) as h:
+        jobData = [[int(x) for x in line.split()] for line in h]
+    adjustedJobData = [[x[0], x[1] + input_params['job_start_shift'], x[1] + input_params['job_start_shift'] + input_params['job_duration'], input_params['job_duration']] for x in jobData]
+    adjustedJobText = "\n".join(" ".join(str(x) for x in line) for line in adjustedJobData)
+    with open(newAdjustedJobPath, "w") as h:   
+        print >> h, adjustedJobText 
     
-        # create directory to host all of the jobs. maybe drop the cachefiles in here too?
-    jobsBaseDir = create_dir(baseDir + "/jobs")
-    
-        # create cachefile directory
+    # create cachefile directory
     print("Creating cache directory")
-    anteproc_dir = create_dir(baseDir + "/anteproc_data")
     commonParamsDictionary['anteproc_h']["outputfiledir"] = anteproc_dir + "/"
     commonParamsDictionary['anteproc_l']["outputfiledir"] = anteproc_dir + "/"  
-    if not input_params["simulated"]:
+    if not input_params['simulated']:
         cacheDir = create_dir(baseDir + "/cache_files") + "/"
         fakeCacheDir = None
         commonParamsDictionary['anteproc_h']["gpsTimesPath1"] = cacheDir
@@ -538,10 +436,11 @@ def main():
         commonParamsDictionary['anteproc_l']["gpsTimesPath1"] = fakeCacheDir
         commonParamsDictionary['anteproc_l']["frameCachePath1"] = fakeCacheDir
     
-    print("Creating anteproc directory and input files")
-                         
-    #new loop to make anteproc files
+
     
+    #new loop to make anteproc files
+    print("Creating anteproc directory and input files")
+
     for jobNum in H1AnteprocJobNums:
         
         temp_anteproc_h_dict = deepcopy(commonParamsDictionary['anteproc_h'])
@@ -574,42 +473,7 @@ def main():
         
         with open(anteproc_dir + "/L1-anteproc_params_" + str(jobNum) + ".txt", 'w') as h:
             print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])        
-      
-        
-    if input_params["simulated"]:
-        with open(anteproc_dir + "/seeds_for_simulated_data.txt", "w") as outfile:
-            json.dump(organizedSeeds, outfile, sort_keys = True, indent = 4)
-  
-    added_anteproc_dict = {"loadFiles": True,
-                            "timeShift1": 0,
-                            "timeShift2": 0,
-                            "jobFileTimeShift": True,
-                            "bkndstudy": False,
-                            "bkndstudydur": 100,
-                            "jobfile": newJobPath}
-    #NEW LOOP, hopefully replaces next 2 loops
-    #this can likely be moved to much earlier
-    #need to add support for varying parameters
-    for i in range(0, len(stochtrackParamsList)):
-        stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map"
-        stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
-        if "injection_tags" in stochtrackParamsList[i]:
-            stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats1'] += "_" + stochtrackParamsList[i]["injection_tags"]
-            stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc']['inmats2'] += "_" + stochtrackParamsList[i]["injection_tags"]
-        stochtrackParamsList[i]['grandStochtrackParams']['params']['anteproc'].update(added_anteproc_dict)
-        
-        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(stochtrackParamsList[i]["grandStochtrackParams"]["params"]["job_group"]) + "/job_" + str(i + 1))
-        
-        stochtrackParamsList[i]["jobDir"] = jobDir
-        stochtrackParamsList[i]["stochtrackInputDir"] = create_dir(jobDir + "/grandStochtrackInput")
-        stochtrackParamsList[i]["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandStochtrackOutput")
-        stochtrackParamsList[i]["plotDir"] = create_dir(jobDir + "/grandStochtrackOutput" + "/plots")
-        
-        
-        # build dag directory, support directories
-    dagDir = create_dir(baseDir + "/dag")
-    dagLogDir = create_dir(dagDir + "/dagLogs")
-    logDir = create_dir(dagLogDir + "/logs")
+
     
     
     # create grandstochtrack execution script
@@ -617,99 +481,67 @@ def main():
     print("Creating shell scripts")
     grandStochtrack_script_file = dagDir + "/grand_stochtrack.sh"
     if commonParamsDictionary['grandStochtrack']['savePlots']:
-        write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutable, STAMP_setup_script)
+        write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutable, STAMP_setup_script, input_params['matlab_setup_script'])
     else:
-        write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutableNoPlots, STAMP_setup_script)
+        write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutableNoPlots, STAMP_setup_script, input_params['matlab_setup_script'])
     os.chmod(grandStochtrack_script_file, 0o744)
     
-    matlabMatrixExtractionExectuable_script_file = dagDir + "/matlab_matrix_extraction.sh"
-    write_grandstochtrack_bash_script(matlabMatrixExtractionExectuable_script_file, input_params['matlabMatrixExtractionExectuable'], STAMP_setup_script)
-    os.chmod(matlabMatrixExtractionExectuable_script_file, 0o744)
+    #matlabMatrixExtractionExectuable_script_file = dagDir + "/matlab_matrix_extraction.sh"
+    #write_grandstochtrack_bash_script(matlabMatrixExtractionExectuable_script_file, input_params['matlabMatrixExtractionExectuable'], STAMP_setup_script)
+    #os.chmod(matlabMatrixExtractionExectuable_script_file, 0o744)
     
     anteprocExecutable_script_file = dagDir + "/anteproc.sh"
     write_anteproc_bash_script(anteprocExecutable_script_file, anteprocExecutable, STAMP_setup_script)
     os.chmod(anteprocExecutable_script_file, 0o744)
     
+    webPageSH = os.path.join(webpage.load_pycondorstamp_dir(), 'webdisplay/resultsJSON.py') #this one has already been created
+    
     # If relative injection value set, override any existing injection time with calculated relative injection time.
     
     # find frame files
-    for tempJob in set(H1_jobs):
+    for tempJob in set(tempNumbersH):
         print("Finding frames for job " + str(tempJob) + " for H1")
-        #tempJobData = jobDataDict[str(tempJob)]
-        if not input_params["simulated"]:
+        if not input_params['simulated']:
             temp_frames = create_frame_file_list("H1_" + input_params['frame_type'], str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "H")
-            create_cache_and_time_file(temp_frames, "H",tempJob+1,cacheDir, archived_frames_okay = archived_frames_okay)
+            archived_H = create_cache_and_time_file(temp_frames, "H",tempJob+1, cacheDir)
         else:
-            create_fake_cache_and_time_file(times[tempJob][1] - 2, times[tempJob][1] + 1602, "H", tempJob+1, fakeCacheDir)
-    for tempJob in set(L1_jobs):
+            create_fake_cache_and_time_file(str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "H", tempJob, fakeCacheDir)
+    for tempJob in set(tempNumbersL):
         print("Finding frames for job " + str(tempJob) + " for L1")
-        #tempJobData = jobDataDict[str(tempJob)]
-        if not input_params["simulated"]:
+        if not input_params['simulated']:
             temp_frames = create_frame_file_list("L1_" + input_params['frame_type'], str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "L")
-            create_cache_and_time_file(temp_frames, "L",tempJob+1,cacheDir, archived_frames_okay = archived_frames_okay)
+            archived_L = create_cache_and_time_file(temp_frames, "L",tempJob+1, cacheDir)
         else:
-            create_fake_cache_and_time_file(times[tempJob][1] - 2, times[tempJob][1] + 1602, "L", tempJob+1, fakeCacheDir)
+            create_fake_cache_and_time_file(str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "L", tempJob, fakeCacheDir)
+            
+    if archived_H or archived_L:
+        print("WARNING: some needed frames have been archived and will take longer to read off of tape")
+        print(archived_H)
+        print(archived_L)
+        print("WARNING: these jobs will take a long time")
             
     for job in stochtrackParamsList:
         job['grandStochtrackParams'] = recursive_ints_to_floats(job['grandStochtrackParams'])
         sio.savemat(job['stochtrackInputDir'] + "/params.mat", job['grandStochtrackParams'])
-
-    # order plots by job
-    '''
-    # This line likely needs fixing if it's going to work with the variable parameters. otherwise it's fine.
-    jobTempDict = dict((int(job[job.index("_")+1:]),{"job" : job, "job dir" : "job_group_" + jobs[job]["job_group"] + "/" + job}) for job in [x for x in jobs if x != "constants"])
-    
-    if input_params['burstegard']:
-        plotTypeList = ["SNR", "Largest Cluster", "All Clusters", "sig map", "y map", "Xi snr map"]
-        plotTypeDict = {"SNR" : "snr.png", "Largest Cluster" : "large_cluster.png", "All Clusters": "all_clusters.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
-    elif all_clusters:
-        plotTypeList = ["SNR", "Loudest Cluster (stochtrack)", "Largest Cluster (burstegard)", "All Clusters (burstegard)", "sig map", "y map", "Xi snr map"]
-        plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster (stochtrack)" : "rmap.png", "Largest Cluster (burstegard)" : "large_cluster.png", "All Clusters (burstegard)": "all_clusters.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
-    else:
-        plotTypeList = ["SNR", "Loudest Cluster", "sig map", "y map", "Xi snr map"]
-        plotTypeDict = {"SNR" : "snr.png", "Loudest Cluster" : "rmap.png", "sig map" : "sig_map.png", "y map" : "y_map.png", "Xi snr map" : "Xi_snr_map.png"}
-    
-    outFile = "pageDisplayTest.html"
-    
-    jobNumOrder = [jobNum for jobNum in jobTempDict]
-    jobNumOrder.sort()
-    jobOrder = [jobTempDict[jobNum]["job"] for jobNum in jobNumOrder]
-    jobOrderWeb = [jobTempDict[jobNum]["job dir"] for jobNum in jobNumOrder]
-    
-    #webGen.make_display_page(directory, saveDir, subDirList, subSubDir, plotTypeList, plotTypeDict, outputFileName)
-    print('DEBUG NOTE: Maybe figure out how to variablize "grandstochtrackOutput/plots" in next line?')
-    print("Creating webpage")
-    webGen.make_display_page("jobs", baseDir, jobOrderWeb, "grandStochtrackOutput/plots", plotTypeList, plotTypeDict, outFile)
-    '''
-    # build DAGs
-    # preproc DAG
-    # build submission file
-    doGPU = input_params["doGPU"]
-    if doGPU and not input_params['burstegard']:
-        extract_from_gpu = True
-    else:
-        extract_from_gpu = False
-
+        
     print("Creating dag and sub files")
-    #create_anteproc_dag_v6(jobs, grandStochtrack_script_file, matlabMatrixExtractionExectuable_script_file, anteprocExecutable_script_file, dagDir, newJobPath, H1_jobs, L1_jobs, anteprocJobs, multiple_job_group_version, job_order = jobOrder, use_gpu = doGPU, restrict_cpus = restrict_cpus, no_job_retry = no_job_retry, extract_from_gpu = extract_from_gpu, single_cpu = input_params['single_cpu'])
     
     anteprocSub = write_anteproc_sub_file(input_params['anteprocMemory'], anteprocExecutable_script_file, dagDir, input_params['accountingGroup'])
     stochtrackSub = write_stochtrack_sub_file(input_params['grandStochtrackMemory'], grandStochtrack_script_file, dagDir, input_params['accountingGroup'], input_params['doGPU'], input_params['numCPU'])
-    write_dag(dagDir, anteproc_dir, newJobPath, H1AnteprocJobNums, L1AnteprocJobNums, anteprocSub, stochtrackParamsList, stochtrackSub, input_params['maxJobsAnteproc'], input_params['maxJobsGrandStochtrack'])
-    
-    print("NOTE: Job ordering is not currently set up to handle multiple jobs of the same number as numbered by this program.")
-    
+    webDisplaySub = write_webpage_sub_file(webPageSH, dagDir, input_params['accountingGroup'])
+    write_dag(dagDir, anteproc_dir, newJobPath, H1AnteprocJobNums, L1AnteprocJobNums, anteprocSub, stochtrackParamsList, stochtrackSub, input_params['maxJobsAnteproc'], input_params['maxJobsGrandStochtrack'], webDisplaySub, baseDir)
+        
     #create summary of parameters
     generate_summary(input_params, baseDir)
     
-    # create webpage
+    webpage.load_conf_cp_webfiles(baseDir)
     
-    # run top DAG
-    import pprint
-    pprint.pprint(commonParamsDictionary, open(glueFileLocation(input_params['outputDir'], "commonParams_dict.txt"), "w"))
-    pprint.pprint(anteprocHParamsList, open(glueFileLocation(input_params['outputDir'], "anteprocHParams_list.txt"), "w"))
-    pprint.pprint(anteprocLParamsList, open(glueFileLocation(input_params['outputDir'], "anteprocLParams_list.txt"), "w"))
-    pprint.pprint(stochtrackParamsList, open(glueFileLocation(input_params['outputDir'], "stochtrackParams_list.txt"), "w"))
+    if options.verbose:
+        import pprint
+        pprint.pprint(commonParamsDictionary, open(os.path.join(baseDir, "commonParams_dict.txt"), "w"))
+        pprint.pprint(anteprocHParamsList, open(os.path.join(baseDir, "anteprocHParams_list.txt"), "w"))
+        pprint.pprint(anteprocLParamsList, open(os.path.join(baseDir, "anteprocLParams_list.txt"), "w"))
+        pprint.pprint(stochtrackParamsList, open(os.path.join(baseDir, "stochtrackParams_list.txt"), "w"))
 
 if __name__ == "__main__":
     main()

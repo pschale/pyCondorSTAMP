@@ -41,7 +41,8 @@ def getDefaultCommonParams():
                     'nBinsToRemove': "",
                     'outputfilename': "map",
                     'storemats': True,
-                    'pp_seed': -1},
+                    'pp_seed': -1,
+},
         "preproc" : {
                      'ShiftTime1': 1,
                      'ShiftTime2': 0,
@@ -133,14 +134,15 @@ def getDefaultCommonParams():
                             "TmapBuffer": 1,
                             "alternative_sigma": 0,
                             "anteproc": {
-                                "bkndstudy": 0,
                                 "inmats1": [],
                                 "inmats2": [],
-                                "jobFileTimeShift": 0,
-                                "loadFiles": 0,
+                                "useCache": 0,
+                                "loadFiles": True,
                                 "timeShift1": 0,
                                 "timeShift2": 0,
-                                "useCache": 0
+                                "jobFileTimeShift": True,
+                                "bkndstudy": False,
+                                "bkndstudydur": 100
                             },
                             "bestAntennaFactors": 0,
                             "bkndstudy": 0,

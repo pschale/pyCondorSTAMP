@@ -2,13 +2,9 @@
 
 "outputDir" : "/home/paul.schale/public_html/STAMP_outputs",
 
-"default_config_file" : "inputFileBase_v6_job_shift.txt",
-"defaultDictionaryPath" : "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/defaultStochtrack.json",
-"anteprocDefault" : "/home/quitzow/GIT/Development_Branches/pyCondorSTAMP/anteproc_defaults.txt",
 "STAMP2_installation_dir" : "/home/paul.schale/STAMP/stamp2/",
 "matlabMatrixExtractionExectuable" : "/home/quitzow/GIT/Development_Branches/MatlabExecutableDuctTape/getSNRandCluster",
-
-
+"matlab_setup_script": "/home/paul.schale/svn/STAMP_08_26_16/STAMPAS/matlab_script_2015a.sh",
 
 "jobFile" : "/home/paul.schale/job_files/oct_7_O1_job.txt",
 "triggerNumber" : 1003,
@@ -23,6 +19,7 @@
 "T" : 1000,
 "F" : 3000,
 "_comment" : "T is number of times clustering algorithm runs, F is number of tracks each run",
+"maxNumJobPairs": 1000,
 
 "accountingGroup": "ligo.dev.s6.burst.sgr_qpo.stamp",
 "anteprocMemory": 2048,

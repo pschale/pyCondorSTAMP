@@ -1,9 +1,0 @@
-input of pure preproc jobs
-input of vetos
-	if vetos, make new preproc job file and run from that.
-
-
-preproc needs to be set up to support multiple “jobs” per condor job (this is first)
-	must replace ‘["grandStochtrackParams"]["job”]’ with ‘[“preprocParams"]["job”]’
-
-option for relative time for injection.
