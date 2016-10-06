@@ -524,13 +524,6 @@ def main():
         job['grandStochtrackParams'] = recursive_ints_to_floats(job['grandStochtrackParams'])
         sio.savemat(job['stochtrackInputDir'] + "/params.mat", job['grandStochtrackParams'])
         
-    
-    doGPU = input_params["doGPU"]
-    if doGPU and not input_params['burstegard']:
-        extract_from_gpu = True
-    else:
-        extract_from_gpu = False
-
     print("Creating dag and sub files")
     
     anteprocSub = write_anteproc_sub_file(input_params['anteprocMemory'], anteprocExecutable_script_file, dagDir, input_params['accountingGroup'])
