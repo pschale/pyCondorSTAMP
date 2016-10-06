@@ -361,7 +361,7 @@ def write_grandstochtrack_bash_script(file_name, executable, STAMP_export_script
     output_string += "source " + STAMP_export_script + "\n"
     output_string += "source " + matlab_setup_script + "\n"
     output_string += "ulimit -v " + str(memory_limit) + "\n"
-    output_string += executable + "$1 $2"
+    output_string += executable + " $1 $2"
     with open(file_name, "w") as outfile:
         print >> outfile, output_string
 
@@ -369,7 +369,7 @@ def write_anteproc_bash_script(file_name, executable, STAMP_export_script, memor
     output_string = "#!/bin/bash\n"
     output_string += "source " + STAMP_export_script + "\n"
     output_string += "ulimit -v " + str(memory_limit) + "\n"
-    output_string += executable + "$1 $2 $3"
+    output_string += executable + " $1 $2 $3"
 
     with open(file_name, "w") as outfile:
         print >> outfile, output_string
