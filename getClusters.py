@@ -52,7 +52,7 @@ jobDirs = [x for x in os.listdir(baseDir) if "job" in x]
 
 print("WARNING: Script is currently not set up to handle directories with multiple files with the name base.")
 
-gsoutMats = dict((returnMatrixFilePath("bknd_", baseDir + "/" + x + "/grandstochtrackOutput"), x) for x in jobDirs)
+gsoutMats = dict((returnMatrixFilePath("bknd_", baseDir + "/" + x + "/grandStochtrackOutput"), x) for x in jobDirs)
 
 SNRs = [getSNR(fileName) for fileName in gsoutMats]
 Lengths = [getLength(fileName) for fileName in gsoutMats]

@@ -325,7 +325,7 @@ def getCommonParams(input_params):
         
     if input_params['maxband']:
         if input_params['maxband_mode'] == "percent":
-            commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxBandPercentage'] = True
+            commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxbandPercentage'] = True
             commonParamsDictionary['grandStochtrack']['stochtrack']['maxbandPercentage'] = input_params['maxband']
             print("WARNING - doMaxbandPercentage is active - this only works with STAMP revision 12522 or later")
         elif input_params['maxband_mode'] == "absolute":
