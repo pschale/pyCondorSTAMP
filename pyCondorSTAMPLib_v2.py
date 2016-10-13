@@ -5,6 +5,8 @@ import numpy as np
 from os import getcwd, path, makedirs
 import collections, datetime, random, subprocess
 from load_defaults import getDefaultCommonParams
+import ConfigParser
+import json
 
 
 def dated_dir(name, date = None, iterate_name = True):
@@ -196,8 +198,23 @@ def make_file_path_absolute(file_path):
     
     return absolute_path
 
-def generate_summary(params_dict, output_dir):
+def generate_summary(configs, output_dir):
 
+    for s in configs.sections():
+        changed += '[' + s + ']' + '\n'
+        unchanged += '[' + s + ']' + '\n'
+        for o in configs.options(s):
+            if o in defaultConfigs and not str(defaultConfigs[o]) == configs.get(s, o):
+                changed += o + '\t' + configs.get(s, o) + '\n'
+            else:
+                unchanged += o + '\t' + configs.get(s, o) + '\n'
+    
+    outputStr = unchanged + "=============================================================\n\n" + changed
+    
+    with(open(path.join(output_dir, 'summary.txt'), "w") as h:
+        print >>h outputStr
+                
+'''
     output_str = "Summary of Parameters\n\nThe following parameters have been changed from default values:\n\n"
     
     params_dict.pop("_comment", None)
@@ -219,7 +236,7 @@ def generate_summary(params_dict, output_dir):
             output_str += key + "\t" + str(params_dict[key]) + "\n"        
     with open(path.join(output_dir, 'summary.txt'), "w") as h:
         print >> h, output_str
-        
+    '''
 def recursive_ints_to_floats(in_dict):
 
     for key, val in in_dict.iteritems():
@@ -243,46 +260,36 @@ def deepupdate(d, u):
             d[k] = u[k]
     return d
     
-def getCommonParams(input_params):
+def getCommonParams(configs):
     commonParamsDictionary = getDefaultCommonParams()   
-    
-    if input_params['polarization_smaller_response']: #this might need adjustment for particular triggers
-        wave_iota = 120
-        wave_psi = 45
-    else:
-        wave_iota = 0
-        wave_psi = 0
 
-    commonParamsDictionary['grandStochtrack']['stochtrack']['T'] = input_params['T']
-    commonParamsDictionary['grandStochtrack']['stochtrack']['F'] = input_params['F']
+    commonParamsDictionary['grandStochtrack']['stochtrack']['T'] = configs.getint('search', 'T')
+    commonParamsDictionary['grandStochtrack']['stochtrack']['F'] = configs.getint('search', 'F')
         
-    if input_params['burstegard']:
+    if configs.getboolean('search', 'burstegard'):
         commonParamsDictionary['grandStochtrack']['doBurstegard'] = True
+        commonParamsDictionary['grandStochtrack']['doStochtrack'] = False
     else:
-        if input_params['long_pixel']:
+        if configs.getboolean('search', 'longPixel'):
             commonParamsDictionary['anteproc_h']['segmentDuration'] = 4
             commonParamsDictionary['anteproc_l']['segmentDuration'] = 4
+            commonParamsDictionary['grandStochtrack']['stochtrack']['mindur'] = 25
+            commonParamsDictionary['preproc']['segmentDuration'] = 4
         else:
             commonParamsDictionary['anteproc_h']['segmentDuration'] = 1
             commonParamsDictionary['anteproc_l']['segmentDuration'] = 1
-            
-        commonParamsDictionary['grandStochtrack']['doStochtrack'] = True
-        
-        if input_params['long_pixel']:
-            commonParamsDictionary['grandStochtrack']['stochtrack']['mindur'] = 25
-            commonParamsDictionary['preproc']['segmentDuration'] = 4
-
-        else:
             commonParamsDictionary['grandStochtrack']['stochtrack']['mindur'] = 100
             commonParamsDictionary['grandStochtrack']['stochtrack']['F'] = 600
+            commonParamsDictionary['job_start_shift'] = 6
+            commonParamsDictionary['job_duration'] = 400
     
-    if input_params['simulated']:
+    if configs.getboolean('search', 'simulated'):
         commonParamsDictionary['anteproc_h']['doDetectorNoiseSim'] = True
         commonParamsDictionary['anteproc_l']['doDetectorNoiseSim'] = True
-        commonParamsDictionary['anteproc_h']['DetectorNoiseFile'] = input_params['LHO_Welch_PSD_file']
-        commonParamsDictionary['anteproc_l']['DetectorNoiseFile'] = input_params['LLO_Welch_PSD_file']
+        commonParamsDictionary['anteproc_h']['DetectorNoiseFile'] = configs.get('search', 'lhoWelchPsd')
+        commonParamsDictionary['anteproc_l']['DetectorNoiseFile'] = configs.get('search', 'lloWelchPsd')
 
-        if not input_params['show_plots_when_simulated']:
+        if not configs.getboolean('search', 'show_plots_when_simulated'):
             commonParamsDictionary['grandStochtrack']['savePlots'] = False
     else:
         commonParamsDictionary['anteproc_h']['doDetectorNoiseSim'] = False
@@ -290,68 +297,70 @@ def getCommonParams(input_params):
     
     
     # Add in injections (if desired)
-    if input_params['injection_bool']:
-        if input_params['onTheFly']:
+    if configs.getboolean('injection', 'doInjections'):
+        if configs.getboolean('injection', 'polarizationSmallerResponse'):
+            wave_iota = 120
+            wave_psi = 45
+        else:
+            wave_iota = 0
+            wave_psi = 0
+        
+        if configs.getboolean('injection', 'onTheFly'):
             # stamp_alpha was waveformPowerAmplitudeScaling here
             commonParamsDictionary['anteproc_h']['stampinj'] = True
-            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = input_params['stamp_alpha']
+            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = configs.getfloat('injection', 'stampAlpha')
             commonParamsDictionary['anteproc_h']['stamp']['iota'] = wave_iota
             commonParamsDictionary['anteproc_h']['stamp']['psi'] = wave_psi         
             commonParamsDictionary['anteproc_l']['stampinj'] = True
-            commonParamsDictionary['anteproc_l']['stamp']['alpha'] = input_params['stamp_alpha']
+            commonParamsDictionary['anteproc_l']['stamp']['alpha'] = configs.getfloat('injection', 'stampAlpha')
             commonParamsDictionary['anteproc_l']['stamp']['iota'] = wave_iota
             commonParamsDictionary['anteproc_l']['stamp']['psi'] = wave_psi
             
             
         else:
             commonParamsDictionary['anteproc_h']['stampinj'] = True
-            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = input_params['stamp_alpha']
+            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = configs.getfloat('injection', 'stampAlpha')
             commonParamsDictionary['anteproc_h']['stamp']['iota'] = 0
             commonParamsDictionary['anteproc_h']['stamp']['psi'] = 0           
             commonParamsDictionary['anteproc_l']['stampinj'] = True
-            commonParamsDictionary['anteproc_l']['stamp']['alpha'] = input_params['stamp_alpha']
+            commonParamsDictionary['anteproc_l']['stamp']['alpha'] = configs.getfloat('injection', 'stampAlpha')
             commonParamsDictionary['anteproc_l']['stamp']['iota'] = 0
             commonParamsDictionary['anteproc_l']['stamp']['psi'] = 0
-    
-    if input_params['singletrack_bool']:
+            commonParamsDictionary['preproc']['stamp']['file'] = configs.getfloat('injection', 'injectionFile')
+            commonParamsDictionary['preproc']['stamp']['alpha'] = 1e-40
+            
+    if configs.getboolean('singletrack', 'singletrackBool'):
         commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['doSingletrack'] = True
-        commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['trackInputFiles'] = array(input_params['singletrack_input_files'], dtype=object)
+        commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['trackInputFiles'] = array(json.loads(configs.get('singletrack', 'singletrackInputFiles')), dtype=object)
     else:
         commonParamsDictionary['grandStochtrack']['stochtrack'].pop('singletrack')
         
-    if input_params['set_stochtrack_seed']:
+    if configs.getboolean('search', 'setStochtrackSeed'):
         commonParamsDictionary['grandStochtrack']['stochtrack']['doSeed'] = True
         commonParamsDictionary['grandStochtrack']['stochtrack']['seed'] = 2015
         
-    if input_params['maxband']:
-        if input_params['maxband_mode'] == "percent":
+    if configs.getboolean('search', 'doMaxband'):
+        if configs.get('search', 'maxbandMode') == "percent":
             commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxBandPercentage'] = True
-            commonParamsDictionary['grandStochtrack']['stochtrack']['maxbandPercentage'] = input_params['maxband']
+            commonParamsDictionary['grandStochtrack']['stochtrack']['maxbandPercentage'] = configs.getfloat('search', 'maxband')
             print("WARNING - doMaxbandPercentage is active - this only works with STAMP revision 12522 or later")
-        elif input_params['maxband_mode'] == "absolute":
+        elif configs.get('search', 'maxbandMode') == "absolute":
             commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxBandPercentage'] = False
-            commonParamsDictionary['grandStochtrack']['stochtrack']['maxband'] = input_params['maxband']
+            commonParamsDictionary['grandStochtrack']['stochtrack']['maxband'] = configs.getfloat('search', 'maxband')
         else:
-            raise pyCondorSTAMPanteprocError("Unrecognized option for maxband_mode: " + input_params['maxband_mode'] + ".  Must be either 'percent' or 'absolute'")
+            raise ValueError("Unrecognized option for maxband_mode: " + configs.get('search', 'maxbandMode') + ".  Must be either 'percent' or 'absolute'")
     
-    if not input_params['long_pixel']:
-        commonParamsDictionary['job_start_shift'] = 6
-        commonParamsDictionary['job_duration'] = 400
     
-    if input_params['simulated'] and onsource and input_params['pre_seed']:
+    if configs.getboolean('search', 'simulated') and onsource and configs.getboolean('search', 'preSeed'):
         commonParamsDictionary['anteproc_h']['job_seed'] = 2694478780        
         commonParamsDictionary['anteproc_h']['job_seed'] = 4222550304
         #NEED TO FIGURE OUT HOW THIS ONE WORKS
     
-    if not input_params['relative_direction']:
-        commonParamsDictionary['grandStochtrack']['ra'] = input_params['RA']
-        commonParamsDictionary['grandStochtrack']['dec'] = input_params['DEC']
-    
-    if input_params['injection_bool'] and not input_params['onTheFly']:
-        commonParamsDictionary['preproc']['stamp']['file'] = input_params['injection_file']
-        commonParamsDictionary['preproc']['stamp']['alpha'] = 1e-40
+    if not configs.getboolean('search', 'relativeDirection'):
+        commonParamsDictionary['grandStochtrack']['ra'] = configs.getfloat('trigger', 'RA')
+        commonParamsDictionary['grandStochtrack']['dec'] = configs.getfloat('trigger', 'DEC')
         
-    if input_params['doGPU']:
+    if configs.getboolean('condor', 'doGPU'):
         commonParamsDictionary['grandStochtrack']['doGPU'] = True
     
     return commonParamsDictionary
@@ -485,79 +494,43 @@ def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums, L1AnteprocJobNums
     with open(dagDir + "/stampAnalysis.dag", "w") as h:
         print >> h, output 
         
-def get_default_params():
-    return {"outputDir" : "/home/paul.schale/public_html/STAMP_outputs",
-
-    "STAMP2_installation_dir" : "/home/paul.schale/STAMP/stamp2/",
-    "matlabMatrixExtractionExectuable" : "/home/quitzow/GIT/Development_Branches/MatlabExecutableDuctTape/getSNRandCluster",
-
-    "jobFile" : "/home/paul.schale/job_files/oct_7_O1_job.txt",
-    "triggerNumber" : 1003,
-    "triggerTime" : 1132012817,
-    "RA" : 18.01093806,
-    "DEC" : -20.0110694,
-
+def getDefaultConfigs():
+    return {
     "channel" : "DCS-CALIB_STRAIN_C01",
     "frame_type" : "HOFT_C01",
 
-    "T" : 1000,
-    "F" : 3000,
+    "T" : 3000,
+    "F" : 10000,
     
     "relative_direction" : True,
 
-    "lines_to_cut" : [52, 53, 57, 58, 59, 60, 61, 62, 63, 64, 85, 108, 119, 120, 121, 178, 179, 180, 181, 182, 239, 240, 241, 300, 360, 372, 400, 404, 480, 1380, 1560, 1740],
+    "linesToCut" : [52, 53, 57, 58, 59, 60, 61, 62, 63, 64, 85, 108, 119, 120, 121, 178, 179, 180, 181, 182, 239, 240, 241, 300, 360, 372, 400, 404, 480, 1380, 1560, 1740],
 
     "accountingGroup": "ligo.dev.s6.burst.sgr_qpo.stamp",
     "anteprocMemory": 2048,
     "grandStochtrackMemory": 4000,
-    "doGPU": False,
+    "doGPU": True,
     "numCPU" : 1,
-    "maxJobsAnteproc": 20,
-    "maxJobsGrandStochtrack" : 100,
 
     "anteproc_bool" : True,
     "burstegard" : False,
-    "long_pixel" : True,
-    "set_stochtrack_seed" : False,
-    "pseudo_random_jobs_per_side" : 1,
-    "pre_seed" : False,
-    "singletrack_bool" : False,
-    "singletrack_input_files" : "EXAMPLES AT /home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v4/job_39/grandstochtrackOutput/bknd_39.mat,/home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v4/job_6/grandstochtrackOutput/bknd_6.mat,/home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v3/job_4/grandstochtrackOutput/bknd_4.mat,/home/quitzow/public_html/Magnetar/upper_limits/sgr_trigger_2469/stamp_analysis_anteproc-2015_10_13/jobs/job_group_1_v4/job_11/grandstochtrackOutput/bknd_11.mat",
+    "longPixel" : True,
+    "setStochtrackSeed" : False,
+    "singletrackBool" : False,
 
     "maxband" : 0.10,
-    "maxband_mode" : False,
+    "maxbandMode" : False,
 
     "simulated": False,
-    "LHO_Welch_PSD_file" : "EXAMPLE FILE AT /home/quitzow/public_html/Magnetar/closed_box/sgr_trigger_2469/power_curve/PSD_estimates/LHO_Welch_PSD_for_940556300-940557106GPS.txt",
-    "LLO_Welch_PSD_file" : "EXAMPLE FILE AT /home/quitzow/public_html/Magnetar/closed_box/sgr_trigger_2469/power_curve/PSD_estimates/LLO_Welch_PSD_for_940556300-940557106GPS.txt",
-
-    "on_source_file_path" : "EXAMPLE FILE AT /home/quitzow/public_html/Magnetar/open_box/sgr_trigger_2469/stochtrack/stamp_analysis_anteproc-2015_9_11/jobs/job_group_1/job_1/grandstochtrackOutput/bknd_1.mat",
-    "off_source_json_path" : "EXAMPLE FILE AT /Users/pschale/ligo/STAMP/SGR_trigger_files/sgr_trigger_2469/upper_limits/job_pairs_with_low_SNR_sgr_trigger_2469_ref_dir.txt",
-
+    
     "show_plots_when_simulated" : True,
 
-    "constant_f_window" : True,
-    "constant_f_mask" : True,
+    "constantFreqWindow" : True,
+    "constantFreqMask" : True,
 
-    "remove_cluster" : False,
-
-    "job_subset_limit" : 2,
+    "maskCluster" : False,
 
     "injection_bool" : False,
     "onTheFly" : True,
-    "long_tau" : True,
-    "injection_file" : "NEED FILE HERE IF NOT onTheFly",
-
-
-    "polarization_smaller_response" : False,
-    "injection_random_start_time" : False,
-    "stamp_alpha" : 1e-40,
-    "wave_frequency" : 150,
-    "relativeInjectionDirection" : True,
-
-    "include_variations" : False,
-    "number_variation_jobs" : 2,
-    "anteproc_varying_param" : [["num_space", "stamp.alpha", "logarithmic_sqrt", 1.296e-43, 1.369e-43]],
-
-    "list_of_important_settings" : ["triggerNumber", "injection_bool", "maxband_mode", "T", "F"]}
+    "relativeInjectionDirection" : True}
 
