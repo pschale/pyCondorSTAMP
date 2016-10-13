@@ -341,11 +341,11 @@ def getCommonParams(configs):
         
     if configs.getboolean('search', 'doMaxband'):
         if configs.get('search', 'maxbandMode') == "percent":
-            commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxBandPercentage'] = True
+            commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxbandPercentage'] = True
             commonParamsDictionary['grandStochtrack']['stochtrack']['maxbandPercentage'] = configs.getfloat('search', 'maxband')
             print("WARNING - doMaxbandPercentage is active - this only works with STAMP revision 12522 or later")
         elif configs.get('search', 'maxbandMode') == "absolute":
-            commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxBandPercentage'] = False
+            commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxbandPercentage'] = False
             commonParamsDictionary['grandStochtrack']['stochtrack']['maxband'] = configs.getfloat('search', 'maxband')
         else:
             raise ValueError("Unrecognized option for maxband_mode: " + configs.get('search', 'maxbandMode') + ".  Must be either 'percent' or 'absolute'")
