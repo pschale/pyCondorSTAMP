@@ -212,7 +212,7 @@ def generate_summary(configs, output_dir):
     outputStr = unchanged + "=============================================================\n\n" + changed
     
     with open(path.join(output_dir, 'summary.txt'), "w") as h:
-        print >>h outputStr
+        print >>h, outputStr
                 
 '''
     output_str = "Summary of Parameters\n\nThe following parameters have been changed from default values:\n\n"
