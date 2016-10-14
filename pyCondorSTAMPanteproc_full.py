@@ -168,7 +168,7 @@ def main():
                 if index1 != index2:
                     deltaTotal += [abs(triggerJobStart - job1[1]) + abs(triggerJobStart - job2[1])]
                     jobPairs += [[index1, index2]]
-        sortedIndices = argsort(deltaTotal)[:configs.get('search', 'maxNumJobPairs')]#input_params['maxNumJobPairs']]
+        sortedIndices = argsort(deltaTotal)[:configs.getint('search', 'maxNumJobPairs')]#input_params['maxNumJobPairs']]
         sortedJobPairs = [jobPairs[x] for x in sortedIndices]
         
     else:
