@@ -150,7 +150,7 @@ def main():
             jobDictionary["grandStochtrackParams"]["params"]["clusterFile"] = source_file_dict[jobIndex1][jobIndex2]
         #cut down to max number of jobs (if needed)
         if len(sortedJobPairs) > configs.getint('upperlimits', 'jobSubsetLimit'):#input_params['job_subset_limit']:
-            sortedJobPairs = sortedJobPairs[:configs.getint('upperlimits', 'jobSubsetLimit')#input_params['job_subset_limit']]
+            sortedJobPairs = sortedJobPairs[:configs.getint('upperlimits', 'jobSubsetLimit')]#input_params['job_subset_limit']]
             
     elif onsource:
         sortedJobPairs = [[0,0]]
