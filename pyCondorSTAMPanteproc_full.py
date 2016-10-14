@@ -75,7 +75,7 @@ def main():
         configs.set('injection', 'injectionRandomStartTime', 'False')#input_params['injection_random_start_time'] = False
         configs.set('injection', 'includeVariations', 'False')#input_params['include_variations'] = False
         
-    if configs.getboolean('singetrack', 'singletrackBool'):#input_params['singletrack_bool']:
+    if configs.getboolean('singletrack', 'singletrackBool'):#input_params['singletrack_bool']:
         configs.set('condor', 'numCPU', '1')#input_params['single_cpu'] = True
         configs.set('condor', 'doGPU', 'False')
     
