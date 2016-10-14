@@ -200,6 +200,8 @@ def make_file_path_absolute(file_path):
 
 def generate_summary(configs, output_dir):
 
+    change = ""
+    unchanged = ""
     for s in configs.sections():
         changed += '[' + s + ']' + '\n'
         unchanged += '[' + s + ']' + '\n'
