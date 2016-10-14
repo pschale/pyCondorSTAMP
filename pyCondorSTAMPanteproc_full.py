@@ -295,11 +295,9 @@ def main():
     if configs.getboolean('search', 'constantFreqMask'):#input_params['constant_f_mask']:
         commonParamsDictionary['grandStochtrack']['StampFreqsToRemove'] = json.loads(configs.get('search', 'linesToCut'))#input_params['lines_to_cut']
     
-    if configs.getboolean('search', 'constantFreqMask'):#input_params['remove_cluster']:
+    if configs.getboolean('search', 'maskCluster'):#input_params['remove_cluster']:
         commonParamsDictionary['grandStochtrack']['maskCluster'] = True
-    
-    if configs.getboolean('search', 'constantFreqMask'):#input_params['include_variations']:
-        commonParamsDictionary['grandStochtrack']['maskCluster'] = True
+        commonParamsDictionary['grandStochtrack']['clusterFile'] = configs.get('search', 'clusterFile')
     
     if configs.getboolean('search', 'constantFreqMask'):#input_params['injection_random_start_time']:
         commonParamsDictionary['varying_injection_start'] = [-2, 1604 - wave_duration - 2]
