@@ -407,7 +407,7 @@ def main():
 
     
     print("Creating ajusted job file")
-    with open(configs.get('trigger', 'jobFile') as h:#input_params['jobFile']) as h:
+    with open(configs.get('trigger', 'jobFile')) as h:#input_params['jobFile']) as h:
         jobData = [[int(x) for x in line.split()] for line in h]
     #adjustedJobData = [[x[0], x[1] + input_params['job_start_shift'], x[1] + input_params['job_start_shift'] + input_params['job_duration'], input_params['job_duration']] for x in jobData]
     adjustedJobData = [[x[0], x[1] + configs.getint('search', 'jobStartShift'), x[1] + configs.getint('search', 'jobStartShift') + configs.getint('search', 'jobDuration'), configs.getint('search', 'jobDuration')] for x in jobData]
