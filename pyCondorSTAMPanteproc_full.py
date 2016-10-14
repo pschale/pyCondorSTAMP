@@ -322,20 +322,24 @@ def main():
         job1EndTime = times[jobIndex1][2]
         
         jobDictionary = {'grandStochtrackParams': {'params':deepcopy(commonParamsDictionary['grandStochtrack'])}}
-        job_dir = baseDir + "/jobs/job_group_1/job_" + str(current_job + 1)
-        jobDictionary["grandStochtrackParams"]["params"]["plotdir"] = job_dir + "/grandStochtrackOutput/plots/"
-        jobDictionary["grandStochtrackParams"]["params"]["outputfilename"] = job_dir + "/grandStochtrackOutput/map"
-        jobDictionary["grandStochtrackParams"]["params"]["ofile"] = job_dir + "/grandStochtrackOutput/bknd"
+        
+        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(job_group) + "/job_" + str(current_job + 1))
+
+        jobDictionary["grandStochtrackParams"]["params"]["plotdir"] = jobDir + "/grandStochtrackOutput/plots/"
+        jobDictionary["grandStochtrackParams"]["params"]["outputfilename"] = jobDir + "/grandStochtrackOutput/map"
+        jobDictionary["grandStochtrackParams"]["params"]["ofile"] = jobDir + "/grandStochtrackOutput/bknd"
         jobDictionary["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
         jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map"
         jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
         jobDictionary['grandStochtrackParams']['params']['anteproc']["jobfile"] = newAdjustedJobPath
-        
-        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(job_group) + "/job_" + str(current_job + 1))
+
         jobDictionary["jobDir"] = jobDir
         jobDictionary["stochtrackInputDir"] = create_dir(jobDir + "/grandStochtrackInput")
         jobDictionary["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandStochtrackOutput")
         jobDictionary["plotDir"] = create_dir(jobDir + "/grandStochtrackOutput" + "/plots")
+        
+        if commonParamsDictionary['grandStochtrack']['stochtrack']['saveMat']:
+            commonParamsDictionary['grandStochtrack']['stochtrack']['matfile'] = jobDir + "/snrs.mat"
         
         if "injection_tags" in jobDictionary:
             jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats1'] += "_" + jobDictionary["injection_tags"]

@@ -368,6 +368,9 @@ def getCommonParams(configs):
         
     if configs.getboolean('condor', 'doGPU'):
         commonParamsDictionary['grandStochtrack']['doGPU'] = True
+        
+    if not configs.getboolean('search', 'burstegard') and configs.getboolean('search', 'saveStochtrackMats'):
+        commonParamsDictionary['grandStochtrack']['stochtrack']['saveMat']
     
     return commonParamsDictionary
     
