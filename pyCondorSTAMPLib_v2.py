@@ -370,7 +370,7 @@ def getCommonParams(configs):
         commonParamsDictionary['grandStochtrack']['doGPU'] = True
         
     if not configs.getboolean('search', 'burstegard') and configs.getboolean('search', 'saveStochtrackMats'):
-        commonParamsDictionary['grandStochtrack']['stochtrack']['saveMat']
+        commonParamsDictionary['grandStochtrack']['stochtrack']['saveMat'] = True
     
     return commonParamsDictionary
     
