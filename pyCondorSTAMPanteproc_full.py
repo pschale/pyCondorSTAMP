@@ -419,7 +419,7 @@ def main():
     print("Creating cache directory")
     commonParamsDictionary['anteproc_h']["outputfiledir"] = anteproc_dir + "/"
     commonParamsDictionary['anteproc_l']["outputfiledir"] = anteproc_dir + "/"  
-    if not configs.getboolean('search', 'simulated')#input_params['simulated']:
+    if not configs.getboolean('search', 'simulated'):#input_params['simulated']:
         cacheDir = create_dir(baseDir + "/cache_files") + "/"
         fakeCacheDir = None
         commonParamsDictionary['anteproc_h']["gpsTimesPath1"] = cacheDir
