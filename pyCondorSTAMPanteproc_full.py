@@ -273,7 +273,7 @@ def main():
                 commonParamsDictionary["waveform"][waveform] = os.path.join(waveformDirectory, temp_name + waveformFileExtention)
     
     
-    if configs.getboolean('search', 'relativeDirection')#input_params['relative_direction']:
+    if configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
     
         refTime = configs.getboolean('trigger', 'triggerTime') - 2#input_params['triggerTime'] - 2
     
@@ -290,20 +290,20 @@ def main():
         commonParamsDictionary['anteproc_l']['stamp']['decl'] = configs.getfloat('trigger', 'DEC')#input_params['DEC']
 
     
-    if configs.getboolean('search', 'constantFreqWindow')#input_params['constant_f_window']:
+    if configs.getboolean('search', 'constantFreqWindow'):#input_params['constant_f_window']:
         commonParamsDictionary['grandStochtrack']['fmin'] = 40
         commonParamsDictionary['grandStochtrack']['fmax'] = 2500
 
-    if configs.getboolean('search', 'constantFreqMask')#input_params['constant_f_mask']:
+    if configs.getboolean('search', 'constantFreqMask'):#input_params['constant_f_mask']:
         commonParamsDictionary['grandStochtrack']['StampFreqsToRemove'] = json.loads(configs.get('search', 'linesToCut'))#input_params['lines_to_cut']
     
-    if configs.getboolean('search', 'constantFreqMask')#input_params['remove_cluster']:
+    if configs.getboolean('search', 'constantFreqMask'):#input_params['remove_cluster']:
         commonParamsDictionary['grandStochtrack']['maskCluster'] = True
     
-    if configs.getboolean('search', 'constantFreqMask')#input_params['include_variations']:
+    if configs.getboolean('search', 'constantFreqMask'):#input_params['include_variations']:
         commonParamsDictionary['grandStochtrack']['maskCluster'] = True
     
-    if configs.getboolean('search', 'constantFreqMask')#input_params['injection_random_start_time']:
+    if configs.getboolean('search', 'constantFreqMask'):#input_params['injection_random_start_time']:
         commonParamsDictionary['varying_injection_start'] = [-2, 1604 - wave_duration - 2]
     
                 
