@@ -14,7 +14,7 @@ from ConfigParser import ConfigParser
 def main():
     parser = OptionParser()
     
-    parser.add_option("-p", "--params-file", dest = "params_file",
+    parser.add_option("-c", "--config-file", dest = "configFilePath",
                       help = "Path to params file")
     parser.add_option("-v", "--verbose", 
                         action = "store_true", dest = "verbose", default = False,
@@ -22,18 +22,17 @@ def main():
     
     (options, args) = parser.parse_args()
     
-    params_file_path = options.params_file
+    configFilePath = options.configFilePath
     
-    if params_file_path[0] == ".":
-        params_file_path = os.getcwd() + params_file_path[1:]
-    elif params_file_path[0] == "~":
-        params_file_path = os.path.expanduser('~') + params_file_path[1:]
-    elif not params_file_path[0] == "/":
-        params_file_path = os.getcwd() + "/" + params_file_path[0:]
+    if configFilePath[0] == ".":
+        configFilePath = os.getcwd() + configFilePath[1:]
+    elif configFilePath[0] == "~":
+        configFilePath = os.path.expanduser('~') + configFilePath[1:]
+    elif not configFilePath[0] == "/":
+        configFilePath = os.getcwd() + "/" + configFilePath[0:]
         
     configs = ConfigParser()
     configs.read(configFilePath)
-    input_params = json.load(open(params_file_path))
     
     #Following lines DISABLED, dictionary now used due to increased security
     #this loads all of the input parameters into local variables.  It's kind of magic
