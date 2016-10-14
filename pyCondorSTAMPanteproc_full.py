@@ -47,7 +47,7 @@ def main():
     if configs.getboolean('injection', 'doInjections') and not configs.getboolean('injection', 'onTheFly') and not os.isfile(injection_file):
         pyCondorSTAMPanteprocError("Injection file does not exist.  Make onTheFly true if you do not wish to specify an injection file")
         
-    if configs.getboolean('injection', 'long_tau'):
+    if configs.getboolean('injection', 'longTau'):
         wave_tau = 400
     else:
         wave_tau = 150
