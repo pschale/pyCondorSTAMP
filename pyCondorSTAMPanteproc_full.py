@@ -273,7 +273,7 @@ def main():
     
     if configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
     
-        refTime = configs.getboolean('trigger', 'triggerTime') - 2#input_params['triggerTime'] - 2
+        refTime = configs.getfloat('trigger', 'triggerTime') - 2#input_params['triggerTime'] - 2
     
         commonParamsDictionary['grandStochtrack']['useReferenceAntennaFactors'] = True
         commonParamsDictionary['grandStochtrack']['referenceGPSTime'] = refTime
