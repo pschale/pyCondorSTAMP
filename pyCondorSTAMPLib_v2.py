@@ -211,7 +211,7 @@ def generate_summary(configs, output_dir):
     
     outputStr = unchanged + "=============================================================\n\n" + changed
     
-    with(open(path.join(output_dir, 'summary.txt'), "w") as h:
+    with open(path.join(output_dir, 'summary.txt'), "w") as h:
         print >>h outputStr
                 
 '''
