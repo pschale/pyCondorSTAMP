@@ -212,7 +212,7 @@ def generate_summary(configs, output_dir):
             else:
                 unchanged += o + '\t' + configs.get(s, o) + '\n'
     
-    outputStr = unchanged + "=============================================================\n\n" + changed
+    outputStr = "Parameters of note:\n\n" + changed + "=============================================================\n\n" + unchanged
     
     with open(path.join(output_dir, 'summary.txt'), "w") as h:
         print >>h, outputStr
