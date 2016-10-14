@@ -211,6 +211,9 @@ def generate_summary(configs, output_dir):
                 changed += o + '\t' + configs.get(s, o) + '\n'
             else:
                 unchanged += o + '\t' + configs.get(s, o) + '\n'
+                
+        changed += "\n"
+        unchanged += "\n"
     
     outputStr = "Parameters of note:\n\n" + changed + "=============================================================\n\n" + unchanged
     
