@@ -91,8 +91,7 @@ def main():
     anteproc_dir = create_dir(baseDir + "/anteproc_data")
 
     # copy input files to this directory
-    copy_input_file(configPath, supportDir)
-    copy_input_file(params_file_path, supportDir)
+    copy_input_file(configFilePath, supportDir)
     newJobPath = copy_input_file(jobPath, supportDir)
     
     #adjust job file
