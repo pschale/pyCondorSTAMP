@@ -263,14 +263,14 @@ def main():
             commonParamsDictionary['anteproc_l']['stamp']['fly_waveform'] = "half_sg"
 
             commonParamsDictionary['anteproc_h']['stamp']['h0'] = sqrt(0.5)
-            commonParamsDictionary['anteproc_h']['stamp']['f0'] = configs.getboolean('injection', 'waveFrequency')#input_params['wave_frequency']
+            commonParamsDictionary['anteproc_h']['stamp']['f0'] = configs.getfloat('injection', 'waveFrequency')#input_params['wave_frequency']
             commonParamsDictionary['anteproc_h']['stamp']['phi0'] = 0
             commonParamsDictionary['anteproc_h']['stamp']['fdot'] = 0
             commonParamsDictionary['anteproc_h']['stamp']['duration'] = wave_duration
             commonParamsDictionary['anteproc_h']['stamp']['tau'] = wave_tau
 
             commonParamsDictionary['anteproc_l']['stamp']['h0'] = sqrt(0.5)
-            commonParamsDictionary['anteproc_l']['stamp']['f0'] = configs.getboolean('injection', 'waveFrequency')#input_params['wave_frequency']
+            commonParamsDictionary['anteproc_l']['stamp']['f0'] = configs.getfloat('injection', 'waveFrequency')#input_params['wave_frequency']
             commonParamsDictionary['anteproc_l']['stamp']['phi0'] = 0
             commonParamsDictionary['anteproc_l']['stamp']['fdot'] = 0
             commonParamsDictionary['anteproc_l']['stamp']['duration'] = wave_duration
