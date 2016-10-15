@@ -548,7 +548,7 @@ def main():
     anteprocSub = write_anteproc_sub_file(configs.getint('condor', 'anteprocMemory'), anteprocExecutable_script_file, dagDir, configs.get('condor', 'accountingGroup'))
     stochtrackSub = write_stochtrack_sub_file(configs.getint('condor', 'grandStochtrackMemory'), grandStochtrack_script_file, dagDir, configs.get('condor', 'accountingGroup'), configs.getboolean('condor', 'doGPU'), configs.getint('condor', 'numCPU'))
     webDisplaySub = write_webpage_sub_file(webPageSH, dagDir, configs.get('condor', 'accountingGroup'))
-    write_dag(dagDir, anteproc_dir, newJobPath, H1AnteprocJobNums, L1AnteprocJobNums, anteprocSub, stochtrackParamsList, stochtrackSub, configs.getint('condor', 'maxJobsAnteproc'), configs.getint('condor', 'maxJobsGrandStochtrack'), webDisplaySub, baseDir)
+    write_dag(dagDir, anteproc_dir, newJobPath, H1AnteprocJobNums, L1AnteprocJobNums, commonParamsDictionary['numJobGroups'], anteprocSub, stochtrackParamsList, stochtrackSub, configs.getint('condor', 'maxJobsAnteproc'), configs.getint('condor', 'maxJobsGrandStochtrack'), webDisplaySub, baseDir)
         
     #create summary of parameters
     generate_summary(configs, baseDir)
