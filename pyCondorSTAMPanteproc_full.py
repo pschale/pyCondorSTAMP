@@ -89,7 +89,6 @@ def main():
     baseDir = dated_dir(outputDir)
     global directory_with_everything
     directory_with_everything = baseDir
-    global noDelete
     noDelete = options.noDelete
     
     supportDir = create_dir(baseDir + "/input_files")
