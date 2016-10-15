@@ -204,7 +204,7 @@ def main():
                     job1_hstart = job1StartTime + (9-1)/2+2
             
                 #job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job1_hstart + 400
-                job1_hstop = job1_hstart + 1602 if configs.getboolean('search', 'long_pixel') or configs.getboolean('search', 'burstegard') else job1_hstart + 400
+                job1_hstop = job1_hstart + 1602 if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard') else job1_hstart + 400
 
                 if not configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
                     anteprocHParamsList[jobGroup][H1_job_index]['stamp.ra'] = configs.getfloat('trigger', 'RA')#input_params['RA']
@@ -236,7 +236,7 @@ def main():
                     job1_hstart = job1StartTime + (9-1)/2+2
             
                 #job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job1_hstart + 400
-                job1_hstop = job1_hstart + 1602 if configs.getboolean('search', 'long_pixel') or configs.getboolean('search', 'burstegard') else job1_hstart + 400
+                job1_hstop = job1_hstart + 1602 if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard') else job1_hstart + 400
         
                 if not configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
                     anteprocLParamsList[jobGroup][L1_job_index]['stamp.ra'] = configs.getfloat('trigger', 'RA')#input_params['RA']
@@ -570,7 +570,4 @@ if __name__ == "__main__":
         rmtree(directory_with_everything)
         import traceback, sys
         traceback.print_exc(file=sys.stdout)
-        #from sys import exc_info
-        #exc_type, exc_obj, exc_tb = exc_info()
-        #exc_tb.format_exc()
-        #print(repr(exc_type) + repr(exc_obj) + "at line " + repr(exc_tb))
+
