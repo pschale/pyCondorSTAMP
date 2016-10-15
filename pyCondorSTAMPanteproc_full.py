@@ -511,7 +511,7 @@ def main():
     
     # find frame files
     for tempJob in set(tempNumbersH):
-        print("Finding frames for job " + str(tempJob) + " for H1")
+        print("Finding frames for job " + str(tempJob + 1) + " for H1")
         if not configs.getboolean('search', 'simulated'):#input_params['simulated']:
             #temp_frames = create_frame_file_list("H1_" + input_params['frame_type'], str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "H")
             temp_frames = create_frame_file_list("H1_" + configs.get('search', 'frameType'), str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "H")
@@ -519,7 +519,7 @@ def main():
         else:
             create_fake_cache_and_time_file(str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "H", tempJob, fakeCacheDir)
     for tempJob in set(tempNumbersL):
-        print("Finding frames for job " + str(tempJob) + " for L1")
+        print("Finding frames for job " + str(tempJob + 1) + " for L1")
         if not configs.getboolean('search', 'simulated'):#input_params['simulated']:
             #temp_frames = create_frame_file_list("L1_" + input_params['frame_type'], str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "L")
             temp_frames = create_frame_file_list("L1_" + configs.get('search', 'frameType'), str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "L")
