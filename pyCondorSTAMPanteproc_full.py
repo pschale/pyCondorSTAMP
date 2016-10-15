@@ -569,7 +569,7 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
+    except:
         print("Error has occurred.  Deleting all files that were created.")
         from shutil import rmtree
         rmtree(directory_with_everything)
