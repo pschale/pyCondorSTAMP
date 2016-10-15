@@ -570,10 +570,22 @@ if __name__ == "__main__":
     try:
         main()
     except:
-        if not noDelete:
+        import inpsect
+        if not inspect.trace()[-1][0].f_locals['noDelete']:
             print("Error has occurred.  Deleting all files that were created.")
             from shutil import rmtree
             rmtree(directory_with_everything)
+        else:
+            import pprint
+            try:
+                pprint.pprint(inspect.trace()[-1][0].f_locals['commonParamsDictionary'], open(os.path.join(baseDir, "commonParams_dict.txt"), "w"))
+                pprint.pprint(inspect.trace()[-1][0].f_locals['anteprocHParamsList'], open(os.path.join(baseDir, "anteprocHParams_list.txt"), "w"))
+                pprint.pprint(inspect.trace()[-1][0].f_locals['anteprocLParamsList'], open(os.path.join(baseDir, "anteprocLParams_list.txt"), "w"))
+                pprint.pprint(inspect.trace()[-1][0].f_locals['stochtrackParamsList'], open(os.path.join(baseDir, "stochtrackParams_list.txt"), "w"))
+                print("printed dictionaries to files")
+            except KeyError:
+                pass
+        
         import traceback, sys
         traceback.print_exc(file=sys.stdout)
 
