@@ -570,4 +570,5 @@ if __name__ == "__main__":
         rmtree(directory_with_everything)
         from sys import exc_info
         exc_type, exc_obj, exc_tb = exc_info()
-        print(repr(exc_type) + repr(exc_obj) + "at line " + repr(exc_tb))
+        exc_tb.format_exc()
+        #print(repr(exc_type) + repr(exc_obj) + "at line " + repr(exc_tb))
