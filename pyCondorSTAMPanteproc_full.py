@@ -45,9 +45,7 @@ def main():
     offsource = searchType == "offsource"
     
     if configs.getboolean('injection', 'doInjections') and not configs.getboolean('injection', 'onTheFly') and not os.isfile(injection_file):
-        pyCondorSTAMPanteprocError("Injection file does not exist.  Make onTheFly true if you do not wish to specify an injection file")
-        
-    if configs.getboolean('injection', 'doVariations') and not configs.getboolean('injection', 'onTheFly'):
+        pyCondorSTAMPanteprocError("Injection file does not exist.  Make onTheFly true if you do not wish to specify an injection file")        
         
     if configs.getboolean('injection', 'longTau'):
         wave_tau = 400
@@ -188,7 +186,7 @@ def main():
     anteprocHParamsList = [[{'stamp':{}} for i in range(0, max(tempNumbersH) + 1)] for j in range(1, commonParamsDictionary['numJobGroups'] + 1)]
     anteprocLParamsList = [[{'stamp':{}} for i in range(0, max(tempNumbersL) + 1)] for j in range(1, commonParamsDictionary['numJobGroups'] + 1)]
     if configs.getboolean('injection', 'doInjections'):#input_params['injection_bool']:
-        if configs.getboolean('injections', 'doVariations'):
+        if configs.getboolean('injection', 'doVariations'):
             multiplier = (configs.getfloat('variations', 'maxStampAlpha')/configs.getfloat('variations', 'minStampAlpha'))**(1/configs.getfloat('variations', 'numJobGroups'))
 
         for jobGroup in range(1, commonParamsDictionary['numJobGroups'] + 1)
@@ -197,7 +195,7 @@ def main():
                 H1_job = H1_job_index + 1
                 job1StartTime = times[H1_job_index][1]
                 
-                if configs.getboolean('injections', 'doVariations'):
+                if configs.getboolean('injection', 'doVariations'):
                     anteprocHParamsList[jobGroup][H1_job_index]['stamp.alpha'] = configs.getfloat('variations', 'minStampAlpha') * (1 + jobGroup * multiplier)                
     
                 if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard'):#input_params['long_pixel'] or input_params['burstegard']:
@@ -229,7 +227,7 @@ def main():
                 L1_job = L1_job_index + 1
                 job1StartTime = times[L1_job_index][1]
                 
-                if configs.getboolean('injections', 'doVariations'):
+                if configs.getboolean('injection', 'doVariations'):
                     anteprocHParamsList[jobGroup][H1_job_index]['stamp.alpha'] = configs.getfloat('variations', 'minStampAlpha') * (1 + jobGroup * multiplier)   
     
                 if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard'):#input_params['long_pixel'] or input_params['burstegard']:
@@ -370,10 +368,7 @@ def main():
                 jobDictionary["preproc"]["stamp"]["ra"] = configs.getfloat('trigger', 'RA')#input_params['RA']
     
             if not configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
-                jobDictionary["grandStochtrackParams"]["params"]["ra"] = configs.getfloat('trigger', 'RA')#input_params['RA']
-
-            if configs.getboolean('injection', 'doVariations'):
-                
+                jobDictionary["grandStochtrackParams"]["params"]["ra"] = configs.getfloat('trigger', 'RA')#input_params['RA']                
     
             jobDictionary["preprocJobs"] = jobNum1
     
