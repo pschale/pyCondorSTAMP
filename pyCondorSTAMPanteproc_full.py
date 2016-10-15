@@ -19,7 +19,7 @@ def main():
     parser.add_option("-v", "--verbose", 
                         action = "store_true", dest = "verbose", default = False,
                         help = "prints out dictionaries to file at end")
-    parser.add_option("-n", "--no-delete", dest = "noDelete", default = False,
+    parser.add_option("-n", "--no-delete", action = "store_true", dest = "noDelete", default = False,
                         help = "If active, errors will not trigger deletion of generated files.")
     
     (options, args) = parser.parse_args()
