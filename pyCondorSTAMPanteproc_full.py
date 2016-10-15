@@ -570,6 +570,7 @@ if __name__ == "__main__":
         main()
     except:
         import inspect
+        print(inspect.trace()[-1][0])
         if not inspect.trace()[-1][0].f_locals['noDelete']:
             print("Error has occurred.  Deleting all files that were created.")
             from shutil import rmtree
