@@ -321,12 +321,13 @@ def main():
     
     job_group = 1
 
+    stochtrackParamsList = []
+    H1AnteprocJobNums = set()
+    L1AnteprocJobNums = set()
     for jobGroup in range(1, commonParamsDictionary['numJobGroups'] + 1):
         #this for loop builds each individual job
         current_job = 0
-        stochtrackParamsList = []
-        H1AnteprocJobNums = set()
-        L1AnteprocJobNums = set()
+
         for [jobIndex1, jobIndex2] in sortedJobPairs:#[jobNum1, jobNum2] in sortedJobPairs:
             jobNum1 = jobIndex1 + 1
             jobNum2 = jobIndex2 + 1

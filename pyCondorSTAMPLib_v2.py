@@ -458,30 +458,30 @@ def write_webpage_sub_file(webPageSH, dagDir, accountingGroup):
     contents = "universe = vanilla\ngetenv = True\nrequest_memory = " + str(memory) + "\n"
 
     
-def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums, L1AnteprocJobNums, anteprocSub, stochtrackParamsList, stochtrackSub, maxJobsAnteproc, maxJobsGrandStochtrack, webDisplaySub, baseDir):
+def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums, L1AnteprocJobNums, numJobGroups, anteprocSub, stochtrackParamsList, stochtrackSub, maxJobsAnteproc, maxJobsGrandStochtrack, webDisplaySub, baseDir):
 
     output = ""
     jobCounter = 0
-    for jobNum in H1AnteprocJobNums:
+    for jobGroup in range(1, numJobGroups + 1):
+        for jobNum in H1AnteprocJobNums:
         
-        output += "JOB " + str(jobCounter) + " " + anteprocSub + "\nRETRY " + str(jobCounter) + " 2\n"
-        output += "VARS " + str(jobCounter) + " jobNumber=\"" + str(jobCounter) + "\" paramFile=\"" + anteprocDir + "/H1-anteproc_params_" + str(jobNum) + ".txt\""
-        output += "jobFile=\"" + jobFile + "\" jobNum=\"" + str(jobNum) + "\"\n"
-        output += "CATEGORY " + str(jobCounter) + " ANTEPROC\n\n"
-        jobCounter += 1
+            output += "JOB " + str(jobCounter) + " " + anteprocSub + "\nRETRY " + str(jobCounter) + " 2\n"
+            output += "VARS " + str(jobCounter) + " jobNumber=\"" + str(jobCounter) + "\" paramFile=\"" + anteprocDir + "/H1-anteproc_params_group" + str(jobGroup) + "_" + str(jobNum) + ".txt\""
+            output += "jobFile=\"" + jobFile + "\" jobNum=\"" + str(jobNum) + "\"\n"
+            output += "CATEGORY " + str(jobCounter) + " ANTEPROC\n\n"
+            jobCounter += 1
+    for jobGroup in range(1, numJobGroups + 1):
+        for jobNum in L1AnteprocJobNums:
         
-    for jobNum in L1AnteprocJobNums:
-        
-        output += "JOB " + str(jobCounter) + " " + anteprocSub + "\nRETRY " + str(jobCounter) + " 2\n"
-        output += "VARS " + str(jobCounter) + " jobNumber=\"" + str(jobCounter) + "\" paramFile=\"" + anteprocDir + "/L1-anteproc_params_" + str(jobNum) + ".txt\""
-        output += "jobFile=\"" + jobFile + "\" jobNum=\"" + str(jobNum) + "\"\n"
-        output += "CATEGORY " + str(jobCounter) + " ANTEPROC\n\n"
-        jobCounter += 1
+            output += "JOB " + str(jobCounter) + " " + anteprocSub + "\nRETRY " + str(jobCounter) + " 2\n"
+            output += "VARS " + str(jobCounter) + " jobNumber=\"" + str(jobCounter) + "\" paramFile=\"" + anteprocDir + "/L1-anteproc_params_group" + str(jobGroup) + "_" + str(jobNum) + ".txt\""
+            output += "jobFile=\"" + jobFile + "\" jobNum=\"" + str(jobNum) + "\"\n"
+            output += "CATEGORY " + str(jobCounter) + " ANTEPROC\n\n"
+            jobCounter += 1
     
     cutoff = jobCounter
-        
     for jobDict in stochtrackParamsList:
-    
+
         output += "JOB " + str(jobCounter) + " " + stochtrackSub + "\nRETRY " + str(jobCounter) + " 2\n"
         output += "VARS " + str(jobCounter) + " jobNumber=\"" + str(jobCounter) + "\" paramPath=\"" + jobDict["stochtrackInputDir"] + "/params.mat\" "
         output += "jobNum=\"" + str(jobDict['grandStochtrackParams']['params']['jobNumber']) + "\"\n"
