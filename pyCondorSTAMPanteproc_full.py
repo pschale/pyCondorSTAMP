@@ -568,7 +568,9 @@ if __name__ == "__main__":
         print("Error has occurred.  Deleting all files that were created.")
         from shutil import rmtree
         rmtree(directory_with_everything)
-        from sys import exc_info
-        exc_type, exc_obj, exc_tb = exc_info()
-        exc_tb.format_exc()
+        from traceback import format_exc
+        format_exc()
+        #from sys import exc_info
+        #exc_type, exc_obj, exc_tb = exc_info()
+        #exc_tb.format_exc()
         #print(repr(exc_type) + repr(exc_obj) + "at line " + repr(exc_tb))
