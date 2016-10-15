@@ -189,7 +189,7 @@ def main():
         if configs.getboolean('injection', 'doVariations'):
             multiplier = (configs.getfloat('variations', 'maxStampAlpha')/configs.getfloat('variations', 'minStampAlpha'))**(1/configs.getfloat('variations', 'numJobGroups'))
 
-        for jobGroup in range(1, commonParamsDictionary['numJobGroups'] + 1)
+        for jobGroup in range(1, commonParamsDictionary['numJobGroups'] + 1):
         
             for H1_job_index in tempNumbersH:
                 H1_job = H1_job_index + 1
