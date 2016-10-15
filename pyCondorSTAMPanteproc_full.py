@@ -47,6 +47,8 @@ def main():
     if configs.getboolean('injection', 'doInjections') and not configs.getboolean('injection', 'onTheFly') and not os.isfile(injection_file):
         pyCondorSTAMPanteprocError("Injection file does not exist.  Make onTheFly true if you do not wish to specify an injection file")
         
+    if configs.getboolean('injection', 'doVariations') and not configs.getboolean('injection', 'onTheFly')
+        
     if configs.getboolean('injection', 'longTau'):
         wave_tau = 400
     else:
@@ -85,6 +87,8 @@ def main():
     outputDir = os.path.join(outputDir, "stamp_analysis_anteproc")
         
     baseDir = dated_dir(outputDir)
+    directory_with_everything = baseDir
+    global directory_with_everything
     
     supportDir = create_dir(baseDir + "/input_files")
     jobsBaseDir = create_dir(baseDir + "/jobs")
@@ -104,7 +108,6 @@ def main():
     times = [[int(y) for y in x] for x in readFile(jobPath)]
 
         
-    job_group = 1
         
     #this ensures there's enough data to be able to estimate the background
     # 9-NumberofSegmentsPerInterval (NSPI), -1 (take out the pixel that's being analyzed), /2 to get one side of those
@@ -182,65 +185,75 @@ def main():
     
     
     #Now build the job-specific parameters for anteproc - only needed for injections
-    anteprocHParamsList = [{'stamp':{}} for i in range(0, max(tempNumbersH) + 1)]
-    anteprocLParamsList = [{'stamp':{}} for i in range(0, max(tempNumbersL) + 1)]
+    anteprocHParamsList = [[{'stamp':{}} for i in range(0, max(tempNumbersH) + 1)] for j in range(1, commonParamsDictionary['numJobGroups'] + 1)]
+    anteprocLParamsList = [[{'stamp':{}} for i in range(0, max(tempNumbersL) + 1)] for j in range(1, commonParamsDictionary['numJobGroups'] + 1)]
     if configs.getboolean('injection', 'doInjections'):#input_params['injection_bool']:
+        if configs.getboolean('injections', 'doVariations'):
+            multiplier = (configs.getfloat('variations', 'maxStampAlpha')/configs.getfloat('variations', 'minStampAlpha'))**(1/configs.getfloat('variations', 'numJobGroups'))
 
-        for H1_job_index in tempNumbersH:
-            H1_job = H1_job_index + 1
-            job1StartTime = times[H1_job_index][1]
-    
-            if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard'):#input_params['long_pixel'] or input_params['burstegard']:
-                job1_hstart = job1StartTime + (9-1)*4/2+2
-            else:
-                job1_hstart = job1StartTime + (9-1)/2+2
-            
-            #job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job1_hstart + 400
-            job1_hstop = job1_hstart + 1602 if configs.getboolean('search', 'long_pixel') or configs.getboolean('search', 'burstegard') else job1_hstart + 400
-
-            if not configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
-                anteprocHParamsList[H1_job_index]['stamp.ra'] = configs.getfloat('trigger', 'RA')#input_params['RA']
-                anteprocHParamsList[H1_job_index]['stamp.decl'] = configs.getfloat('trigger', 'DEC')#input_params['DEC']
-
-            elif H1_job == 34:
-                anteprocHParamsList[33]['useReferenceAntennaFactors'] = False
-
-            else:
-                anteprocHParamsList[H1_job_index]['useReferenceAntennaFactors'] = True
-
-            if configs.getboolean('injection', 'onTheFly'):##input_params['onTheFly']:
-                anteprocHParamsList[H1_job_index]['stamp.start'] = job1_hstart+2  
-
-            else:
-                anteprocHParamsList[H1_job_index]['stamp.startGPS'] = job1_hstart+2
-
-
-        for L1_job_index in tempNumbersL:
-            L1_job = L1_job_index + 1
-            job1StartTime = times[L1_job_index][1]
-    
-            if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard'):#input_params['long_pixel'] or input_params['burstegard']:
-                job1_hstart = job1StartTime + (9-1)*4/2+2
-            else:
-                job1_hstart = job1StartTime + (9-1)/2+2
-            
-            #job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job1_hstart + 400
-            job1_hstop = job1_hstart + 1602 if configs.getboolean('search', 'long_pixel') or configs.getboolean('search', 'burstegard') else job1_hstart + 400
+        for jobGroup in range(1, commonParamsDictionary['numJobGroups'] + 1)
         
-            if not configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
-                anteprocLParamsList[L1_job_index]['stamp.ra'] = configs.getfloat('trigger', 'RA')#input_params['RA']
-                anteprocLParamsList[L1_job_index]['stamp.decl'] = configs.getfloat('trigger', 'DEC')#input_params['DEC']
+            for H1_job_index in tempNumbersH:
+                H1_job = H1_job_index + 1
+                job1StartTime = times[H1_job_index][1]
+                
+                if configs.getboolean('injections', 'doVariations'):
+                    anteprocHParamsList[jobGroup][H1_job_index]['stamp.alpha'] = configs.getfloat('variations', 'minStampAlpha') * (1 + jobGroup * multiplier)                
+    
+                if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard'):#input_params['long_pixel'] or input_params['burstegard']:
+                    job1_hstart = job1StartTime + (9-1)*4/2+2
+                else:
+                    job1_hstart = job1StartTime + (9-1)/2+2
+            
+                #job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job1_hstart + 400
+                job1_hstop = job1_hstart + 1602 if configs.getboolean('search', 'long_pixel') or configs.getboolean('search', 'burstegard') else job1_hstart + 400
 
-            elif L1_job == 34:
-                anteprocLParamsList[33]['useReferenceAntennaFactors'] = False
+                if not configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
+                    anteprocHParamsList[jobGroup][H1_job_index]['stamp.ra'] = configs.getfloat('trigger', 'RA')#input_params['RA']
+                    anteprocHParamsList[jobGroup][H1_job_index]['stamp.decl'] = configs.getfloat('trigger', 'DEC')#input_params['DEC']
 
-            else:
-                anteprocLParamsList[L1_job_index]['useReferenceAntennaFactors'] = True
+                elif H1_job == 34:
+                    anteprocHParamsList[jobGroup][33]['useReferenceAntennaFactors'] = False
 
-            if configs.getboolean('injection', 'onTheFly'):#input_params['onTheFly']:
-                anteprocLParamsList[L1_job_index]['stamp.start'] = job1_hstart+2
-            else:
-                anteprocLParamsList[L1_job_index]['stamp.startGPS'] = job1_hstart+2
+                else:
+                    anteprocHParamsList[jobGroup][H1_job_index]['useReferenceAntennaFactors'] = True
+
+                if configs.getboolean('injection', 'onTheFly'):##input_params['onTheFly']:
+                    anteprocHParamsList[jobGroup][H1_job_index]['stamp.start'] = job1_hstart+2  
+
+                else:
+                    anteprocHParamsList[jobGroup][H1_job_index]['stamp.startGPS'] = job1_hstart+2
+
+
+            for L1_job_index in tempNumbersL:
+                L1_job = L1_job_index + 1
+                job1StartTime = times[L1_job_index][1]
+                
+                if configs.getboolean('injections', 'doVariations'):
+                    anteprocHParamsList[jobGroup][H1_job_index]['stamp.alpha'] = configs.getfloat('variations', 'minStampAlpha') * (1 + jobGroup * multiplier)   
+    
+                if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard'):#input_params['long_pixel'] or input_params['burstegard']:
+                    job1_hstart = job1StartTime + (9-1)*4/2+2
+                else:
+                    job1_hstart = job1StartTime + (9-1)/2+2
+            
+                #job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job1_hstart + 400
+                job1_hstop = job1_hstart + 1602 if configs.getboolean('search', 'long_pixel') or configs.getboolean('search', 'burstegard') else job1_hstart + 400
+        
+                if not configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
+                    anteprocLParamsList[jobGroup][L1_job_index]['stamp.ra'] = configs.getfloat('trigger', 'RA')#input_params['RA']
+                    anteprocLParamsList[jobGroup][L1_job_index]['stamp.decl'] = configs.getfloat('trigger', 'DEC')#input_params['DEC']
+
+                elif L1_job == 34:
+                    anteprocLParamsList[jobGroup][33]['useReferenceAntennaFactors'] = False
+
+                else:
+                    anteprocLParamsList[jobGroup][L1_job_index]['useReferenceAntennaFactors'] = True
+
+                if configs.getboolean('injection', 'onTheFly'):#input_params['onTheFly']:
+                    anteprocLParamsList[jobGroup][L1_job_index]['stamp.start'] = job1_hstart+2
+                else:
+                    anteprocLParamsList[jobGroup][L1_job_index]['stamp.startGPS'] = job1_hstart+2
     
 
         if configs.getboolean('injection', 'onTheFly'):#input_params['onTheFly']:
@@ -308,85 +321,89 @@ def main():
     dagLogDir = create_dir(dagDir + "/dagLogs")
     logDir = create_dir(dagLogDir + "/logs")
     
-    #this for loop builds each individual job
-    current_job = 0
-    stochtrackParamsList = []
-    H1AnteprocJobNums = set()
-    L1AnteprocJobNums = set()
-    for [jobIndex1, jobIndex2] in sortedJobPairs:#[jobNum1, jobNum2] in sortedJobPairs:
-        jobNum1 = jobIndex1 + 1
-        jobNum2 = jobIndex2 + 1
-        job1StartTime = times[jobIndex1][1]
-        job1EndTime = times[jobIndex1][2]
-        
-        jobDictionary = {'grandStochtrackParams': {'params':deepcopy(commonParamsDictionary['grandStochtrack'])}}
-        
-        jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(job_group) + "/job_" + str(current_job + 1))
+    job_group = 1
 
-        jobDictionary["grandStochtrackParams"]["params"]["plotdir"] = jobDir + "/grandStochtrackOutput/plots/"
-        jobDictionary["grandStochtrackParams"]["params"]["outputfilename"] = jobDir + "/grandStochtrackOutput/map"
-        jobDictionary["grandStochtrackParams"]["params"]["ofile"] = jobDir + "/grandStochtrackOutput/bknd"
-        jobDictionary["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
-        jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map"
-        jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map"
-        jobDictionary['grandStochtrackParams']['params']['anteproc']["jobfile"] = newAdjustedJobPath
+    for jobGroup in range(1, commonParamsDictionary['numJobGroups'] + 1):
+        #this for loop builds each individual job
+        current_job = 0
+        stochtrackParamsList = []
+        H1AnteprocJobNums = set()
+        L1AnteprocJobNums = set()
+        for [jobIndex1, jobIndex2] in sortedJobPairs:#[jobNum1, jobNum2] in sortedJobPairs:
+            jobNum1 = jobIndex1 + 1
+            jobNum2 = jobIndex2 + 1
+            job1StartTime = times[jobIndex1][1]
+            job1EndTime = times[jobIndex1][2]
+        
+            jobDictionary = {'grandStochtrackParams': {'params':deepcopy(commonParamsDictionary['grandStochtrack'])}}
+        
+            jobDir = create_dir(jobsBaseDir + "/" + "job_group_" + str(jobGroup) + "/job_" + str(current_job + 1))
 
-        jobDictionary["jobDir"] = jobDir
-        jobDictionary["stochtrackInputDir"] = create_dir(jobDir + "/grandStochtrackInput")
-        jobDictionary["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandStochtrackOutput")
-        jobDictionary["plotDir"] = create_dir(jobDir + "/grandStochtrackOutput" + "/plots")
+            jobDictionary["grandStochtrackParams"]["params"]["plotdir"] = jobDir + "/grandStochtrackOutput/plots/"
+            jobDictionary["grandStochtrackParams"]["params"]["outputfilename"] = jobDir + "/grandStochtrackOutput/map"
+            jobDictionary["grandStochtrackParams"]["params"]["ofile"] = jobDir + "/grandStochtrackOutput/bknd"
+            jobDictionary["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
+            jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map_group_" + str(jobGroup)
+            jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map_group_" + str(jobGroup)
+            jobDictionary['grandStochtrackParams']['params']['anteproc']["jobfile"] = newAdjustedJobPath
+
+            jobDictionary["jobDir"] = jobDir
+            jobDictionary["stochtrackInputDir"] = create_dir(jobDir + "/grandStochtrackInput")
+            jobDictionary["grandstochtrackOutputDir"] = create_dir(jobDir + "/grandStochtrackOutput")
+            jobDictionary["plotDir"] = create_dir(jobDir + "/grandStochtrackOutput" + "/plots")
         
-        if commonParamsDictionary['grandStochtrack']['stochtrack']['saveMat']:
-            commonParamsDictionary['grandStochtrack']['stochtrack']['matfile'] = jobDir + "/snrs.mat"
+            if commonParamsDictionary['grandStochtrack']['stochtrack']['saveMat']:
+                commonParamsDictionary['grandStochtrack']['stochtrack']['matfile'] = jobDir + "/snrs.mat"
         
-        if "injection_tags" in jobDictionary:
-            jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats1'] += "_" + jobDictionary["injection_tags"]
-            jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats2'] += "_" + jobDictionary["injection_tags"]
-        if configs.getboolean('search', 'longPixel') or configs.getboolean('burstegard'):#input_params['long_pixel'] or input_params['burstegard']:
-            job1_hstart = job1StartTime + (9-1)*4/2+2
-        else:
-            job1_hstart = job1StartTime + (9-1)/2+2
+            if "injection_tags" in jobDictionary:
+                jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats1'] += "_" + jobDictionary["injection_tags"]
+                jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats2'] += "_" + jobDictionary["injection_tags"]
+            if configs.getboolean('search', 'longPixel') or configs.getboolean('burstegard'):#input_params['long_pixel'] or input_params['burstegard']:
+                job1_hstart = job1StartTime + (9-1)*4/2+2
+            else:
+                job1_hstart = job1StartTime + (9-1)/2+2
             
-        #job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job_hstart + 400
-        job1_hstop = job1_hstart + 1602 if configs.getboolean('search', 'longPixel') or configs.getboolean('burstegard') else job_hstart + 400        
+            #job1_hstop = job1_hstart + 1602 if input_params['long_pixel'] or input_params['burstegard'] else job_hstart + 400
+            job1_hstop = job1_hstart + 1602 if configs.getboolean('search', 'longPixel') or configs.getboolean('burstegard') else job_hstart + 400        
     
-        if configs.getboolean('injection', 'doInjections') and not configs.getboolean('search', 'relativeDirection'):#input_params['injection_bool'] and not input_params['relative_direction']:
-            jobDictionary["preproc"]["stamp"]["ra"] = configs.getfloat('trigger', 'RA')#input_params['RA']
+            if configs.getboolean('injection', 'doInjections') and not configs.getboolean('search', 'relativeDirection'):#input_params['injection_bool'] and not input_params['relative_direction']:
+                jobDictionary["preproc"]["stamp"]["ra"] = configs.getfloat('trigger', 'RA')#input_params['RA']
     
-        if not configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
-            jobDictionary["grandStochtrackParams"]["params"]["ra"] = configs.getfloat('trigger', 'RA')#input_params['RA']
+            if not configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
+                jobDictionary["grandStochtrackParams"]["params"]["ra"] = configs.getfloat('trigger', 'RA')#input_params['RA']
+
+            if configs.getboolean('injection', 'doVariations'):
+                
+    
+            jobDictionary["preprocJobs"] = jobNum1
+    
+            jobDictionary["grandStochtrackParams"]["params"]["anteproc"]["jobNum1"] = jobNum1
+            jobDictionary["grandStochtrackParams"]["params"]["anteproc"]["jobNum2"] = jobNum2
+
+    
+            if configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
+                if jobIndex1 == 33:
+                    jobDictionary["grandStochtrackParams"]["params"]["useReferenceAntennaFactors"] = False
 
 
-    
-        jobDictionary["preprocJobs"] = jobNum1
-    
-        jobDictionary["grandStochtrackParams"]["params"]["anteproc"]["jobNum1"] = jobNum1
-        jobDictionary["grandStochtrackParams"]["params"]["anteproc"]["jobNum2"] = jobNum2
+            if configs.getboolean('injection', 'doInjections') and not configs.getboolean('injection', 'onTheFly'):#input_params['injection_bool'] and not input_params['onTheFly']:
+                for temp_waveform in waveformFileNames:
+                    jobDictionary["injection_tag"] = temp_waveform
+                    stochtrackParamsList.append(deepcopy(jobDictionary))
+                    stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['job_group']=  job_group
+                    stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
+                    H1AnteprocJobNums.add(jobNum1)
+                    L1AnteprocJobNums.add(jobNum2)
 
-    
-        if configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
-            if jobIndex1 == 33:
-                jobDictionary["grandStochtrackParams"]["params"]["useReferenceAntennaFactors"] = False
-
-
-        if configs.getboolean('injection', 'doInjections') and not configs.getboolean('injection', 'onTheFly'):#input_params['injection_bool'] and not input_params['onTheFly']:
-            for temp_waveform in waveformFileNames:
-                jobDictionary["injection_tag"] = temp_waveform
+                    current_job += 1
+            else:    
                 stochtrackParamsList.append(deepcopy(jobDictionary))
-                stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['job_group']=  job_group
+                stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['job_group'] = job_group
                 stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
+
                 H1AnteprocJobNums.add(jobNum1)
                 L1AnteprocJobNums.add(jobNum2)
-
-                current_job += 1
-        else:    
-            stochtrackParamsList.append(deepcopy(jobDictionary))
-            stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['job_group'] = job_group
-            stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
-
-            H1AnteprocJobNums.add(jobNum1)
-            L1AnteprocJobNums.add(jobNum2)
-            current_job +=1
+                current_job +=1
             
 
     ###################################################################################
@@ -438,39 +455,40 @@ def main():
     
     #new loop to make anteproc files
     print("Creating anteproc directory and input files")
+    for jobGroup in range(1, commonParamsDictionary['numJobGroups'] + 1):
 
-    for jobNum in H1AnteprocJobNums:
+        for jobNum in H1AnteprocJobNums:
         
-        temp_anteproc_h_dict = deepcopy(commonParamsDictionary['anteproc_h'])
-        temp_anteproc_h_dict = deepupdate(temp_anteproc_h_dict, anteprocHParamsList[jobNum - 1])
-        for key, val in temp_anteproc_h_dict['stamp'].iteritems():
-            temp_anteproc_h_dict['stamp.' + key] = val
-        temp_anteproc_h_dict.pop('stamp')
-        anteproc_dict = deepcopy(commonParamsDictionary['anteproc'])
-        anteproc_dict.update(temp_anteproc_h_dict)
-        anteproc_dict['ifo1'] = "H1"
-        anteproc_dict['frameType1'] = "H1_" + configs.get('search', 'frameType')#input_params['frame_type']
-        anteproc_dict['ASQchannel1'] = configs.get('search', 'channel')#input_params['channel']
+            temp_anteproc_h_dict = deepcopy(commonParamsDictionary['anteproc_h'])
+            temp_anteproc_h_dict = deepupdate(temp_anteproc_h_dict, anteprocHParamsList[jobGroup][jobNum - 1])
+            for key, val in temp_anteproc_h_dict['stamp'].iteritems():
+                temp_anteproc_h_dict['stamp.' + key] = val
+            temp_anteproc_h_dict.pop('stamp')
+            anteproc_dict = deepcopy(commonParamsDictionary['anteproc'])
+            anteproc_dict.update(temp_anteproc_h_dict)
+            anteproc_dict['ifo1'] = "H1"
+            anteproc_dict['frameType1'] = "H1_" + configs.get('search', 'frameType')#input_params['frame_type']
+            anteproc_dict['ASQchannel1'] = configs.get('search', 'channel')#input_params['channel']
         
-        with open(anteproc_dir + "/H1-anteproc_params_" + str(jobNum) + ".txt", 'w') as h:
-            print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])
+            with open(anteproc_dir + "/H1-anteproc_params_group_" + str(jobGroup) + "_" + str(jobNum) + ".txt", 'w') as h:
+                print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])
             
-    for jobNum in L1AnteprocJobNums:
+        for jobNum in L1AnteprocJobNums:
         
-        temp_anteproc_l_dict = deepcopy(commonParamsDictionary['anteproc_l'])
-        temp_anteproc_l_dict = deepupdate(temp_anteproc_l_dict, anteprocLParamsList[jobNum - 1])
-        for key, val in temp_anteproc_l_dict['stamp'].iteritems():
-            temp_anteproc_l_dict['stamp.' + key] = val
-        temp_anteproc_l_dict.pop('stamp')
+            temp_anteproc_l_dict = deepcopy(commonParamsDictionary['anteproc_l'])
+            temp_anteproc_l_dict = deepupdate(temp_anteproc_l_dict, anteprocLParamsList[jobGroup][jobNum - 1])
+            for key, val in temp_anteproc_l_dict['stamp'].iteritems():
+                temp_anteproc_l_dict['stamp.' + key] = val
+            temp_anteproc_l_dict.pop('stamp')
         
-        anteproc_dict = deepcopy(commonParamsDictionary['anteproc'])
-        anteproc_dict.update(temp_anteproc_l_dict)
-        anteproc_dict['ifo1'] = "L1"
-        anteproc_dict['frameType1'] = "L1_" + configs.get('search', 'frameType')#input_params['frame_type']
-        anteproc_dict['ASQchannel1'] = configs.get('search', 'channel')#input_params['channel']
+            anteproc_dict = deepcopy(commonParamsDictionary['anteproc'])
+            anteproc_dict.update(temp_anteproc_l_dict)
+            anteproc_dict['ifo1'] = "L1"
+            anteproc_dict['frameType1'] = "L1_" + configs.get('search', 'frameType')#input_params['frame_type']
+            anteproc_dict['ASQchannel1'] = configs.get('search', 'channel')#input_params['channel']
         
-        with open(anteproc_dir + "/L1-anteproc_params_" + str(jobNum) + ".txt", 'w') as h:
-            print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])        
+            with open(anteproc_dir + "/L1-anteproc_params_group_" str(jobGroup) + "_" + str(jobNum) + ".txt", 'w') as h:
+                print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])        
 
     
     
@@ -549,4 +567,12 @@ def main():
         pprint.pprint(stochtrackParamsList, open(os.path.join(baseDir, "stochtrackParams_list.txt"), "w"))
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print("Error has occurred.  Deleting all files that were created.")
+        from shutil import rmtree
+        rmtree(directory_with_everything)
+        from sys import exc_info
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        print(repr(exc_type) + repr(exc_obj) + "at line " + repr(exc_tb))
