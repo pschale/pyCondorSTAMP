@@ -19,6 +19,8 @@ def main():
     parser.add_option("-v", "--verbose", 
                         action = "store_true", dest = "verbose", default = False,
                         help = "prints out dictionaries to file at end")
+    parser.add_option("-n", "--no-delete", dest = "noDelete", default = False
+                        help = "If active, errors will not trigger deletion of generated files.")
     
     (options, args) = parser.parse_args()
     
@@ -85,8 +87,10 @@ def main():
     outputDir = os.path.join(outputDir, "stamp_analysis_anteproc")
         
     baseDir = dated_dir(outputDir)
-    directory_with_everything = baseDir
     global directory_with_everything
+    directory_with_everything = baseDir
+    global noDelete
+    noDelete = options.noDelete
     
     supportDir = create_dir(baseDir + "/input_files")
     jobsBaseDir = create_dir(baseDir + "/jobs")
@@ -566,9 +570,10 @@ if __name__ == "__main__":
     try:
         main()
     except:
-        print("Error has occurred.  Deleting all files that were created.")
-        from shutil import rmtree
-        rmtree(directory_with_everything)
+        if not noDelete:
+            print("Error has occurred.  Deleting all files that were created.")
+            from shutil import rmtree
+            rmtree(directory_with_everything)
         import traceback, sys
         traceback.print_exc(file=sys.stdout)
 
