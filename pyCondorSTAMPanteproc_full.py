@@ -196,7 +196,7 @@ def main():
                 job1StartTime = times[H1_job_index][1]
                 
                 if configs.getboolean('injection', 'doVariations'):
-                    anteprocHParamsList[jobGroup][H1_job_index]['stamp.alpha'] = configs.getfloat('variations', 'minStampAlpha') * (1 + jobGroup * multiplier)                
+                    anteprocHParamsList[jobGroup - 1][H1_job_index]['stamp.alpha'] = configs.getfloat('variations', 'minStampAlpha') * (1 + jobGroup * multiplier)                
     
                 if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard'):#input_params['long_pixel'] or input_params['burstegard']:
                     job1_hstart = job1StartTime + (9-1)*4/2+2
@@ -207,20 +207,20 @@ def main():
                 job1_hstop = job1_hstart + 1602 if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard') else job1_hstart + 400
 
                 if not configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
-                    anteprocHParamsList[jobGroup][H1_job_index]['stamp.ra'] = configs.getfloat('trigger', 'RA')#input_params['RA']
-                    anteprocHParamsList[jobGroup][H1_job_index]['stamp.decl'] = configs.getfloat('trigger', 'DEC')#input_params['DEC']
+                    anteprocHParamsList[jobGroup - 1][H1_job_index]['stamp.ra'] = configs.getfloat('trigger', 'RA')#input_params['RA']
+                    anteprocHParamsList[jobGroup - 1][H1_job_index]['stamp.decl'] = configs.getfloat('trigger', 'DEC')#input_params['DEC']
 
                 elif H1_job == 34:
-                    anteprocHParamsList[jobGroup][33]['useReferenceAntennaFactors'] = False
+                    anteprocHParamsList[jobGroup - 1][33]['useReferenceAntennaFactors'] = False
 
                 else:
-                    anteprocHParamsList[jobGroup][H1_job_index]['useReferenceAntennaFactors'] = True
+                    anteprocHParamsList[jobGroup - 1][H1_job_index]['useReferenceAntennaFactors'] = True
 
                 if configs.getboolean('injection', 'onTheFly'):##input_params['onTheFly']:
-                    anteprocHParamsList[jobGroup][H1_job_index]['stamp.start'] = job1_hstart+2  
+                    anteprocHParamsList[jobGroup - 1][H1_job_index]['stamp.start'] = job1_hstart+2  
 
                 else:
-                    anteprocHParamsList[jobGroup][H1_job_index]['stamp.startGPS'] = job1_hstart+2
+                    anteprocHParamsList[jobGroup - 1][H1_job_index]['stamp.startGPS'] = job1_hstart+2
 
 
             for L1_job_index in tempNumbersL:
@@ -228,7 +228,7 @@ def main():
                 job1StartTime = times[L1_job_index][1]
                 
                 if configs.getboolean('injection', 'doVariations'):
-                    anteprocHParamsList[jobGroup][H1_job_index]['stamp.alpha'] = configs.getfloat('variations', 'minStampAlpha') * (1 + jobGroup * multiplier)   
+                    anteprocHParamsList[jobGroup - 1][H1_job_index]['stamp.alpha'] = configs.getfloat('variations', 'minStampAlpha') * (1 + jobGroup * multiplier)   
     
                 if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard'):#input_params['long_pixel'] or input_params['burstegard']:
                     job1_hstart = job1StartTime + (9-1)*4/2+2
@@ -239,19 +239,19 @@ def main():
                 job1_hstop = job1_hstart + 1602 if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard') else job1_hstart + 400
         
                 if not configs.getboolean('search', 'relativeDirection'):#input_params['relative_direction']:
-                    anteprocLParamsList[jobGroup][L1_job_index]['stamp.ra'] = configs.getfloat('trigger', 'RA')#input_params['RA']
-                    anteprocLParamsList[jobGroup][L1_job_index]['stamp.decl'] = configs.getfloat('trigger', 'DEC')#input_params['DEC']
+                    anteprocLParamsList[jobGroup - 1][L1_job_index]['stamp.ra'] = configs.getfloat('trigger', 'RA')#input_params['RA']
+                    anteprocLParamsList[jobGroup - 1][L1_job_index]['stamp.decl'] = configs.getfloat('trigger', 'DEC')#input_params['DEC']
 
                 elif L1_job == 34:
-                    anteprocLParamsList[jobGroup][33]['useReferenceAntennaFactors'] = False
+                    anteprocLParamsList[jobGroup - 1][33]['useReferenceAntennaFactors'] = False
 
                 else:
-                    anteprocLParamsList[jobGroup][L1_job_index]['useReferenceAntennaFactors'] = True
+                    anteprocLParamsList[jobGroup - 1][L1_job_index]['useReferenceAntennaFactors'] = True
 
                 if configs.getboolean('injection', 'onTheFly'):#input_params['onTheFly']:
-                    anteprocLParamsList[jobGroup][L1_job_index]['stamp.start'] = job1_hstart+2
+                    anteprocLParamsList[jobGroup - 1][L1_job_index]['stamp.start'] = job1_hstart+2
                 else:
-                    anteprocLParamsList[jobGroup][L1_job_index]['stamp.startGPS'] = job1_hstart+2
+                    anteprocLParamsList[jobGroup - 1][L1_job_index]['stamp.startGPS'] = job1_hstart+2
     
 
         if configs.getboolean('injection', 'onTheFly'):#input_params['onTheFly']:
@@ -455,7 +455,7 @@ def main():
         for jobNum in H1AnteprocJobNums:
         
             temp_anteproc_h_dict = deepcopy(commonParamsDictionary['anteproc_h'])
-            temp_anteproc_h_dict = deepupdate(temp_anteproc_h_dict, anteprocHParamsList[jobGroup][jobNum - 1])
+            temp_anteproc_h_dict = deepupdate(temp_anteproc_h_dict, anteprocHParamsList[jobGroup - 1][jobNum - 1])
             for key, val in temp_anteproc_h_dict['stamp'].iteritems():
                 temp_anteproc_h_dict['stamp.' + key] = val
             temp_anteproc_h_dict.pop('stamp')
@@ -471,7 +471,7 @@ def main():
         for jobNum in L1AnteprocJobNums:
         
             temp_anteproc_l_dict = deepcopy(commonParamsDictionary['anteproc_l'])
-            temp_anteproc_l_dict = deepupdate(temp_anteproc_l_dict, anteprocLParamsList[jobGroup][jobNum - 1])
+            temp_anteproc_l_dict = deepupdate(temp_anteproc_l_dict, anteprocLParamsList[jobGroup - 1][jobNum - 1])
             for key, val in temp_anteproc_l_dict['stamp'].iteritems():
                 temp_anteproc_l_dict['stamp.' + key] = val
             temp_anteproc_l_dict.pop('stamp')
