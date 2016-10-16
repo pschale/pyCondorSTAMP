@@ -87,6 +87,8 @@ def main():
     outputDir = os.path.join(outputDir, "stamp_analysis_anteproc")
         
     baseDir = dated_dir(outputDir)
+    global directory_with_everything
+    directory_with_everything = baseDir
     noDelete = options.noDelete
     
     supportDir = create_dir(baseDir + "/input_files")
@@ -386,17 +388,18 @@ def main():
             if configs.getboolean('injection', 'doInjections') and not configs.getboolean('injection', 'onTheFly'):#input_params['injection_bool'] and not input_params['onTheFly']:
                 for temp_waveform in waveformFileNames:
                     jobDictionary["injection_tag"] = temp_waveform
+                    jobDictionary["grandStochtrackParams"]["params"]['job_group']=  job_group
+                    jobDictionary["grandStochtrackParams"]["params"]['jobNumber'] = current_job
                     stochtrackParamsList.append(deepcopy(jobDictionary))
-                    stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['job_group']=  job_group
-                    stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
+                    
                     H1AnteprocJobNums.add(jobNum1)
                     L1AnteprocJobNums.add(jobNum2)
 
                     current_job += 1
             else:    
+                jobDictionary["grandStochtrackParams"]["params"]['job_group'] = job_group
+                jobDictionary["grandStochtrackParams"]["params"]['jobNumber'] = current_job
                 stochtrackParamsList.append(deepcopy(jobDictionary))
-                stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['job_group'] = job_group
-                stochtrackParamsList[current_job]["grandStochtrackParams"]["params"]['jobNumber'] = current_job
 
                 H1AnteprocJobNums.add(jobNum1)
                 L1AnteprocJobNums.add(jobNum2)
@@ -568,19 +571,18 @@ if __name__ == "__main__":
         main()
     except:
         import inspect
-        baseDir = inspect.trace()[-1][0].f_locals['baseDir']
-        if not inspect.trace()[1][0].f_locals['noDelete']:
+        print(inspect.trace()[-1][0])
+        if not inspect.trace()[-1][0].f_locals['noDelete']:
             print("Error has occurred.  Deleting all files that were created.")
             from shutil import rmtree
-            rmtree(baseDir)
+            rmtree(directory_with_everything)
         else:
             import pprint
             try:
-                lvars = inspect.trace()[1][0].f_locals
-                pprint.pprint(lvars['commonParamsDictionary'], open(os.path.join(baseDir, "commonParams_dict.txt"), "w"))
-                pprint.pprint(lvars['anteprocHParamsList'], open(os.path.join(baseDir, "anteprocHParams_list.txt"), "w"))
-                pprint.pprint(lvars['anteprocLParamsList'], open(os.path.join(baseDir, "anteprocLParams_list.txt"), "w"))
-                pprint.pprint(lvars['stochtrackParamsList'], open(os.path.join(baseDir, "stochtrackParams_list.txt"), "w"))
+                pprint.pprint(inspect.trace()[-1][0].f_locals['commonParamsDictionary'], open(os.path.join(baseDir, "commonParams_dict.txt"), "w"))
+                pprint.pprint(inspect.trace()[-1][0].f_locals['anteprocHParamsList'], open(os.path.join(baseDir, "anteprocHParams_list.txt"), "w"))
+                pprint.pprint(inspect.trace()[-1][0].f_locals['anteprocLParamsList'], open(os.path.join(baseDir, "anteprocLParams_list.txt"), "w"))
+                pprint.pprint(inspect.trace()[-1][0].f_locals['stochtrackParamsList'], open(os.path.join(baseDir, "stochtrackParams_list.txt"), "w"))
                 print("printed dictionaries to files")
             except KeyError:
                 pass
