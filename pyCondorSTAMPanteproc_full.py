@@ -195,7 +195,7 @@ def main():
             for H1_job_index in tempNumbersH:
                 H1_job = H1_job_index + 1
                 job1StartTime = times[H1_job_index][1]
-                anteprocHParamsList[jobGroup - 1][H1_job_index]['outputfilename'] = "map_v" + str(jobGroup)
+                anteprocHParamsList[jobGroup - 1][H1_job_index]['outputfilename'] = "map_g" + str(jobGroup)
                 
                 if configs.getboolean('injection', 'doVariations'):
                     anteprocHParamsList[jobGroup - 1][H1_job_index]['stamp']['alpha'] = configs.getfloat('variations', 'minStampAlpha') *(multiplier**(jobGroup - 1))                
@@ -228,7 +228,7 @@ def main():
             for L1_job_index in tempNumbersL:
                 L1_job = L1_job_index + 1
                 job1StartTime = times[L1_job_index][1]
-                anteprocLParamsList[jobGroup - 1][L1_job_index]['outputfilename'] = "map_v" + str(jobGroup)
+                anteprocLParamsList[jobGroup - 1][L1_job_index]['outputfilename'] = "map_g" + str(jobGroup)
                 
                 if configs.getboolean('injection', 'doVariations'):
                     anteprocLParamsList[jobGroup - 1][L1_job_index]['stamp']['alpha'] = configs.getfloat('variations', 'minStampAlpha') * (multiplier**(jobGroup - 1))   
@@ -345,8 +345,8 @@ def main():
             jobDictionary["grandStochtrackParams"]["params"]["outputfilename"] = jobDir + "/grandStochtrackOutput/map"
             jobDictionary["grandStochtrackParams"]["params"]["ofile"] = jobDir + "/grandStochtrackOutput/bknd"
             jobDictionary["grandStochtrackParams"]["params"]["jobsFile"] = newJobPath
-            jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map_group_g" + str(jobGroup)
-            jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map_group_g" + str(jobGroup)
+            jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map_g" + str(jobGroup)
+            jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map_g" + str(jobGroup)
             jobDictionary['grandStochtrackParams']['params']['anteproc']["jobfile"] = newAdjustedJobPath
 
             jobDictionary["jobDir"] = jobDir
