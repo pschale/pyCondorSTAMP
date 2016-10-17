@@ -357,7 +357,7 @@ def main():
             jobDictionary["plotDir"] = create_dir(jobDir + "/grandStochtrackOutput" + "/plots")
         
             if commonParamsDictionary['grandStochtrack']['stochtrack']['saveMat']:
-                jobDictionary['grandStochtrack']['stochtrack']['matfile'] = jobDir + "/snrs.mat"
+                jobDictionary['grandStochtrackParams']['stochtrack']['matfile'] = jobDir + "/snrs.mat"
         
             if "injection_tags" in jobDictionary:
                 jobDictionary['grandStochtrackParams']['params']['anteproc']['inmats1'] += "_" + jobDictionary["injection_tags"]
