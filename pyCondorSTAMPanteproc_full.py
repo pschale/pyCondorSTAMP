@@ -21,6 +21,8 @@ def main():
                         help = "prints out dictionaries to file at end")
     parser.add_option("-n", "--no-delete", action = "store_true", dest = "noDelete", default = False,
                         help = "If active, errors will not trigger deletion of generated files.")
+    parser.add_option("-s", "--submit_dag", action = "store_true", dest = "submitDag", default = False,
+                        help = "Submits dag automatically")
     
     (options, args) = parser.parse_args()
     
@@ -565,13 +567,17 @@ def main():
         pprint.pprint(anteprocHParamsList, open(os.path.join(baseDir, "anteprocHParams_list.txt"), "w"))
         pprint.pprint(anteprocLParamsList, open(os.path.join(baseDir, "anteprocLParams_list.txt"), "w"))
         pprint.pprint(stochtrackParamsList, open(os.path.join(baseDir, "stochtrackParams_list.txt"), "w"))
+    
+    if options.submitDag:
+        import subprocess
+        subprocess.call('condor_submit_dag ' + os.path.join(baseDir, "dag/stampAnalysis.dag"), shell = True)
 
 if __name__ == "__main__":
     try:
         main()
     except:
         import inspect
-        lvars = inspect.trace()[-1][0].f_locals
+        lvars = inspect.trace()[1][0].f_locals
         baseDir = lvars['baseDir']
         if not lvars['noDelete']:
             print("Error has occurred.  Deleting all files that were created.")
