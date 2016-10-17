@@ -39,7 +39,7 @@ def getDefaultCommonParams():
                     'doFreqMask': False,
                     'freqsToRemove': [],
                     'nBinsToRemove': "",
-                    'outputfilename': "map",
+                    'outputfilename': "map_g1",
                     'storemats': True,
                     'pp_seed': -1,
 },
