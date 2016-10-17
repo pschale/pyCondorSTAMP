@@ -464,6 +464,7 @@ def main():
             for key, val in temp_anteproc_h_dict['stamp'].iteritems():
                 temp_anteproc_h_dict['stamp.' + key] = val
             anteproc_dict = deepcopy(commonParamsDictionary['anteproc'])
+            temp_anteproc_h_dict.pop('stamp')
             anteproc_dict.update(temp_anteproc_h_dict)
             anteproc_dict['ifo1'] = "H1"
             anteproc_dict['frameType1'] = "H1_" + configs.get('search', 'frameType')#input_params['frame_type']
