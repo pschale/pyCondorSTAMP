@@ -197,9 +197,6 @@ def getDefaultCommonParams():
                             "skypatch": 0,
                             "stamp_pem": 0,
                             "stochPlus": 0,
-                            "stochtrack": {
-
-                            },
                             "yMapScale": 1e-43,
         
                             "stochtrack" : {
@@ -207,14 +204,22 @@ def getDefaultCommonParams():
                                 "F": 3000,
                                 "mindur": 25,
                                 "doExponential": 0,
-                                "doSeed": 0,
+                                "doSeed": False,
                                 "demo": False,
                                 "doStampFreqMask": True,
                                 "doPixelCut": 1,
                                 "pixel_threshold": 10,
                                 "norm": "npix",
                                 "StampFreqsToRemove": [57, 58, 59, 60, 61, 62, 63, 119, 120, 121],
-
+                                "doBezier": True,
+                                "doTranspose": False,
+                                "stochsky": False,
+                                "doCBC": False,
+                                "doRModes": False,
+                                "doECBC": False,
+                                "extra_pixels": 0,
+                                "doRamp": False,
+                                "saveMat": False,
                                 "singletrack" : {
                                 }
 
