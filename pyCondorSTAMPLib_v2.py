@@ -335,7 +335,7 @@ def getCommonParams(configs):
             commonParamsDictionary['preproc']['stamp']['file'] = configs.getfloat('injection', 'injectionFile')
             commonParamsDictionary['preproc']['stamp']['alpha'] = 1e-40
         
-    if configs.getboolean('injection', 'doInjections') and configs.getboolean('injection', 'doVariations'):
+    if configs.getboolean('injection', 'doInjections') and configs.getboolean('variations', 'doVariations'):
         commonParamsDictionary['numJobGroups'] = configs.getint('variations', 'numJobGroups')
     else:
         commonParamsDictionary['numJobGroups'] = 1

@@ -17,11 +17,15 @@ def main():
     parser.add_option("-c", "--config-file", dest = "configFilePath",
                       help = "Path to params file")
     parser.add_option("-v", "--verbose", 
-                        action = "store_true", dest = "verbose", default = False,
+                        action = "store_true", dest = "verbose", 
+                        default = False,
                         help = "prints out dictionaries to file at end")
-    parser.add_option("-n", "--no-delete", action = "store_true", dest = "noDelete", default = False,
-                        help = "If active, errors will not trigger deletion of generated files.")
-    parser.add_option("-s", "--submit_dag", action = "store_true", dest = "submitDag", default = False,
+    parser.add_option("-n", "--no-delete", action = "store_true", 
+                        dest = "noDelete", default = False,
+                        help = "If active, errors will not trigger \
+                        deletion of generated files.")
+    parser.add_option("-s", "--submit_dag", action = "store_true", 
+                        dest = "submitDag", default = False,
                         help = "Submits dag automatically")
     
     (options, args) = parser.parse_args()
@@ -38,18 +42,17 @@ def main():
     configs = ConfigParser()
     configs.read(configFilePath)
     
-    #Following lines DISABLED, dictionary now used due to increased security
-    #this loads all of the input parameters into local variables.  It's kind of magic
-    #for key, val in input_params.iteritems():
-    #    exec(key + '=val')
     searchType = configs.get('search', 'searchType')
     onsource = searchType == "onsource"
     pseudo_onsource = searchType == "pseudo_onsource"
     upper_limits = searchType == "upper_limits"
     offsource = searchType == "offsource"
     
-    if configs.getboolean('injection', 'doInjections') and not configs.getboolean('injection', 'onTheFly') and not os.isfile(injection_file):
-        pyCondorSTAMPanteprocError("Injection file does not exist.  Make onTheFly true if you do not wish to specify an injection file")        
+    if (configs.getboolean('injection', 'doInjections') and 
+            not configs.getboolean('injection', 'onTheFly') and 
+            not os.isfile(injection_file)):
+        pyCondorSTAMPanteprocError("Injection file does not exist.  \
+            Make onTheFly true if you do not wish to specify injection file")       
         
     if configs.getboolean('injection', 'longTau'):
         wave_tau = 400
@@ -58,7 +61,8 @@ def main():
         
     wave_duration = wave_tau*3
     
-    if configs.getboolean('injection', 'polarizationSmallerResponse'): #this might need adjustment for particular triggers
+    #this might need adjustment for particular triggers
+    if configs.getboolean('injection', 'polarizationSmallerResponse'): 
         wave_iota = 120
         wave_psi = 45
     else:
@@ -66,26 +70,26 @@ def main():
         wave_psi = 0
     
     if onsource:
-        configs.set('injection', 'doInjections', 'False')#input_params['injection_bool'] = False
-        configs.set('search', 'simulated', 'False')#input_params['simulated'] = False
-        configs.set('search', 'relativeDirection', 'False')#input_params['relative_direction'] = False
+        configs.set('injection', 'doInjections', 'False')
+        configs.set('search', 'simulated', 'False')
+        configs.set('search', 'relativeDirection', 'False')
         
     if pseudo_onsource:
         configs.set('search', 'relativeDirection', 'False')
     
-    if not configs.get('injection', 'doInjections'):#input_params['injection_bool']:
-        configs.set('injection', 'onTheFly', 'False')#input_params['onTheFly'] = False
-        configs.set('injection', 'polarizationSmallerResponse', 'False')#input_params['polarization_smaller_response'] = False
-        configs.set('injection', 'injectionRandomStartTime', 'False')#input_params['injection_random_start_time'] = False
-        configs.set('injection', 'includeVariations', 'False')#input_params['include_variations'] = False
+    if not configs.get('injection', 'doInjections'):
+        configs.set('injection', 'onTheFly', 'False')
+        configs.set('injection', 'polarizationSmallerResponse', 'False')
+        configs.set('injection', 'injectionRandomStartTime', 'False')
+        configs.set('injection', 'includeVariations', 'False')
         
-    if configs.getboolean('singletrack', 'singletrackBool'):#input_params['singletrack_bool']:
-        configs.set('condor', 'numCPU', '1')#input_params['single_cpu'] = True
+    if configs.getboolean('singletrack', 'singletrackBool'):
+        configs.set('condor', 'numCPU', '1')
         configs.set('condor', 'doGPU', 'False')
     
-    jobPath = make_file_path_absolute(configs.get('trigger', 'jobFile'))#input_params['jobFile'])
-    configPath = os.path.join(configs.get('dirs', 'outputDir'), "config_file.txt")#input_params['outputDir'], "config_file.txt")
-    outputDir = make_file_path_absolute(configs.get('dirs', 'outputDir'))#input_params['outputDir'])
+    jobPath = make_file_path_absolute(configs.get('trigger', 'jobFile'))
+    configPath = os.path.join(configs.get('dirs', 'outputDir'), "config_file.txt")
+    outputDir = make_file_path_absolute(configs.get('dirs', 'outputDir'))
     outputDir = os.path.join(outputDir, "stamp_analysis_anteproc")
         
     baseDir = dated_dir(outputDir)
@@ -101,7 +105,9 @@ def main():
     
     #adjust job file
     jobFileName = jobPath[len(jobPath)-jobPath[::-1].index('/')::]
-    adjustedJobFileName = jobFileName[:jobFileName.index(".txt")] + "_postprocessing" + jobFileName[jobFileName.index(".txt"):]
+    adjustedJobFileName = (jobFileName[:jobFileName.index(".txt")] 
+                            + "_postprocessing" 
+                            + jobFileName[jobFileName.index(".txt"):])
     newAdjustedJobPath = os.path.join(supportDir, adjustedJobFileName)
     
     commonParamsDictionary = getCommonParams(configs)
@@ -110,25 +116,34 @@ def main():
 
         
         
-    #this ensures there's enough data to be able to estimate the background
-    # 9-NumberofSegmentsPerInterval (NSPI), -1 (take out the pixel that's being analyzed), /2 to get one side of those
-    # *4 (pixel duration) 2 + (buffer seconds), + 2 (window started 2 seconds before trigger time)
-    if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard'):#input_params['long_pixel'] or input_params['burstegard']:
-        triggerJobStart = configs.getfloat('trigger', 'triggerTime') - (2 + (9-1)*4/2 + 2)#input_params['triggerTime'] - (2 + (9-1)*4/2 + 2)
+    # This ensures there's enough data to be able to estimate the background
+    # 2+ (buffer seconds),     
+    # 9: NumberofSegmentsPerInterval (NSPI), 
+    # -1: take out the pixel that's being analyzed 
+    # /2: to get one side of those
+    # *4: pixel duration
+    # +2: window started 2 seconds before trigger time
+    if (configs.getboolean('search', 'longPixel') 
+            or configs.getboolean('search', 'burstegard')):
+        triggerJobStart = (configs.getfloat('trigger', 'triggerTime') 
+                            - (2 + (9-1)*4/2 + 2))
     else:
-        triggerJobStart = configs.getfloat('trigger', 'triggerTime') - (2 + (9-1)/2 + 2)#input_params['triggerTime'] - (2 + (9-1)/2 + 2)
+        triggerJobStart = (configs.getfloat('trigger', 'triggerTime') 
+                            - (2 + (9-1)/2 + 2))
     
     # analysis starts 2 pixels before trigger time
-    trigger_hStart = configs.getfloat('trigger', 'triggerTime') - 2#input_params['triggerTime'] - 2
+    trigger_hStart = configs.getfloat('trigger', 'triggerTime') - 2
         
-    #Next section finds the job number PAIRS run by stochtrack, and job NUMBERS run by anteproc
+    # Next section finds the job number PAIRS run by stochtrack
+    # and job NUMBERS run by anteproc
     
     if upper_limits:
     
-        with open(configs.get('upperlimits', 'offSourceJsonPath')) as infile:#open(input_params['off_source_json_path'], 'r') as infile:
+        with open(configs.get('upperlimits', 'offSourceJsonPath')) as infile:
             temp_job_data = json.load(infile)
         sortedJobPairs = [x[1:3] for x in temp_job_data if x[1:3] != [34, 34]]
-        sortedJobPairs = [[x-1 for x in y] for y in sortedJobPairs] # goes from job number to job index
+        sortedJobPairs = [[x-1 for x in y] for y in sortedJobPairs] # job num
+                                                                # to job index
         source_file_dict = {}
     
         for num in range(len(sortedJobPairs)):
@@ -189,7 +204,7 @@ def main():
     anteprocHParamsList = [[{'stamp':{}} for i in range(0, max(tempNumbersH) + 1)] for j in range(1, commonParamsDictionary['numJobGroups'] + 1)]
     anteprocLParamsList = [[{'stamp':{}} for i in range(0, max(tempNumbersL) + 1)] for j in range(1, commonParamsDictionary['numJobGroups'] + 1)]
     if configs.getboolean('injection', 'doInjections'):#input_params['injection_bool']:
-        if configs.getboolean('injection', 'doVariations'):
+        if configs.getboolean('variations', 'doVariations'):
             multiplier = (configs.getfloat('variations', 'maxStampAlpha')/configs.getfloat('variations', 'minStampAlpha'))**(1/(configs.getfloat('variations', 'numJobGroups')-1))
 
         for jobGroup in range(1, commonParamsDictionary['numJobGroups'] + 1):
@@ -198,9 +213,7 @@ def main():
                 H1_job = H1_job_index + 1
                 job1StartTime = times[H1_job_index][1]
                 anteprocHParamsList[jobGroup - 1][H1_job_index]['outputfilename'] = "map_g" + str(jobGroup)
-                
-                if configs.getboolean('injection', 'doVariations'):
-                    anteprocHParamsList[jobGroup - 1][H1_job_index]['stamp']['alpha'] = configs.getfloat('variations', 'minStampAlpha') *(multiplier**(jobGroup - 1))                
+
     
                 if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard'):#input_params['long_pixel'] or input_params['burstegard']:
                     job1_hstart = job1StartTime + (9-1)*4/2+2
@@ -225,6 +238,12 @@ def main():
 
                 else:
                     anteprocHParamsList[jobGroup - 1][H1_job_index]['stamp']['startGPS'] = job1_hstart+2
+                
+                if configs.getboolean('variations', 'doVariations') and configs.get('variations', 'paramCat') == 'anteproc':
+                    
+                    exec('anteprocHParamsList[jobGroup - 1][H1_job_index]' + "['" + "']['".join(configs.get('variations', 'paramName').split('.')) + "']" + "=" + "configs.getfloat('variations', 'minStampAlpha') *(multiplier**(jobGroup - 1))"
+                    anteprocHParamsList[jobGroup - 1][H1_job_index]['stamp']['alpha'] = configs.getfloat('variations', 'minStampAlpha') *(multiplier**(jobGroup - 1))
+                
 
 
             for L1_job_index in tempNumbersL:
@@ -232,7 +251,7 @@ def main():
                 job1StartTime = times[L1_job_index][1]
                 anteprocLParamsList[jobGroup - 1][L1_job_index]['outputfilename'] = "map_g" + str(jobGroup)
                 
-                if configs.getboolean('injection', 'doVariations'):
+                if configs.getboolean('variations', 'doVariations'):
                     anteprocLParamsList[jobGroup - 1][L1_job_index]['stamp']['alpha'] = configs.getfloat('variations', 'minStampAlpha') * (multiplier**(jobGroup - 1))   
     
                 if configs.getboolean('search', 'longPixel') or configs.getboolean('search', 'burstegard'):#input_params['long_pixel'] or input_params['burstegard']:
@@ -477,84 +496,114 @@ def main():
             
         for jobNum in L1AnteprocJobNums:
         
-            temp_anteproc_l_dict = deepcopy(commonParamsDictionary['anteproc_l'])
-            temp_anteproc_l_dict = deepupdate(temp_anteproc_l_dict, anteprocLParamsList[jobGroup - 1][jobNum - 1])
-            for key, val in temp_anteproc_l_dict['stamp'].iteritems():
-                temp_anteproc_l_dict['stamp.' + key] = val
-            temp_anteproc_l_dict.pop('stamp')
+            anteprocJobDict = deepcopy(commonParamsDictionary['anteproc_l'])
+            anteprocJobDict = deepupdate(
+                                anteprocJobDict, 
+                                anteprocLParamsList[jobGroup - 1][jobNum - 1])
+            for key, val in anteprocJobDict['stamp'].iteritems():
+                anteprocJobDict['stamp.' + key] = val
+            anteprocJobDict.pop('stamp')
         
             anteproc_dict = deepcopy(commonParamsDictionary['anteproc'])
-            anteproc_dict.update(temp_anteproc_l_dict)
+            anteproc_dict.update(anteprocJobDict)
             anteproc_dict['ifo1'] = "L1"
-            anteproc_dict['frameType1'] = "L1_" + configs.get('search', 'frameType')#input_params['frame_type']
-            anteproc_dict['ASQchannel1'] = configs.get('search', 'channel')#input_params['channel']
+            anteproc_dict['frameType1'] = "L1_" + configs.get('search', 'frameType')
+            anteproc_dict['ASQchannel1'] = configs.get('search', 'channel')
         
-            with open(anteproc_dir + "/L1-anteproc_params_group_" + str(jobGroup) + "_" + str(jobNum) + ".txt", 'w') as h:
-                print >> h, "\n".join([key + ' ' + str(val).lower() if not isinstance(val, basestring) else key + ' ' + val for key, val in anteproc_dict.iteritems()])        
-
-    
+            with open(anteproc_dir + "/L1-anteproc_params_group_"
+                         + str(jobGroup) + "_" + str(jobNum)
+                          + ".txt", 'w') as h:
+                print >> h, "\n".join([key + ' ' + str(val).lower() 
+                                        if not isinstance(val, basestring) 
+                                        else key + ' ' + val 
+                                        for key, val in 
+                                        anteproc_dict.iteritems()])
     
     # create grandstochtrack execution script
-    
     print("Creating shell scripts")
     grandStochtrack_script_file = dagDir + "/grand_stochtrack.sh"
     if commonParamsDictionary['grandStochtrack']['savePlots']:
-        write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutable, STAMP_setup_script, configs.get('dirs', 'matlabSetupScript'))#input_params['matlab_setup_script'])
+        write_grandstochtrack_bash_script(
+                        grandStochtrack_script_file, 
+                        grandStochtrackExecutable, 
+                        STAMP_setup_script, 
+                        configs.get('dirs', 'matlabSetupScript'))
     else:
-        write_grandstochtrack_bash_script(grandStochtrack_script_file, grandStochtrackExecutableNoPlots, STAMP_setup_script, configs.get('dirs', 'matlabSetupScript'))#input_params['matlab_setup_script'])
+        write_grandstochtrack_bash_script(
+                        grandStochtrack_script_file, 
+                        grandStochtrackExecutableNoPlots, STAMP_setup_script,
+                        configs.get('dirs', 'matlabSetupScript'))
     os.chmod(grandStochtrack_script_file, 0o744)
     
-    #matlabMatrixExtractionExectuable_script_file = dagDir + "/matlab_matrix_extraction.sh"
-    #write_grandstochtrack_bash_script(matlabMatrixExtractionExectuable_script_file, input_params['matlabMatrixExtractionExectuable'], STAMP_setup_script)
-    #os.chmod(matlabMatrixExtractionExectuable_script_file, 0o744)
-    
     anteprocExecutable_script_file = dagDir + "/anteproc.sh"
-    write_anteproc_bash_script(anteprocExecutable_script_file, anteprocExecutable, STAMP_setup_script)
+    write_anteproc_bash_script(anteprocExecutable_script_file, 
+                               anteprocExecutable, STAMP_setup_script)
     os.chmod(anteprocExecutable_script_file, 0o744)
     
-    webPageSH = os.path.join(webpage.load_pycondorstamp_dir(), 'webdisplay/resultsJSON.py') #this one has already been created
-    
-    # If relative injection value set, override any existing injection time with calculated relative injection time.
-    
-    # find frame files
+    webPageSH = os.path.join(webpage.load_pycondorstamp_dir(), 
+                             'webdisplay/resultsJSON.py') 
+        
+    # Find frame files
     for tempJob in set(tempNumbersH):
         print("Finding frames for job " + str(tempJob + 1) + " for H1")
-        if not configs.getboolean('search', 'simulated'):#input_params['simulated']:
-            #temp_frames = create_frame_file_list("H1_" + input_params['frame_type'], str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "H")
-            temp_frames = create_frame_file_list("H1_" + configs.get('search', 'frameType'), str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "H")
-            archived_H = create_cache_and_time_file(temp_frames, "H",tempJob+1, cacheDir)
+        if not configs.getboolean('search', 'simulated'):
+            temp_frames = create_frame_file_list("H1_"
+                             + configs.get('search', 'frameType'), 
+                             str(times[tempJob][1] - 2), 
+                             str(times[tempJob][1] + 1602), "H")
+            archived_H = create_cache_and_time_file(temp_frames, "H", 
+                                                    tempJob+1, cacheDir)
         else:
-            create_fake_cache_and_time_file(str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "H", tempJob, fakeCacheDir)
+            create_fake_cache_and_time_file(str(times[tempJob][1] - 2), 
+                                            str(times[tempJob][1] + 1602), 
+                                            "H", tempJob, fakeCacheDir)
     for tempJob in set(tempNumbersL):
         print("Finding frames for job " + str(tempJob + 1) + " for L1")
-        if not configs.getboolean('search', 'simulated'):#input_params['simulated']:
-            #temp_frames = create_frame_file_list("L1_" + input_params['frame_type'], str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "L")
-            temp_frames = create_frame_file_list("L1_" + configs.get('search', 'frameType'), str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "L")
-            archived_L = create_cache_and_time_file(temp_frames, "L",tempJob+1, cacheDir)
+        if not configs.getboolean('search', 'simulated'):
+            temp_frames = create_frame_file_list("L1_"
+                             + configs.get('search', 'frameType'), 
+                             str(times[tempJob][1] - 2), 
+                             str(times[tempJob][1] + 1602), "L")
+            archived_L = create_cache_and_time_file(temp_frames, "L", 
+                                                    tempJob+1, cacheDir)
         else:
-            create_fake_cache_and_time_file(str(times[tempJob][1] - 2), str(times[tempJob][1] + 1602), "L", tempJob, fakeCacheDir)
+            create_fake_cache_and_time_file(str(times[tempJob][1] - 2), 
+                    str(times[tempJob][1] + 1602), "L", tempJob, fakeCacheDir)
             
     if archived_H or archived_L:
-        print("WARNING: some needed frames have been archived and will take longer to read off of tape")
+        print("WARNING: some needed frames have been archived \
+                and will take longer to read off of tape")
         print(archived_H)
         print(archived_L)
         print("WARNING: these jobs will take a long time")
             
     for job in stochtrackParamsList:
-        job['grandStochtrackParams'] = recursive_ints_to_floats(job['grandStochtrackParams'])
-        sio.savemat(job['stochtrackInputDir'] + "/params.mat", job['grandStochtrackParams'])
+        job['grandStochtrackParams'] = recursive_ints_to_floats(
+                                            job['grandStochtrackParams'])
+        sio.savemat(job['stochtrackInputDir'] + "/params.mat", 
+                    job['grandStochtrackParams'])
         
     print("Creating dag and sub files")
     
-    #anteprocSub = write_anteproc_sub_file(input_params['anteprocMemory'], anteprocExecutable_script_file, dagDir, input_params['accountingGroup'])
-    #stochtrackSub = write_stochtrack_sub_file(input_params['grandStochtrackMemory'], grandStochtrack_script_file, dagDir, input_params['accountingGroup'], input_params['doGPU'], input_params['numCPU'])
-    #webDisplaySub = write_webpage_sub_file(webPageSH, dagDir, input_params['accountingGroup'])
-    #write_dag(dagDir, anteproc_dir, newJobPath, H1AnteprocJobNums, L1AnteprocJobNums, anteprocSub, stochtrackParamsList, stochtrackSub, input_params['maxJobsAnteproc'], input_params['maxJobsGrandStochtrack'], webDisplaySub, baseDir)
-
-    anteprocSub = write_anteproc_sub_file(configs.getint('condor', 'anteprocMemory'), anteprocExecutable_script_file, dagDir, configs.get('condor', 'accountingGroup'))
-    stochtrackSub = write_stochtrack_sub_file(configs.getint('condor', 'grandStochtrackMemory'), grandStochtrack_script_file, dagDir, configs.get('condor', 'accountingGroup'), configs.getboolean('condor', 'doGPU'), configs.getint('condor', 'numCPU'))
-    webDisplaySub = write_webpage_sub_file(webPageSH, dagDir, configs.get('condor', 'accountingGroup'))
-    write_dag(dagDir, anteproc_dir, newJobPath, H1AnteprocJobNums, L1AnteprocJobNums, commonParamsDictionary['numJobGroups'], anteprocSub, stochtrackParamsList, stochtrackSub, configs.getint('condor', 'maxJobsAnteproc'), configs.getint('condor', 'maxJobsGrandStochtrack'), webDisplaySub, baseDir)
+    anteprocSub = write_anteproc_sub_file(
+                            configs.getint('condor', 'anteprocMemory'), 
+                            anteprocExecutable_script_file, dagDir, 
+                            configs.get('condor', 'accountingGroup'))
+    stochtrackSub = write_stochtrack_sub_file(
+                            configs.getint('condor', 'grandStochtrackMemory'), 
+                            grandStochtrack_script_file, dagDir, 
+                            configs.get('condor', 'accountingGroup'), 
+                            configs.getboolean('condor', 'doGPU'), 
+                            configs.getint('condor', 'numCPU'))
+    webDisplaySub = write_webpage_sub_file(
+                            webPageSH, dagDir, 
+                            configs.get('condor', 'accountingGroup'))
+    write_dag(dagDir, anteproc_dir, newJobPath, H1AnteprocJobNums, 
+              L1AnteprocJobNums, commonParamsDictionary['numJobGroups'], 
+              anteprocSub, stochtrackParamsList, stochtrackSub, 
+              configs.getint('condor', 'maxJobsAnteproc'), 
+              configs.getint('condor', 'maxJobsGrandStochtrack'), 
+              webDisplaySub, baseDir)
         
     #create summary of parameters
     generate_summary(configs, baseDir)
@@ -563,14 +612,19 @@ def main():
     
     if options.verbose:
         import pprint
-        pprint.pprint(commonParamsDictionary, open(os.path.join(baseDir, "commonParams_dict.txt"), "w"))
-        pprint.pprint(anteprocHParamsList, open(os.path.join(baseDir, "anteprocHParams_list.txt"), "w"))
-        pprint.pprint(anteprocLParamsList, open(os.path.join(baseDir, "anteprocLParams_list.txt"), "w"))
-        pprint.pprint(stochtrackParamsList, open(os.path.join(baseDir, "stochtrackParams_list.txt"), "w"))
+        pprint.pprint(commonParamsDictionary, 
+                open(os.path.join(baseDir, "commonParams_dict.txt"), "w"))
+        pprint.pprint(anteprocHParamsList, 
+                open(os.path.join(baseDir, "anteprocHParams_list.txt"), "w"))
+        pprint.pprint(anteprocLParamsList, 
+                open(os.path.join(baseDir, "anteprocLParams_list.txt"), "w"))
+        pprint.pprint(stochtrackParamsList, 
+                open(os.path.join(baseDir, "stochtrackParams_list.txt"), "w"))
     
     if options.submitDag:
         import subprocess
-        subprocess.call('condor_submit_dag ' + os.path.join(baseDir, "dag/stampAnalysis.dag"), shell = True)
+        subprocess.call('condor_submit_dag '
+                + os.path.join(baseDir, "dag/stampAnalysis.dag"), shell=True)
 
 if __name__ == "__main__":
     try:
@@ -580,16 +634,20 @@ if __name__ == "__main__":
         lvars = inspect.trace()[1][0].f_locals
         baseDir = lvars['baseDir']
         if not lvars['noDelete']:
-            print("Error has occurred.  Deleting all files that were created.")
+            print("Error has occurred. Deleting all files that were created.")
             from shutil import rmtree
             rmtree(baseDir)
         else:
             try:
                 import pprint
-                pprint.pprint(lvars['commonParamsDictionary'], open(os.path.join(baseDir, "commonParams_dict.txt"), "w"))
-                pprint.pprint(lvars['anteprocHParamsList'], open(os.path.join(baseDir, "anteprocHParams_list.txt"), "w"))
-                pprint.pprint(lvars['anteprocLParamsList'], open(os.path.join(baseDir, "anteprocLParams_list.txt"), "w"))
-                pprint.pprint(lvars['stochtrackParamsList'], open(os.path.join(baseDir, "stochtrackParams_list.txt"), "w"))
+                pprint.pprint(lvars['commonParamsDictionary'], 
+                    open(os.path.join(baseDir, "commonParams_dict.txt"), "w"))
+                pprint.pprint(lvars['anteprocHParamsList'], 
+                    open(os.path.join(baseDir, "anteprocHParams_list.txt"), "w"))
+                pprint.pprint(lvars['anteprocLParamsList'], 
+                    open(os.path.join(baseDir, "anteprocLParams_list.txt"), "w"))
+                pprint.pprint(lvars['stochtrackParamsList'], 
+                    open(os.path.join(baseDir, "stochtrackParams_list.txt"), "w"))
                 print("printed dictionaries to files")
             except KeyError:
                 pass
