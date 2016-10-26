@@ -338,8 +338,7 @@ def getCommonParams(configs):
                                                          'injectionFile')
             CPDict['preproc']['stamp']['alpha'] = 1e-40
         
-    if (configs.getboolean('injection', 'doInjections') and 
-                configs.getboolean('variations', 'doVariations')):
+    if configs.getboolean('variations', 'doVariations'):
         CPDict['numJobGroups'] = configs.getint('variations', 'numJobGroups')
     else:
         CPDict['numJobGroups'] = 1
