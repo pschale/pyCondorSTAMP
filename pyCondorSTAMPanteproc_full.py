@@ -233,7 +233,7 @@ def main():
                             /configs.getfloat('variations', 'minval'))
                             * i for i in range(0, CPDict['numJobGroups'])]
             varyVals = [i + configs.getfloat('variations', 'minval')
-                            for i in varyVals)]
+                            for i in varyVals]
         else:
             raise ValueError("Must choose linear or logSqrt for distribution")
     
