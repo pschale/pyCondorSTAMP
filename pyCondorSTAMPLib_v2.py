@@ -78,18 +78,23 @@ def new_input_file_name(filePath, outputDirectory):
 def create_frame_file_list(frame_type, start_time, end_time, observatory):
 
     # search for file location for a given frame type during specified times
-    data_find = ['gw_data_find','-s', start_time, '-e', end_time, '-o',
-                 observatory, '--url-type', 'file', '--lal-cache', '--type',
-                 frame_type]
+    data_find = ['gw_data_find','-s', start_time, '-e', end_time, 
+                    '-o', observatory, '--url-type', 'file', 
+                    '--lal-cache', '--type', frame_type]
 
-    frame_locations_raw = subprocess.Popen(data_find, stdout = subprocess.PIPE, stderr=subprocess.PIPE).communicate()#[0]
+    frame_locations_raw = subprocess.Popen(
+                            data_find, stdout=subprocess.PIPE, 
+                            stderr=subprocess.PIPE).communicate()#[0]
     if frame_locations_raw[1]:
         print(frame_locations_raw[1])
         print("The following shell command caused the above message:")
-        raise pyCondorSTAMPanteprocError(str(frame_locations_raw[1]) + "\nCaused by the following shell command:\n" + " ".join(data_find))
+        raise pyCondorSTAMPanteprocError(str(frame_locations_raw[1]) 
+                    + "\nCaused by the following shell command:\n" 
+                    + " ".join(data_find))
     #frame_locations = frame_locations_raw.split("\n")
     #print(frame_locations_raw)
-    frame_locations = [x[x.find("localhost") + len("localhost"):] for x in frame_locations_raw[0].split("\n") if x]
+    frame_locations = [x[x.find("localhost") + len("localhost"):] 
+                            for x in frame_locations_raw[0].split("\n") if x]
 
     # create frame list
     return frame_locations
@@ -134,12 +139,14 @@ def create_cache_and_time_file(frame_list,observatory,jobNumber,jobCacheDir):
     return archived
 
 # Helper function to create a file from the list of frame file locations
-def create_fake_cache_and_time_file(start_time, end_time, observatory, jobNumber, jobCacheDir):
+def create_fake_cache_and_time_file(start_time, end_time, observatory, 
+                                    jobNumber, jobCacheDir):
 
     # calculate job duration
     tempJobDur = str(int(float(end_time) - float(start_time)))
     # create fake frame name and string to write to channel
-    output_string = "/FAKEDATA/" + observatory + "-FAKE-" + str(int(start_time)) + "-" + tempJobDur + ".gwf\n"
+    output_string = ("/FAKEDATA/" + observatory + "-FAKE-" 
+                        + str(int(start_time)) + "-" + tempJobDur + ".gwf\n")
     time_string = str(int(start_time)) + "\n"
 
     # create file
@@ -152,7 +159,9 @@ def create_fake_cache_and_time_file(start_time, end_time, observatory, jobNumber
 
 def convert_cosiota_to_iota(temp_param, temp_val):
     if temp_param == "stamp.iota":
-        print("\nWARNING: Parameter " + temp_param + " found. Special case to vary in cos(iota) instead of iota. Edit code to change this option.")
+        print("\nWARNING: Parameter " + temp_param + " found. Special case \
+                to vary in cos(iota) instead of iota. \
+                Edit code to change this option.")
         temp_val = np.degrees(np.arccos(temp_val))
     return temp_val
 
@@ -207,7 +216,8 @@ def generate_summary(configs, output_dir):
         changed += '[' + s + ']' + '\n'
         unchanged += '[' + s + ']' + '\n'
         for o in configs.options(s):
-            if o in defaultConfigs and not str(defaultConfigs[o]) == configs.get(s, o):
+            if (o in defaultConfigs and 
+                    not str(defaultConfigs[o])) == configs.get(s, o):
                 changed += o + '\t' + configs.get(s, o) + '\n'
             else:
                 unchanged += o + '\t' + configs.get(s, o) + '\n'
@@ -215,34 +225,13 @@ def generate_summary(configs, output_dir):
         changed += "\n"
         unchanged += "\n"
     
-    outputStr = "Parameters of note:\n\n" + changed + "=============================================================\n\n" + unchanged
+    outputStr = ("Parameters of note:\n\n" + changed 
+        + "=============================================================\n\n" 
+        + unchanged)
     
     with open(path.join(output_dir, 'summary.txt'), "w") as h:
         print >>h, outputStr
                 
-'''
-    output_str = "Summary of Parameters\n\nThe following parameters have been changed from default values:\n\n"
-    
-    params_dict.pop("_comment", None)
-    
-    default_params_dict = get_default_params()
-
-    for ele in default_params_dict['list_of_important_settings']:
-        output_str += ele + "\t" + str(params_dict[ele]) + "\n"
-        params_dict.pop(ele, None)
-        default_params_dict.pop(ele, None)
-    
-    output_str += "\n\nThe rest of the parameters\n\n"
-    
-    for key in params_dict:
-        try:
-            if not params_dict[key] == default_params_dict[key]:
-                output_str += key + "\t" + str(params_dict[key]) + "\n"
-        except KeyError:
-            output_str += key + "\t" + str(params_dict[key]) + "\n"        
-    with open(path.join(output_dir, 'summary.txt'), "w") as h:
-        print >> h, output_str
-    '''
 def recursive_ints_to_floats(in_dict):
 
     for key, val in in_dict.iteritems():
@@ -267,39 +256,43 @@ def deepupdate(d, u):
     return d
     
 def getCommonParams(configs):
-    commonParamsDictionary = getDefaultCommonParams()   
+    CPDict = getDefaultCommonParams()   
+    
+    CPStoch = CPDict['grandStochtrack']['stochtrack']
 
-    commonParamsDictionary['grandStochtrack']['stochtrack']['T'] = configs.getint('search', 'T')
-    commonParamsDictionary['grandStochtrack']['stochtrack']['F'] = configs.getint('search', 'F')
+    CPStoch['T'] = configs.getint('search', 'T')
+    CPStoch['F'] = configs.getint('search', 'F')
         
     if configs.getboolean('search', 'burstegard'):
-        commonParamsDictionary['grandStochtrack']['doBurstegard'] = True
-        commonParamsDictionary['grandStochtrack']['doStochtrack'] = False
+        CPDict['grandStochtrack']['doBurstegard'] = True
+        CPDict['grandStochtrack']['doStochtrack'] = False
     else:
         if configs.getboolean('search', 'longPixel'):
-            commonParamsDictionary['anteproc_h']['segmentDuration'] = 4
-            commonParamsDictionary['anteproc_l']['segmentDuration'] = 4
-            commonParamsDictionary['grandStochtrack']['stochtrack']['mindur'] = 25
-            commonParamsDictionary['preproc']['segmentDuration'] = 4
+            CPDict['anteproc_h']['segmentDuration'] = 4
+            CPDict['anteproc_l']['segmentDuration'] = 4
+            CPStoch['mindur'] = 25
+            CPDict['preproc']['segmentDuration'] = 4
         else:
-            commonParamsDictionary['anteproc_h']['segmentDuration'] = 1
-            commonParamsDictionary['anteproc_l']['segmentDuration'] = 1
-            commonParamsDictionary['grandStochtrack']['stochtrack']['mindur'] = 100
-            commonParamsDictionary['grandStochtrack']['stochtrack']['F'] = 600
-            commonParamsDictionary['job_start_shift'] = 6
-            commonParamsDictionary['job_duration'] = 400
+            CPDict['anteproc_h']['segmentDuration'] = 1
+            CPDict['anteproc_l']['segmentDuration'] = 1
+            CPStoch['mindur'] = 100
+            CPStoch['F'] = 600
+            CPDict['job_start_shift'] = 6
+            CPDict['job_duration'] = 400
     
     if configs.getboolean('search', 'simulated'):
-        commonParamsDictionary['anteproc_h']['doDetectorNoiseSim'] = True
-        commonParamsDictionary['anteproc_l']['doDetectorNoiseSim'] = True
-        commonParamsDictionary['anteproc_h']['DetectorNoiseFile'] = configs.get('search', 'lhoWelchPsd')
-        commonParamsDictionary['anteproc_l']['DetectorNoiseFile'] = configs.get('search', 'lloWelchPsd')
+        CPDict['anteproc_h']['doDetectorNoiseSim'] = True
+        CPDict['anteproc_l']['doDetectorNoiseSim'] = True
+        CPDict['anteproc_h'] \
+              ['DetectorNoiseFile'] = configs.get('search', 'lhoWelchPsd')
+        CPDict['anteproc_l'] \
+              ['DetectorNoiseFile'] = configs.get('search', 'lloWelchPsd')
 
         if not configs.getboolean('search', 'show_plots_when_simulated'):
-            commonParamsDictionary['grandStochtrack']['savePlots'] = False
+            CPDict['grandStochtrack']['savePlots'] = False
     else:
-        commonParamsDictionary['anteproc_h']['doDetectorNoiseSim'] = False
-        commonParamsDictionary['anteproc_l']['doDetectorNoiseSim'] = False
+        CPDict['anteproc_h']['doDetectorNoiseSim'] = False
+        CPDict['anteproc_l']['doDetectorNoiseSim'] = False
     
     
     # Add in injections (if desired)
@@ -313,73 +306,96 @@ def getCommonParams(configs):
         
         if configs.getboolean('injection', 'onTheFly'):
             # stamp_alpha was waveformPowerAmplitudeScaling here
-            commonParamsDictionary['anteproc_h']['stampinj'] = True
-            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = configs.getfloat('injection', 'stampAlpha')
-            commonParamsDictionary['anteproc_h']['stamp']['iota'] = wave_iota
-            commonParamsDictionary['anteproc_h']['stamp']['psi'] = wave_psi         
-            commonParamsDictionary['anteproc_l']['stampinj'] = True
-            commonParamsDictionary['anteproc_l']['stamp']['alpha'] = configs.getfloat('injection', 'stampAlpha')
-            commonParamsDictionary['anteproc_l']['stamp']['iota'] = wave_iota
-            commonParamsDictionary['anteproc_l']['stamp']['psi'] = wave_psi
+            CPDict['anteproc_h']['stampinj'] = True
+            CPDict['anteproc_h']['stamp'] \
+                                ['alpha'] = configs.getfloat('injection', 
+                                                             'stampAlpha')
+            CPDict['anteproc_h']['stamp']['iota'] = wave_iota
+            CPDict['anteproc_h']['stamp']['psi'] = wave_psi         
+            CPDict['anteproc_l']['stampinj'] = True
+            CPDict['anteproc_l']['stamp'] \
+                                ['alpha'] = configs.getfloat('injection', 
+                                                             'stampAlpha')
+            CPDict['anteproc_l']['stamp']['iota'] = wave_iota
+            CPDict['anteproc_l']['stamp']['psi'] = wave_psi
             
             
         else:
-            commonParamsDictionary['anteproc_h']['stampinj'] = True
-            commonParamsDictionary['anteproc_h']['stamp']['alpha'] = configs.getfloat('injection', 'stampAlpha')
-            commonParamsDictionary['anteproc_h']['stamp']['iota'] = 0
-            commonParamsDictionary['anteproc_h']['stamp']['psi'] = 0           
-            commonParamsDictionary['anteproc_l']['stampinj'] = True
-            commonParamsDictionary['anteproc_l']['stamp']['alpha'] = configs.getfloat('injection', 'stampAlpha')
-            commonParamsDictionary['anteproc_l']['stamp']['iota'] = 0
-            commonParamsDictionary['anteproc_l']['stamp']['psi'] = 0
-            commonParamsDictionary['preproc']['stamp']['file'] = configs.getfloat('injection', 'injectionFile')
-            commonParamsDictionary['preproc']['stamp']['alpha'] = 1e-40
+            CPDict['anteproc_h']['stampinj'] = True
+            CPDict['anteproc_h']['stamp'] \
+                                ['alpha'] = configs.getfloat('injection', 
+                                                             'stampAlpha')
+            CPDict['anteproc_h']['stamp']['iota'] = 0
+            CPDict['anteproc_h']['stamp']['psi'] = 0           
+            CPDict['anteproc_l']['stampinj'] = True
+            CPDict['anteproc_l']['stamp'] \
+                                ['alpha'] = configs.getfloat('injection', 
+                                                             'stampAlpha')
+            CPDict['anteproc_l']['stamp']['iota'] = 0
+            CPDict['anteproc_l']['stamp']['psi'] = 0
+            CPDict['preproc']['stamp'] \
+                             ['file'] = configs.getfloat('injection', 
+                                                         'injectionFile')
+            CPDict['preproc']['stamp']['alpha'] = 1e-40
         
-    if configs.getboolean('injection', 'doInjections') and configs.getboolean('variations', 'doVariations'):
-        commonParamsDictionary['numJobGroups'] = configs.getint('variations', 'numJobGroups')
+    if (configs.getboolean('injection', 'doInjections') and 
+                configs.getboolean('variations', 'doVariations')):
+        CPDict['numJobGroups'] = configs.getint('variations', 'numJobGroups')
     else:
-        commonParamsDictionary['numJobGroups'] = 1
+        CPDict['numJobGroups'] = 1
             
     if configs.getboolean('singletrack', 'singletrackBool'):
-        commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['doSingletrack'] = True
-        commonParamsDictionary['grandStochtrack']['stochtrack']['singletrack']['trackInputFiles'] = array(json.loads(configs.get('singletrack', 'singletrackInputFiles')), dtype=object)
+        CPStoch['singletrack']['doSingletrack'] = True
+        CPStoch['singletrack']['trackInputFiles'] = array(json.loads(
+                                                    configs.get(
+                                                    'singletrack', 
+                                                    'singletrackInputFiles')),
+                                                    dtype=object)
     else:
-        commonParamsDictionary['grandStochtrack']['stochtrack'].pop('singletrack')
+        CPStoch.pop('singletrack')
         
     if configs.getboolean('search', 'setStochtrackSeed'):
-        commonParamsDictionary['grandStochtrack']['stochtrack']['doSeed'] = True
-        commonParamsDictionary['grandStochtrack']['stochtrack']['seed'] = 2015
+        CPStoch['doSeed'] = True
+        CPStoch['seed'] = 2015
         
     if configs.getboolean('search', 'doMaxband'):
         if configs.get('search', 'maxbandMode') == "percent":
-            commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxbandPercentage'] = True
-            commonParamsDictionary['grandStochtrack']['stochtrack']['maxbandPercentage'] = configs.getfloat('search', 'maxband')
-            print("WARNING - doMaxbandPercentage is active - this only works with STAMP revision 12522 or later")
+            CPStoch['doMaxbandPercentage'] = True
+            CPStoch['maxbandPercentage'] = configs.getfloat('search', 'maxband')
+            print("WARNING - doMaxbandPercentage is active - "
+                    + "this only works with STAMP revision 12522 or later")
         elif configs.get('search', 'maxbandMode') == "absolute":
-            commonParamsDictionary['grandStochtrack']['stochtrack']['doMaxbandPercentage'] = False
-            commonParamsDictionary['grandStochtrack']['stochtrack']['maxband'] = configs.getfloat('search', 'maxband')
+            CPStoch['doMaxbandPercentage'] = False
+            CPStoch['maxband'] = configs.getfloat('search', 'maxband')
         else:
-            raise ValueError("Unrecognized option for maxband_mode: " + configs.get('search', 'maxbandMode') + ".  Must be either 'percent' or 'absolute'")
+            raise ValueError("Unrecognized option for maxband_mode: " 
+                                + configs.get('search', 'maxbandMode') 
+                                + ".  Must be either 'percent' or 'absolute'")
     
     
-    if configs.getboolean('search', 'simulated') and onsource and configs.getboolean('search', 'preSeed'):
-        commonParamsDictionary['anteproc_h']['job_seed'] = 2694478780        
-        commonParamsDictionary['anteproc_h']['job_seed'] = 4222550304
+    if (configs.getboolean('search', 'simulated') and onsource and 
+                configs.getboolean('search', 'preSeed')):
+        CPDict['anteproc_h']['job_seed'] = 2694478780        
+        CPDict['anteproc_h']['job_seed'] = 4222550304
         #NEED TO FIGURE OUT HOW THIS ONE WORKS
     
     if not configs.getboolean('search', 'relativeDirection'):
-        commonParamsDictionary['grandStochtrack']['ra'] = configs.getfloat('trigger', 'RA')
-        commonParamsDictionary['grandStochtrack']['dec'] = configs.getfloat('trigger', 'DEC')
+        CPDict['grandStochtrack']['ra'] = configs.getfloat('trigger', 'RA')
+        CPDict['grandStochtrack']['dec'] = configs.getfloat('trigger', 'DEC')
         
     if configs.getboolean('condor', 'doGPU'):
-        commonParamsDictionary['grandStochtrack']['doGPU'] = True
+        CPDict['grandStochtrack']['doGPU'] = True
         
-    if not configs.getboolean('search', 'burstegard') and configs.getboolean('search', 'saveStochtrackMats'):
-        commonParamsDictionary['grandStochtrack']['stochtrack']['saveMat'] = True
+    if (not configs.getboolean('search', 'burstegard') and 
+                configs.getboolean('search', 'saveStochtrackMats')):
+        CPStoch['saveMat'] = True
     
-    return commonParamsDictionary
+    return CPDict
     
-def write_grandstochtrack_bash_script(file_name, executable, STAMP_export_script, matlab_setup_script, memory_limit = 14000000):
+def write_grandstochtrack_bash_script(file_name, executable, 
+                                      STAMP_export_script, 
+                                      matlab_setup_script, 
+                                      memory_limit = 14000000):
     output_string = "#!/bin/bash\n"
     output_string += "source " + STAMP_export_script + "\n"
     output_string += "source " + matlab_setup_script + "\n"
@@ -388,7 +404,8 @@ def write_grandstochtrack_bash_script(file_name, executable, STAMP_export_script
     with open(file_name, "w") as outfile:
         print >> outfile, output_string
 
-def write_anteproc_bash_script(file_name, executable, STAMP_export_script, memory_limit = 14000000):
+def write_anteproc_bash_script(file_name, executable, STAMP_export_script, 
+                               memory_limit = 14000000):
     output_string = "#!/bin/bash\n"
     output_string += "source " + STAMP_export_script + "\n"
     output_string += "ulimit -v " + str(memory_limit) + "\n"
@@ -399,12 +416,15 @@ def write_anteproc_bash_script(file_name, executable, STAMP_export_script, memor
         
 def write_anteproc_sub_file(memory, anteprocSH, dagDir, accountingGroup):
 
-    contents = "universe = vanilla\ngetenv = True\nrequest_memory = " + str(memory) + "\n"
+    contents = ("universe = vanilla\ngetenv = True\nrequest_memory = " 
+                            + str(memory) + "\n")
     contents += "executable = " + anteprocSH + "\n"
     contents += "log = " + dagDir + "/dagLogs/anteproc$(jobNumber).log\n"
-    contents += "error = " + dagDir + "/dagLogs/logs/anteproc$(jobNumber).err\n"
-    contents += "output = " + dagDir + "/dagLogs/logs/anteproc$(jobNumber).out\n"
-    contents += '''arguments = " $(paramFile) $(jobFile) $(jobNum) "\n'''
+    contents += ("error = " + dagDir 
+                        + "/dagLogs/logs/anteproc$(jobNumber).err\n")
+    contents += ("output = " + dagDir 
+                        + "/dagLogs/logs/anteproc$(jobNumber).out\n")
+    contents += 'arguments = " $(paramFile) $(jobFile) $(jobNum) "\n'
     contents += "notification = error\n"
     contents += "accounting_group = " + accountingGroup + "\n"
     contents += "queue 1"
@@ -414,19 +434,24 @@ def write_anteproc_sub_file(memory, anteprocSH, dagDir, accountingGroup):
         
     return dagDir + "/anteproc.sub"
         
-def write_stochtrack_sub_file(memory, grandStochtrackSH, dagDir, accountingGroup, doGPU, numCPU):
+def write_stochtrack_sub_file(memory, grandStochtrackSH, dagDir, 
+                              accountingGroup, doGPU, numCPU):
 
     if doGPU:
         memory = 4000
-    contents = "universe = vanilla\ngetenv = True\nrequest_memory = " + str(memory) + "\n"
+    contents = ("universe = vanilla\ngetenv = True\nrequest_memory = " 
+                        + str(memory) + "\n")
     if doGPU:
         contents += "request_gpus = 1\n"
     elif numCPU > 1:
         contents += "request_cpus = " + str(numCPU) + "\n"
     contents += "executable = " + grandStochtrackSH + "\n"
-    contents += "log = " + dagDir + "/dagLogs/grand_stochtrack$(jobNumber).log\n"
-    contents += "error = " + dagDir + "/dagLogs/logs/grand_stochtrack$(jobNumber).err\n"
-    contents += "output = " + dagDir + "/dagLogs/logs/grand_stochtrack$(jobNumber).out\n"
+    contents += ("log = " + dagDir 
+                        + "/dagLogs/grand_stochtrack$(jobNumber).log\n")
+    contents += ("error = " + dagDir 
+                        + "/dagLogs/logs/grand_stochtrack$(jobNumber).err\n")
+    contents += ("output = " + dagDir 
+                        + "/dagLogs/logs/grand_stochtrack$(jobNumber).out\n")
     contents += '''arguments = " $(paramPath) $(jobNum) "\n'''
     contents += "notification = error\n"
     contents += "accounting_group = " + accountingGroup + "\n"
@@ -443,9 +468,11 @@ def write_webpage_sub_file(webPageSH, dagDir, accountingGroup):
     contents = "universe = vanilla\ngetenv = True\n"
     contents += "executable = " + webPageSH + "\n"
     contents += "log = " + dagDir + "/dagLogs/web_display$(jobNumber).log\n"
-    contents += "error = " + dagDir + "/dagLogs/logs/web_display$(jobNumber).err\n"
-    contents += "output = " + dagDir + "/dagLogs/logs/web_display$(jobNumber).out\n"
-    contents += '''arguments = " $(cmd_line_args)"\n'''
+    contents += ("error = " + dagDir 
+                        + "/dagLogs/logs/web_display$(jobNumber).err\n")
+    contents += ("output = " + dagDir 
+                        + "/dagLogs/logs/web_display$(jobNumber).out\n")
+    contents += 'arguments = " $(cmd_line_args)"\n'
     contents += "notification = error\n"
     contents += "accounting_group = " + accountingGroup + "\n"
     contents += "queue 1"
@@ -455,47 +482,71 @@ def write_webpage_sub_file(webPageSH, dagDir, accountingGroup):
     
     return dagDir + "/web_display.sub"
 
-    contents = "universe = vanilla\ngetenv = True\nrequest_memory = " + str(memory) + "\n"
+    contents = ("universe = vanilla\ngetenv = True\nrequest_memory = " 
+                    + str(memory) + "\n")
 
     
-def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums, L1AnteprocJobNums, numJobGroups, anteprocSub, stochtrackParamsList, stochtrackSub, maxJobsAnteproc, maxJobsGrandStochtrack, webDisplaySub, baseDir):
+def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums, 
+              L1AnteprocJobNums, numJobGroups, anteprocSub, 
+              stochtrackParamsList, stochtrackSub, maxJobsAnteproc, 
+              maxJobsGrandStochtrack, webDisplaySub, baseDir):
 
     output = ""
     jobCounter = 0
     for jobGroup in range(1, numJobGroups + 1):
         for jobNum in H1AnteprocJobNums:
         
-            output += "JOB " + str(jobCounter) + " " + anteprocSub + "\nRETRY " + str(jobCounter) + " 2\n"
-            output += "VARS " + str(jobCounter) + " jobNumber=\"" + str(jobCounter) + "\" paramFile=\"" + anteprocDir + "/H1-anteproc_params_group_" + str(jobGroup) + "_" + str(jobNum) + ".txt\""
-            output += "jobFile=\"" + jobFile + "\" jobNum=\"" + str(jobNum) + "\"\n"
+            output += ("JOB " + str(jobCounter) + " " + anteprocSub 
+                        + "\nRETRY " + str(jobCounter) + " 2\n")
+            output += ("VARS " + str(jobCounter) 
+                        + ' jobNumber="' + str(jobCounter) 
+                        + '" paramFile="' + anteprocDir 
+                        + "/H1-anteproc_params_group_" + str(jobGroup) 
+                        + "_" + str(jobNum) + '.txt"')
+            output += ('jobFile="' + jobFile 
+                        + '" jobNum="' + str(jobNum) + '"\n')
             output += "CATEGORY " + str(jobCounter) + " ANTEPROC\n\n"
             jobCounter += 1
     for jobGroup in range(1, numJobGroups + 1):
         for jobNum in L1AnteprocJobNums:
         
-            output += "JOB " + str(jobCounter) + " " + anteprocSub + "\nRETRY " + str(jobCounter) + " 2\n"
-            output += "VARS " + str(jobCounter) + " jobNumber=\"" + str(jobCounter) + "\" paramFile=\"" + anteprocDir + "/L1-anteproc_params_group_" + str(jobGroup) + "_" + str(jobNum) + ".txt\""
-            output += "jobFile=\"" + jobFile + "\" jobNum=\"" + str(jobNum) + "\"\n"
+            output += ("JOB " + str(jobCounter) + " " + anteprocSub 
+                        + "\nRETRY " + str(jobCounter) + " 2\n")
+            output += ("VARS " + str(jobCounter) 
+                        + ' jobNumber="' + str(jobCounter) 
+                        + '" paramFile="' + anteprocDir 
+                        + "/L1-anteproc_params_group_" + str(jobGroup) 
+                        + "_" + str(jobNum) + '.txt"')
+            output += ('jobFile="' + jobFile 
+                        + '" jobNum="' + str(jobNum) + '"\n')
             output += "CATEGORY " + str(jobCounter) + " ANTEPROC\n\n"
             jobCounter += 1
     
     cutoff = jobCounter
     for jobDict in stochtrackParamsList:
 
-        output += "JOB " + str(jobCounter) + " " + stochtrackSub + "\nRETRY " + str(jobCounter) + " 2\n"
-        output += "VARS " + str(jobCounter) + " jobNumber=\"" + str(jobCounter) + "\" paramPath=\"" + jobDict["stochtrackInputDir"] + "/params.mat\" "
-        output += "jobNum=\"" + str(jobDict['grandStochtrackParams']['params']['jobNumber']) + "\"\n"
+        output += ("JOB " + str(jobCounter) + " " + stochtrackSub 
+                    + "\nRETRY " + str(jobCounter) + " 2\n")
+        output += ("VARS " + str(jobCounter) + ' jobNumber="' 
+                    + str(jobCounter) + '" paramPath="' 
+                    + jobDict["stochtrackInputDir"] + '/params.mat" ')
+        output += 'jobNum="' + str(jobDict['grandStochtrackParams']
+                                           ['params']
+                                           ['jobNumber']) + '"\n'
         output += "CATEGORY " + str(jobCounter) + " GRANDSTOCHTRACK\n\n"
         jobCounter += 1
         
-    output += "JOB " + str(jobCounter) + " " + webDisplaySub + "\nRETRY " + str(jobCounter) + " 2\n"
-    output += "VARS " + str(jobCounter) + " jobNumber=\"" + str(jobCounter) + "\" cmd_line_args=\" -d " + baseDir + "\"\n"
+    output += ("JOB " + str(jobCounter) + " " + webDisplaySub + "\nRETRY "
+                    + str(jobCounter) + " 2\n")
+    output += ("VARS " + str(jobCounter) + " jobNumber=\"" + str(jobCounter)
+                    + '" cmd_line_args=" -d ' + baseDir + '"\n')
     output += "CATEGORY " + str(jobCounter) + " WEBPAGE\n\n"
         
     output += "\n\n"
     
     output += "PARENT " + " ".join([str(i) for i in range(0, cutoff)])
-    output += " CHILD " + " ".join([str(i) for i in range(cutoff, jobCounter)]) +"\n"
+    output += " CHILD " + " ".join([str(i) for i in range(cutoff, jobCounter)])
+    output += "\n"
     output += "PARENT " + " ".join([str(i) for i in range(cutoff, jobCounter)])
     output += " CHILD " + " " + str(jobCounter)
     
@@ -513,38 +564,40 @@ def getDefaultConfigs():
     "channel" : "DCS-CALIB_STRAIN_C01",
     "frame_type" : "HOFT_C01",
 
-    "T" : 3000,
-    "F" : 10000,
+    "T": 3000,
+    "F": 10000,
     
-    "relative_direction" : True,
+    "relative_direction": True,
 
-    "linesToCut" : [52, 53, 57, 58, 59, 60, 61, 62, 63, 64, 85, 108, 119, 120, 121, 178, 179, 180, 181, 182, 239, 240, 241, 300, 360, 372, 400, 404, 480, 1380, 1560, 1740],
+    "linesToCut": [52, 53, 57, 58, 59, 60, 61, 62, 63, 64, 85, 108, 119, 120, 
+                    121, 178, 179, 180, 181, 182, 239, 240, 241, 300, 360, 
+                    372, 400, 404, 480, 1380, 1560, 1740],
 
     "accountingGroup": "ligo.dev.s6.burst.sgr_qpo.stamp",
     "anteprocMemory": 2048,
     "grandStochtrackMemory": 4000,
     "doGPU": True,
-    "numCPU" : 1,
+    "numCPU": 1,
 
-    "anteproc_bool" : True,
-    "burstegard" : False,
-    "longPixel" : True,
-    "setStochtrackSeed" : False,
-    "singletrackBool" : False,
+    "anteproc_bool": True,
+    "burstegard": False,
+    "longPixel": True,
+    "setStochtrackSeed": False,
+    "singletrackBool": False,
 
-    "maxband" : 0.10,
-    "maxbandMode" : False,
+    "maxband": 0.10,
+    "maxbandMode": False,
 
     "simulated": False,
     
-    "show_plots_when_simulated" : True,
+    "show_plots_when_simulated": True,
 
-    "constantFreqWindow" : True,
-    "constantFreqMask" : True,
+    "constantFreqWindow": True,
+    "constantFreqMask": True,
 
-    "maskCluster" : False,
+    "maskCluster": False,
 
-    "injection_bool" : False,
-    "onTheFly" : True,
-    "relativeInjectionDirection" : True}
+    "injection_bool": False,
+    "onTheFly": True,
+    "relativeInjectionDirection": True}
 
