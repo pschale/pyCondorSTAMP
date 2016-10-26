@@ -233,7 +233,7 @@ def main():
                             /configs.getfloat('variations', 'minval'))
                             * i for i in range(0, CPDict['numJobGroups'])]
             varyVals = [i + configs.getfloat('variations', 'minval')
-                            for i in range(0, CPDict['numJobGroups'])]
+                            for i in varyVals)]
         else:
             raise ValueError("Must choose linear or logSqrt for distribution")
     
@@ -502,7 +502,7 @@ def main():
             
             if (configs.getboolean('variations', 'doVariations') and
                     configs.get('variations', 'paramCat') == 'stochtrack'):
-                GSParams[configs.get('variations', 
+                GSParams['stochtrack'][configs.get('variations', 
                                      'paramName')] = varyVals[jobGroup - 1]
                     
 
