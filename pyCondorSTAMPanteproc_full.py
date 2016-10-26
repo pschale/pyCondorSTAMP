@@ -1,6 +1,5 @@
 #pyCondorSTAMPanteproc_full.py
 from __future__ import division
-
 from numpy import argsort, sqrt, arccos, pi, array, object
 import scipy.io as sio
 import random
@@ -8,8 +7,7 @@ import json
 import os
 from optparse import OptionParser
 from copy import deepcopy
-from ConfigParser import ConfigParser
-
+import ConfigParser
 from webdisplay import webpage
 from pyCondorSTAMPLib_v2 import *
 
@@ -42,7 +40,7 @@ def main():
     elif not configFilePath[0] == "/":
         configFilePath = os.getcwd() + "/" + configFilePath[0:]
         
-    configs = ConfigParser()
+    configs = ConfigParser.ConfigParser()
     configs.read(configFilePath)
     
     searchType = configs.get('search', 'searchType')
@@ -195,10 +193,10 @@ def main():
                             int(configs.getint('search', maxNumJobPairs)/2))
         jobIndexList2 = random.sample(jobIndices2, 
                             int(configs.getint('search', maxNumJobPairs)/2))
-        sortedJobPairs = [
+        sortedJobPairs = ([
                           [x,x] for x in jobIndexList1]
                           + [[x,x] for x in jobIndexList2
-                         ]
+                         ])
     
     elif offsource:
         deltaTotal = []
@@ -438,10 +436,10 @@ def main():
             GSParams["outputfilename"] = jobDir + "/grandStochtrackOutput/map"
             GSParams["ofile"] = jobDir + "/grandStochtrackOutput/bknd"
             GSParams["jobsFile"] = newJobPath
-            GSParams['anteproc']['inmats1'] = anteproc_dir + "/H-H1_map_g" 
-                                                + str(jobGroup)
-            GSParams['anteproc']['inmats2'] = anteproc_dir + "/L-L1_map_g" 
-                                                + str(jobGroup)
+            GSParams['anteproc']['inmats1'] = (anteproc_dir + "/H-H1_map_g" 
+                                                + str(jobGroup))
+            GSParams['anteproc']['inmats2'] = (anteproc_dir + "/L-L1_map_g" 
+                                                + str(jobGroup))
             GSParams['anteproc']["jobfile"] = newAdjustedJobPath
 
             jobDictionary["jobDir"] = jobDir
@@ -457,20 +455,21 @@ def main():
                 GSParams['stochtrack']['matfile'] = jobDir + "/snrs.mat"
         
             if "injection_tags" in jobDictionary:
-                GSParams['anteproc']['inmats1'] += "_" 
-                                            + jobDictionary["injection_tags"]
-                GSParams['anteproc']['inmats2'] += "_" 
-                                            + jobDictionary["injection_tags"]
+                GSParams['anteproc']['inmats1'] += ("_" 
+                                            + jobDictionary["injection_tags"])
+                GSParams['anteproc']['inmats2'] += ("_" 
+                                            + jobDictionary["injection_tags"])
             if (configs.getboolean('search', 'longPixel') or 
                         configs.getboolean('burstegard')):
                 job1_hstart = job1StartTime + (9-1)*4/2+2
             else:
                 job1_hstart = job1StartTime + (9-1)/2+2
             
-            job1_hstop = job1_hstart + 1602 if 
-                            (configs.getboolean('search', 'longPixel') or 
-                             configs.getboolean('burstegard')) 
-                            else job_hstart + 400        
+            if (configs.getboolean('search', 'longPixel') or 
+                             configs.getboolean('burstegard')):
+                job1_hstop = job1_hstart + 1602
+            else:
+                job1_hstop = job1_hstart + 400        
     
             if (configs.getboolean('injection', 'doInjections') and 
                     not configs.getboolean('search', 'relativeDirection')):
@@ -592,9 +591,9 @@ def main():
                                                                 'frameType')
             anteproc_dict['ASQchannel1'] = configs.get('search', 'channel')
             
-            outputFileName = "H1-anteproc_params_group_"
-                              + str(jobGroup) + "_" + str(jobNum) + ".txt"
-            with open(anteproc_dir + "/" + outputFilename, 'w') as h:
+            outputFileName = ("H1-anteproc_params_group_"
+                              + str(jobGroup) + "_" + str(jobNum) + ".txt")
+            with open(anteproc_dir + "/" + outputFileName, 'w') as h:
                 print >> h, "\n".join([key + ' ' + str(val).lower() 
                                         if not isinstance(val, basestring) 
                                         else key + ' ' + val 
@@ -618,9 +617,9 @@ def main():
                                                                 'frameType')
             anteproc_dict['ASQchannel1'] = configs.get('search', 'channel')
         
-            outputFileName = "L1-anteproc_params_group_"
-                              + str(jobGroup) + "_" + str(jobNum) + ".txt"
-            with open(anteproc_dir + "/" + outputFilename, 'w') as h:
+            outputFileName = ("L1-anteproc_params_group_"
+                              + str(jobGroup) + "_" + str(jobNum) + ".txt")
+            with open(anteproc_dir + "/" + outputFileName, 'w') as h:
                 print >> h, "\n".join([key + ' ' + str(val).lower() 
                                         if not isinstance(val, basestring) 
                                         else key + ' ' + val 
@@ -737,6 +736,7 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+    
     except:
         import inspect
         lvars = inspect.trace()[1][0].f_locals
@@ -762,4 +762,3 @@ if __name__ == "__main__":
         
         import traceback, sys
         traceback.print_exc(file=sys.stdout)
-
