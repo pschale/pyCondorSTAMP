@@ -231,7 +231,7 @@ def main():
         elif configs.get('variations', 'distribution') == 'linear':
             varyVals = [((configs.getfloat('variations', 'maxval')
                             - configs.getfloat('variations', 'minval'))
-                            / CPDict['numJobGroups'])
+                            / (CPDict['numJobGroups']-1))
                             * i for i in range(0, CPDict['numJobGroups'])]
             varyVals = [i + configs.getfloat('variations', 'minval')
                             for i in varyVals]
