@@ -226,13 +226,13 @@ def main():
             m = ((configs.getfloat('variations', 'maxval')
                             /configs.getfloat('variations', 'minval'))
                             **(1 / (CPDict['numJobGroups']-1)))
-            vary_vals = [configs.getfloat('variations', 'minval') * (m**i) 
+            varyVals = [configs.getfloat('variations', 'minval') * (m**i) 
                             for i in range(0, CPDict['numJobGroups'])]
         elif configs.get('variations', 'distribution') == 'linear':
-            vary_vals = [(configs.getfloat('variations', 'maxval')
+            varyVals = [(configs.getfloat('variations', 'maxval')
                             /configs.getfloat('variations', 'minval'))
                             * i for i in range(0, CPDict['numJobGroups'])]
-            vary_vals = [i + configs.getfloat('variations', 'minval')
+            varyVals = [i + configs.getfloat('variations', 'minval')
                             for i in range(0, CPDict['numJobGroups'])]
         else:
             raise ValueError("Must choose linear or logSqrt for distribution")
@@ -292,8 +292,8 @@ def main():
                 
                 if (configs.getboolean('variations', 'doVariations') and 
                         configs.get('variations', 'paramCat') == 'anteproc'):
-                    if configs.get('variations', 'paramName') == stamp.alpha:
-                        tempName1['stamp']['alpha'] = vary_vals[jobGroup - 1]
+                    if configs.get('variations', 'paramName') == 'stamp.alpha':
+                        tempName1['stamp']['alpha'] = varyVals[jobGroup - 1]
                     else:
                         raise ValueError("Only variations in stamp.alpha \
                                             are supported at this time")
@@ -339,8 +339,8 @@ def main():
                     
                 if (configs.getboolean('variations', 'doVariations') and 
                         configs.get('variations', 'paramCat') == 'anteproc'):
-                    if configs.get('variations', 'paramName') == stamp.alpha:
-                        tempName2['stamp']['alpha'] = varyvals[jobGroup - 1]
+                    if configs.get('variations', 'paramName') == 'stamp.alpha':
+                        tempName2['stamp']['alpha'] = varyVals[jobGroup - 1]
                     else:
                         raise ValueError("Only variations in stamp.alpha \
                                             are supported at this time")
@@ -500,10 +500,10 @@ def main():
             GSParams["anteproc"]["jobNum1"] = jobNum1
             GSParams["anteproc"]["jobNum2"] = jobNum2
             
-            if (configs.getboolean('variations', 'doVariation') and
+            if (configs.getboolean('variations', 'doVariations') and
                     configs.get('variations', 'paramCat') == 'stochtrack'):
                 GSParams[configs.get('variations', 
-                                     'paramName')] = vary_vals[jobGroup - 1]
+                                     'paramName')] = varyVals[jobGroup - 1]
                     
 
     
