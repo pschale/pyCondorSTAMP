@@ -1,5 +1,6 @@
 #pyCondorSTAMPanteproc_full.py
 from __future__ import division
+
 from numpy import argsort, sqrt, arccos, pi, array, object
 import scipy.io as sio
 import random
@@ -8,6 +9,7 @@ import os
 from optparse import OptionParser
 from copy import deepcopy
 import ConfigParser
+
 from webdisplay import webpage
 from pyCondorSTAMPLib_v2 import *
 
@@ -219,7 +221,21 @@ def main():
     tempNumbersH = list(set([x[0] for x in sortedJobPairs])) #job indices
     tempNumbersL = list(set([x[1] for x in sortedJobPairs])) #job indices
     
-    
+    if configs.getboolean('variations', 'doVariations'):
+        if configs.get('variations', 'distribution') == 'logSqrt':
+            m = ((configs.getfloat('variations', 'maxval')
+                            /configs.getfloat('variations', 'minval'))
+                            **(1 / (CPDict['numJobGroups']-1)))
+            vary_vals = [configs.getfloat('variations', 'minval') * (m**i) 
+                            for i in range(0, CPDict['numJobGroups'])]
+        elif configs.get('variations', 'distribution') == 'linear':
+            vary_vals = [(configs.getfloat('variations', 'maxval')
+                            /configs.getfloat('variations', 'minval'))
+                            * i for i in range(0, CPDict['numJobGroups'])]
+            vary_vals = [i + configs.getfloat('variations', 'minval')
+                            for i in range(0, CPDict['numJobGroups'])]
+        else:
+            raise ValueError("Must choose linear or logSqrt for distribution")
     
     # Now build the job-specific parameters for anteproc
     # only needed for injections
@@ -230,11 +246,7 @@ def main():
                                 range(0, max(tempNumbersL) + 1)]
                                 for j in range(1, CPDict['numJobGroups'] + 1)]
     if configs.getboolean('injection', 'doInjections'):
-        if configs.getboolean('variations', 'doVariations'):
-            multiplier = ((configs.getfloat('variations', 'maxStampAlpha')
-                            /configs.getfloat('variations', 'minStampAlpha'))
-                            **(1 / (configs.getfloat(
-                                        'variations', 'numJobGroups')-1)))
+
 
         for jobGroup in range(1, CPDict['numJobGroups'] + 1):
         
@@ -280,10 +292,11 @@ def main():
                 
                 if (configs.getboolean('variations', 'doVariations') and 
                         configs.get('variations', 'paramCat') == 'anteproc'):
-                    tempName1['stamp']['alpha'] = (configs.getfloat(
-                                                    'variations', 
-                                                    'minStampAlpha') * 
-                                                    multiplier**(jobGroup-1))
+                    if configs.get('variations', 'paramName') == stamp.alpha:
+                        tempName1['stamp']['alpha'] = vary_vals[jobGroup - 1]
+                    else:
+                        raise ValueError("Only variations in stamp.alpha \
+                                            are supported at this time")
                 
 
 
@@ -291,13 +304,7 @@ def main():
                 tempName2 = anteprocLParamsList[jobGroup - 1][L1_job_index]
                 L1_job = L1_job_index + 1
                 job1StartTime = times[L1_job_index][1]
-                tempName1['outputfilename'] = "map_g" + str(jobGroup)
-                
-                if configs.getboolean('variations', 'doVariations'):
-                    tempName1['stamp']['alpha'] = (configs.getfloat(
-                                                    'variations', 
-                                                    'minStampAlpha') * 
-                                                    multiplier**(jobGroup-1))
+                tempName2['outputfilename'] = "map_g" + str(jobGroup)
     
                 if (configs.getboolean('search', 'longPixel') or 
                         configs.getboolean('search', 'burstegard')):
@@ -312,9 +319,9 @@ def main():
                     job1_hstop = job1_hstart + 400
         
                 if not configs.getboolean('search', 'relativeDirection'):
-                    tempName1['stamp'] \
+                    tempName2['stamp'] \
                              ['ra'] = configs.getfloat('trigger', 'RA')
-                    tempName1['stamp'] \
+                    tempName2['stamp'] \
                              ['decl'] = configs.getfloat('trigger', 'DEC')
 
                 elif L1_job == 34:
@@ -323,12 +330,20 @@ def main():
                                        ['useReferenceAntennaFactors'] = False
 
                 else:
-                    tempName1['useReferenceAntennaFactors'] = True
+                    tempName2['useReferenceAntennaFactors'] = True
 
                 if configs.getboolean('injection', 'onTheFly'):
-                    tempName1['stamp']['start'] = job1_hstart+2
+                    tempName2['stamp']['start'] = job1_hstart+2
                 else:
-                    tempName1['stamp']['startGPS'] = job1_hstart+2
+                    tempName2['stamp']['startGPS'] = job1_hstart+2
+                    
+                if (configs.getboolean('variations', 'doVariations') and 
+                        configs.get('variations', 'paramCat') == 'anteproc'):
+                    if configs.get('variations', 'paramName') == stamp.alpha:
+                        tempName2['stamp']['alpha'] = varyvals[jobGroup - 1]
+                    else:
+                        raise ValueError("Only variations in stamp.alpha \
+                                            are supported at this time")
     
 
         if configs.getboolean('injection', 'onTheFly'):
@@ -484,6 +499,12 @@ def main():
     
             GSParams["anteproc"]["jobNum1"] = jobNum1
             GSParams["anteproc"]["jobNum2"] = jobNum2
+            
+            if (configs.getboolean('variations', 'doVariation') and
+                    configs.get('variations', 'paramCat') == 'stochtrack'):
+                GSParams[configs.get('variations', 
+                                     'paramName')] = vary_vals[jobGroup - 1]
+                    
 
     
             if configs.getboolean('search', 'relativeDirection'):
@@ -493,6 +514,7 @@ def main():
 
             if (configs.getboolean('injection', 'doInjections') and 
                     not configs.getboolean('injection', 'onTheFly')):
+                    
                 for temp_waveform in waveformFileNames:
                     jobDictionary["injection_tag"] = temp_waveform
                     GSParams['job_group']=  job_group
@@ -712,7 +734,6 @@ def main():
               configs.getint('condor', 'maxJobsGrandStochtrack'), 
               webDisplaySub, baseDir)
         
-    #create summary of parameters
     generate_summary(configs, baseDir)
     
     webpage.load_conf_cp_webfiles(baseDir)
@@ -732,6 +753,7 @@ def main():
         import subprocess
         subprocess.call('condor_submit_dag '
                 + os.path.join(baseDir, "dag/stampAnalysis.dag"), shell=True)
+
 
 if __name__ == "__main__":
     try:
