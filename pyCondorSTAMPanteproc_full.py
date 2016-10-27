@@ -50,6 +50,7 @@ def main():
     pseudo_onsource = searchType == "pseudo_onsource"
     upper_limits = searchType == "upper_limits"
     offsource = searchType == "offsource"
+    injectionRecovery = searchType == "injectionRecover"
     
     if (configs.getboolean('injection', 'doInjections') and 
             not configs.getboolean('injection', 'onTheFly') and 
@@ -80,13 +81,16 @@ def main():
     if pseudo_onsource:
         configs.set('search', 'relativeDirection', 'False')
     
-    if not configs.get('injection', 'doInjections'):
+    if not configs.getboolean('injection', 'doInjections'):
         configs.set('injection', 'onTheFly', 'False')
         configs.set('injection', 'polarizationSmallerResponse', 'False')
         configs.set('injection', 'injectionRandomStartTime', 'False')
         configs.set('injection', 'includeVariations', 'False')
+        if injectionRecovery:
+            raise TypeError("Error: injection recovery requires injections")
         
-    if configs.getboolean('singletrack', 'singletrackBool'):
+    if configs.getboolean('singletrack', 'singletrackBool') 
+            or injectionRecovery:
         configs.set('condor', 'numCPU', '1')
         configs.set('condor', 'doGPU', 'False')
     
@@ -200,7 +204,7 @@ def main():
                           + [[x,x] for x in jobIndexList2
                          ])
     
-    elif offsource:
+    elif offsource or injectionRecovery:
         deltaTotal = []
         jobPairs = []
         for index1, job1 in enumerate(times):
@@ -212,7 +216,7 @@ def main():
         sortedIndices = argsort(deltaTotal)[:configs.getint('search', 
                                                             'maxNumJobPairs')]
         sortedJobPairs = [jobPairs[x] for x in sortedIndices]
-        
+   
     else:
         print("Error: need to define search type correctly")
         raise

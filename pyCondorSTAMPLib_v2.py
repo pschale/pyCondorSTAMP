@@ -388,6 +388,17 @@ def getCommonParams(configs):
     if (not configs.getboolean('search', 'burstegard') and 
                 configs.getboolean('search', 'saveStochtrackMats')):
         CPStoch['saveMat'] = True
+        
+    if configs.get('search', 'searchType') == 'injectionRecovery':
+        print("Injection Recovery mode selected.  Stochtrack will be \n\
+                restrictd to 5 Hz band around injected frequency, and will \n\
+                run 300,000 clusters")
+        injFreq = configs.getfloat('injection', 'waveFrequency')
+        CPDict['grandStochtrack']['fmin'] = injFreq - 2
+        CPDict['grandStochtrack']['fmax'] = injFreq + 2
+        CPStoch['T'] = 1000
+        CPStoch['F'] = 300
+        
     
     return CPDict
     
