@@ -417,11 +417,6 @@ def main():
               ['stamp'] \
               ['decl'] = configs.getfloat('trigger', 'DEC')
 
-    
-    if configs.getboolean('search', 'constantFreqWindow'):
-        CPDict['grandStochtrack']['fmin'] = 40
-        CPDict['grandStochtrack']['fmax'] = 2500
-
     if configs.getboolean('search', 'constantFreqMask'):
         CPDict['grandStochtrack'] \
               ['StampFreqsToRemove'] = json.loads(
