@@ -50,7 +50,7 @@ def main():
     pseudo_onsource = searchType == "pseudo_onsource"
     upper_limits = searchType == "upper_limits"
     offsource = searchType == "offsource"
-    injectionRecovery = searchType == "injectionRecover"
+    injectionRecovery = searchType == "injectionRecovery"
     
     if (configs.getboolean('injection', 'doInjections') and 
             not configs.getboolean('injection', 'onTheFly') and 
