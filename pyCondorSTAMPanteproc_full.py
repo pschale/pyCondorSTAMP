@@ -89,10 +89,21 @@ def main():
         if injectionRecovery:
             raise TypeError("Error: injection recovery requires injections")
         
-    if configs.getboolean('singletrack', 'singletrackBool') 
-            or injectionRecovery:
+    if configs.getboolean('singletrack', 'singletrackBool'):
         configs.set('condor', 'numCPU', '1')
         configs.set('condor', 'doGPU', 'False')
+        
+    if injectionRecovery and (configs.getint('search', 'T') 
+            * configs.getint('search', 'F') > 1000000):
+        if options.submitDag:
+            print("WARNING - This is configured in injection recovery mode \
+                    and set to run more than 1,000,000 clusters.  This is \
+                    likely a waste of computation time.  Auto-submit dag \
+                    has been disabled")
+        else:
+            print("WARNING - This is configured in injection recovery mode \
+                    and set to run more than 1,000,000 clusters.  This is \
+                    likely a waste of computation time.")
     
     jobPath = make_file_path_absolute(configs.get('trigger', 'jobFile'))
     configPath = os.path.join(configs.get('dirs', 'outputDir'), 
