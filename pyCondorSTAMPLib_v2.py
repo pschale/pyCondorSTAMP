@@ -390,8 +390,8 @@ def getCommonParams(configs):
         CPStoch['saveMat'] = True
         
     if configs.get('search', 'searchType') == 'injectionRecovery':
-        print("Injection Recovery mode selected.  Stochtrack will be \n\
-                restrictd to 5 Hz band around injected frequency")
+        print("Injection Recovery mode selected.  Stochtrack will be \
+                restricted to 5 Hz band around injected frequency")
         injFreq = configs.getfloat('injection', 'waveFrequency')
         CPDict['grandStochtrack']['fmin'] = injFreq - 2
         CPDict['grandStochtrack']['fmax'] = injFreq + 2
