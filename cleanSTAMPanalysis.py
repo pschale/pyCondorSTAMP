@@ -129,7 +129,7 @@ else:
         mapDirs = [glueFileLocation(y, x) for y in preprocJobDirs for x in os.listdir(y) if "map" in x]
         mapFiles = [glueFileLocation(y, x) for y in mapDirs for x in os.listdir(y) if "map" in x]
 
-        grandstochtrackOutputDirs = [glueFileLocation(x, "grandstochtrackOutput") for x in individualJobDirs]
+        grandstochtrackOutputDirs = [glueFileLocation(x, "grandStochtrackOutput") for x in individualJobDirs]
         plotDirs = [glueFileLocation(x, "plots") for x in grandstochtrackOutputDirs]
         mapOutputFiles = [glueFileLocation(y, x) for y in grandstochtrackOutputDirs for x in os.listdir(y) if "map" in x]
         epsFiles = [glueFileLocation(y, x) for y in plotDirs for x in os.listdir(y) if "eps" in x]
@@ -142,7 +142,7 @@ else:
         mapFiles = [glueFileLocation(y, x) for y in mapDirs for x in os.listdir(y) if "map" in x]
 
         jobGroupDirs = [glueFileLocation(y, x) for y in jobsDirs for x in os.listdir(y) if "job_group" in x]
-        individualJobDirs = [glueFileLocation(glueFileLocation(y, x), "grandstochtrackOutput") for y in jobGroupDirs for x in os.listdir(y) if "job" in x]
+        individualJobDirs = [glueFileLocation(glueFileLocation(y, x), "grandStochtrackOutput") for y in jobGroupDirs for x in os.listdir(y) if "job" in x]
         plotDirs = [glueFileLocation(x, "plots") for x in individualJobDirs]
         mapOutputFiles = [glueFileLocation(y, x) for y in individualJobDirs for x in os.listdir(y) if "map" in x]
         epsFiles = [glueFileLocation(y, x) for y in plotDirs for x in os.listdir(y) if "eps" in x]
