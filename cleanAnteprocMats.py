@@ -21,6 +21,9 @@ parser.add_option("-s", action="store_true", dest="stampAnalysisSearch",
 
 (options, args) = parser.parse_args()
 
+if options.targetDirectory[0] == "~":
+    options.targetDirectory = os.path.expanduser(option.targetDirectory)
+
 if options.stampAnalysisSearch:
     list_of_dirs = [ele for ele in os.listdir(options.targetDirectory)
                     if (os.path.isdir(ele) 
