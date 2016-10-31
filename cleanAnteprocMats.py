@@ -26,7 +26,7 @@ if options.stampAnalysisSearch:
                     if (os.path.isdir(ele) 
                     and os.path.isdir(os.path.join(ele, "anteproc_data")))]
 else:
-    list of dirs = [options.targetDirectory]
+    list_of_dirs = [options.targetDirectory]
     
 for current_dir in list_of_dirs:
     ans = raw_input("Delete all anteproc files from: " 
