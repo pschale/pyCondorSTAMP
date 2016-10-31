@@ -37,33 +37,36 @@ list_of_dirs = [os.path.join(maindir, ele) for ele in list_of_dirs]
 
 for current_dir in list_of_dirs:
     
-    if options.print_only:
-        ans = raw_input("List anteproc mats in:" + current_dir
-                            + "? [y/n]")
-    else:
-        ans = raw_input("Delete all anteproc files from: " 
-                        + current_dir + "? [y/n]")
-    if ans == "y":
-        anteproc_dir = os.path.join(current_dir, "anteproc_data")
-        data_dirs = [ele for ele in os.listdir(anteproc_dir)
-                                if os.path.isdir(
-                                    os.path.join(anteproc_dir, ele))]
-        print(data_dirs)
-        for adir in data_dirs:
-            adir = os.path.join(anteproc_dir, adir)
-            files = [ele for ele in os.listdir(os.path.join(adir)) if ele[-4:] == ".mat"]
-            if options.print_only:
-                print(files)
-            else:
-                for file in files:
-                    os.remove(file)
-
-        if not options.print_only:
-            print("Removed all anteproc mats")
+    anteproc_dir = os.path.join(current_dir, "anteproc_data")
+    data_dirs = [ele for ele in os.listdir(anteproc_dir)
+                            if os.path.isdir(
+                                os.path.join(anteproc_dir, ele))]
+    if data_dirs:
+        if options.print_only:
+            ans = raw_input("List anteproc mats in:" + current_dir
+                             + "? [y/n]")
+        else:
+            ans = raw_input("Delete all anteproc files from: " 
+                             + current_dir + "? [y/n]")
+        if ans == "y":
+        
+            for adir in data_dirs:
+                adir = os.path.join(anteproc_dir, adir)
+                files = [ele for ele in os.listdir(os.path.join(adir)) 
+                                if ele[-4:] == ".mat"]
+                if options.print_only:
+                    print(files)
+                else:
+                    for file in files:
+                        os.remove(file)  
     
-    else:
-        print("Did not receive 'y', so will not delete")
-        continue
+
+            if not options.print_only:
+                print("Removed all anteproc mats")
+    
+        else:
+            print("Did not receive 'y', so will not delete")
+            continue
         
 print("Done!")
 
