@@ -373,7 +373,7 @@ def getCommonParams(configs):
     
     
     if (configs.getboolean('search', 'simulated') and 
-                configs.get('serach', 'searchType') == "onsource" and 
+                configs.get('search', 'searchType') == "onsource" and 
                 configs.getboolean('search', 'preSeed')):
         CPDict['anteproc_h']['job_seed'] = 2694478780        
         CPDict['anteproc_h']['job_seed'] = 4222550304
