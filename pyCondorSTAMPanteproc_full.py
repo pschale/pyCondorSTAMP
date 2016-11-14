@@ -693,11 +693,11 @@ def main():
                              str(times[tempJob][1] + 1602), "H")
             archived_H = create_cache_and_time_file(temp_frames, "H", 
                                                     tempJob+1, cacheDir)
-            archived_H = False
         else:
             create_fake_cache_and_time_file(str(times[tempJob][1] - 2), 
                                             str(times[tempJob][1] + 1602), 
                                             "H", tempJob, fakeCacheDir)
+            archived_H = False
     for tempJob in set(tempNumbersL):
         print("Finding frames for job " + str(tempJob + 1) + " for L1")
         if not configs.getboolean('search', 'simulated'):
