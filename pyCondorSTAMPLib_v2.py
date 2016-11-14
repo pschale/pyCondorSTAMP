@@ -372,7 +372,8 @@ def getCommonParams(configs):
                                 + ".  Must be either 'percent' or 'absolute'")
     
     
-    if (configs.getboolean('search', 'simulated') and onsource and 
+    if (configs.getboolean('search', 'simulated') and 
+                configs.get('serach', 'searchType') == "onsource" and 
                 configs.getboolean('search', 'preSeed')):
         CPDict['anteproc_h']['job_seed'] = 2694478780        
         CPDict['anteproc_h']['job_seed'] = 4222550304
