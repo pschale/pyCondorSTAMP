@@ -693,6 +693,7 @@ def main():
                              str(times[tempJob][1] + 1602), "H")
             archived_H = create_cache_and_time_file(temp_frames, "H", 
                                                     tempJob+1, cacheDir)
+            archived_H = False
         else:
             create_fake_cache_and_time_file(str(times[tempJob][1] - 2), 
                                             str(times[tempJob][1] + 1602), 
@@ -709,6 +710,7 @@ def main():
         else:
             create_fake_cache_and_time_file(str(times[tempJob][1] - 2), 
                     str(times[tempJob][1] + 1602), "L", tempJob, fakeCacheDir)
+            archived_L = False
             
     if archived_H or archived_L:
         print("WARNING: some needed frames have been archived \
