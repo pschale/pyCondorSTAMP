@@ -287,6 +287,7 @@ def getCommonParams(configs):
               ['DetectorNoiseFile'] = configs.get('search', 'lhoWelchPsd')
         CPDict['anteproc_l'] \
               ['DetectorNoiseFile'] = configs.get('search', 'lloWelchPsd')
+        CPDict['anteproc']['cacheFile'] = 'fakefile'
 
         if not configs.getboolean('search', 'show_plots_when_simulated'):
             CPDict['grandStochtrack']['savePlots'] = False
