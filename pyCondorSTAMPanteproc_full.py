@@ -367,9 +367,15 @@ def main():
             # including waveform, frequency, amplitude sqrt(2)/2, so that
             # they sum in quadrature to 1
             CPDict['anteproc_h']['stamp']['inj_type'] = "fly"
-            CPDict['anteproc_h']['stamp']['fly_waveform'] = "half_sg"
             CPDict['anteproc_l']['stamp']['inj_type'] = "fly"
-            CPDict['anteproc_l']['stamp']['fly_waveform'] = "half_sg"
+            if configs.has_option('injection', 'waveform'):
+                waveform_name = configs.get('injection', 'waveform_name')
+                CPDict['anteproc_h']['stamp']['fly_waveform'] = waveform_name
+                CPDict['anteproc_l']['stamp']['fly_waveform'] = waveform_name
+            else:
+                CPDict['anteproc_h']['stamp']['fly_waveform'] = "half_sg"
+                CPDict['anteproc_l']['stamp']['fly_waveform'] = "half_sg"
+            
 
             CPDict['anteproc_h']['stamp']['h0'] = sqrt(0.5)
             CPDict['anteproc_h']['stamp']['f0'] = configs.getfloat(
