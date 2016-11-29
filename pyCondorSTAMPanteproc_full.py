@@ -758,15 +758,16 @@ def main():
     webpage.load_conf_cp_webfiles(baseDir)
     
     if options.verbose:
+        dict_dir = create_dir(os.path.join(baseDir, "intermediate_dictionaries"))
         import pprint
         pprint.pprint(CPDict, 
-                open(os.path.join(baseDir, "commonParams_dict.txt"), "w"))
+                open(os.path.join(dict_dir, "commonParams_dict.txt"), "w"))
         pprint.pprint(anteprocHParamsList, 
-                open(os.path.join(baseDir, "anteprocHParams_list.txt"), "w"))
+                open(os.path.join(dict_dir, "anteprocHParams_list.txt"), "w"))
         pprint.pprint(anteprocLParamsList, 
-                open(os.path.join(baseDir, "anteprocLParams_list.txt"), "w"))
+                open(os.path.join(dict_dir, "anteprocLParams_list.txt"), "w"))
         pprint.pprint(stochtrackParamsList, 
-                open(os.path.join(baseDir, "stochtrackParams_list.txt"), "w"))
+                open(os.path.join(dict_dir, "stochtrackParams_list.txt"), "w"))
     
     if options.submitDag:
         import subprocess
@@ -789,14 +790,15 @@ if __name__ == "__main__":
         else:
             try:
                 import pprint
+                dict_dir = create_dir(os.path.join(baseDir, "intermediate_dictionaries"))
                 pprint.pprint(lvars['CPDict'], 
-                    open(os.path.join(baseDir, "commonParams.txt"), "w"))
+                    open(os.path.join(dict_dir, "commonParams.txt"), "w"))
                 pprint.pprint(lvars['anteprocHParamsList'], 
-                    open(os.path.join(baseDir, "anteprocHParams.txt"), "w"))
+                    open(os.path.join(dict_dir, "anteprocHParams.txt"), "w"))
                 pprint.pprint(lvars['anteprocLParamsList'], 
-                    open(os.path.join(baseDir, "anteprocLParams.txt"), "w"))
+                    open(os.path.join(dict_dir, "anteprocLParams.txt"), "w"))
                 pprint.pprint(lvars['stochtrackParamsList'], 
-                    open(os.path.join(baseDir, "stochtrackParams.txt"), "w"))
+                    open(os.path.join(dict_dir, "stochtrackParams.txt"), "w"))
                 print("printed dictionaries to files")
             except KeyError:
                 pass
