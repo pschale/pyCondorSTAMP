@@ -5,6 +5,7 @@ import numpy as np
 from os import getcwd, path, makedirs
 import collections, datetime, random, subprocess
 from load_defaults import getDefaultCommonParams
+from shutil import copy
 import ConfigParser
 import json
 

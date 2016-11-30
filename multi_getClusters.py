@@ -52,10 +52,9 @@ for j in range(1, int(options.numJobGroups) + 1):
     jobDirs = [x for x in os.listdir(baseDir) if "job" in x and len(os.listdir(baseDir + '/' + x + '/grandStochtrackOutput')) > 1]
 
 
-    gsoutMats = dict((returnMatrixFilePath("bknd_", baseDir + "/" + x + "/grandStochtrackOutput"), x) for x in jobDirs)
-
-    SNRs = [getSNR(fileName) for fileName in gsoutMats]
-    Lengths = [getLength(fileName) for fileName in gsoutMats]
+    gsoutMats = dict((x, returnMatrixFilePath("bknd_", baseDir + "/" + x + "/grandStochtrackOutput")) for x in jobDirs)
+    SNRs = [getSNR(gsoutMats[dirName]) for dirName in jobDirs]
+    Lengths = [getLength(gsoutMats[dirName]) for dirName in jobDirs]
 
 
     SNRvals = [round(x[0],2) for x in SNRs]
@@ -64,10 +63,10 @@ for j in range(1, int(options.numJobGroups) + 1):
     indices = argsort(SNRvals)
     sortedSNRvals = [SNRvals[x] for x in indices]
 
-    array_SNRs = [round(get_attr(filename, "max_SNR"),2) for filename in gsoutMats]
-    array_fmin = [get_attr(filename, "fmin") for filename in gsoutMats]
-    array_fmax = [get_attr(filename, "fmax") for filename in gsoutMats]
-    array_length = [get_attr(filename, "tmax") - get_attr(filename, "tmin") for filename in gsoutMats]
+    array_SNRs = [round(get_attr(gsoutMats[dirName], "max_SNR"),2) for dirName in jobDirs]
+    array_fmin = [get_attr(gsoutMats[dirName], "fmin") for dirName in jobDirs]
+    array_fmax = [get_attr(gsoutMats[dirName], "fmax") for dirName in jobDirs]
+    array_length = [get_attr(gsoutMats[dirName], "tmax") - get_attr(gsoutMats[dirName], "tmin") for dirName in jobDirs]
 
     out_ar = ["\t".join([str(jobDirs[i]), str(array_SNRs[i]), str(array_fmin[i]), str(array_fmax[i]), str(array_length[i])]) for i in range(0, len(gsoutMats))]
 
