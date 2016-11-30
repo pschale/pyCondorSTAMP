@@ -8,6 +8,7 @@ import json
 import os
 from optparse import OptionParser
 from copy import deepcopy
+from shutil import copy
 import ConfigParser
 
 from webdisplay import webpage
@@ -121,6 +122,11 @@ def main():
     # copy input files to this directory
     copy_input_file(configFilePath, supportDir)
     newJobPath = copy_input_file(jobPath, supportDir)
+    if configs.getboolean('search', 'simulated'):
+        lho_file = configs.get('search', 'lhoWelchPsd')
+        llo_file = configs.get('search', 'lloWelchPsd')
+        copy(lho_file, os.path.join(supportDir, "H1_PSD:" + os.path.split(lho_file)[-1]))
+        copy(llo_file, os.path.join(supportDir, "L1_PSD:" + os.path.split(llo_file)[-1]))
     
     #adjust job file
     jobFileName = jobPath[len(jobPath)-jobPath[::-1].index('/')::]
@@ -607,8 +613,6 @@ def main():
         CPDict['anteproc_h']["frameCachePath1"] = fakeCacheDir
         CPDict['anteproc_l']["gpsTimesPath1"] = fakeCacheDir
         CPDict['anteproc_l']["frameCachePath1"] = fakeCacheDir
-    
-
     
     #new loop to make anteproc files
     print("Creating anteproc directory and input files")

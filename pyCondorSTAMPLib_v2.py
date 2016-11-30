@@ -53,27 +53,10 @@ def readFile(file_name, delimeter = None):
     return content
     
 def copy_input_file(filePath, outputDirectory):
-
-    outputPath = new_input_file_name(filePath, outputDirectory)
-    #print(filePath)# debug
-    with open(filePath, "r") as infile:
-        text = [line for line in infile]
-    with open(outputPath,"w") as outfile:
-        outfile.write("".join(line for line in text))
+    outputPath = path.join(outputDirectory, path.split(filePath)[-1])
+    copy(filePath, outputPath)
     return outputPath
 
-def new_input_file_name(filePath, outputDirectory):
-    if "/" in filePath:
-        reversePath = filePath[::-1]
-        reverseName = reversePath[:reversePath.index("/")]
-        fileName = reverseName[::-1]
-    else:
-        fileName = filePath
-    if outputDirectory[-1] == "/":
-        outputPath = outputDirectory + fileName
-    else:
-        outputPath = outputDirectory + "/" + fileName
-    return outputPath
     
 def create_frame_file_list(frame_type, start_time, end_time, observatory):
 
