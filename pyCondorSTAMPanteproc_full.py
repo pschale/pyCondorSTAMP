@@ -368,7 +368,7 @@ def main():
             # they sum in quadrature to 1
             CPDict['anteproc_h']['stamp']['inj_type'] = "fly"
             CPDict['anteproc_l']['stamp']['inj_type'] = "fly"
-            if configs.has_option('injection', 'waveform'):
+            if configs.has_option('injection', 'waveform_name'):
                 waveform_name = configs.get('injection', 'waveform_name')
                 CPDict['anteproc_h']['stamp']['fly_waveform'] = waveform_name
                 CPDict['anteproc_l']['stamp']['fly_waveform'] = waveform_name
