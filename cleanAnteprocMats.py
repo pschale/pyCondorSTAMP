@@ -35,8 +35,10 @@ list_of_dirs = [os.path.join(maindir, ele) for ele in list_of_dirs]
 
 i = 0
 while True:
-    current_dir = list_of_dirs[i]
-
+    try:
+        current_dir = list_of_dirs[i]
+    except IndexError:
+        break
     anteproc_dir = os.path.join(current_dir, "anteproc_data")
     data_dirs = [ele for ele in os.listdir(anteproc_dir)
                             if os.path.isdir(

@@ -219,6 +219,7 @@ def getDefaultCommonParams():
                                 "doRamp": False,
                                 "saveMat": False,
                                 "singletrack" : {
+                                "posSNRmode": True 
                                 }
 
             },

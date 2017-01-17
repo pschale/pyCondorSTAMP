@@ -330,11 +330,11 @@ def getCommonParams(configs):
             
     if configs.getboolean('singletrack', 'singletrackBool'):
         CPStoch['singletrack']['doSingletrack'] = True
-        CPStoch['singletrack']['trackInputFiles'] = array(json.loads(
+        CPStoch['singletrack']['trackInputFiles'] = np.array(json.loads(
                                                     configs.get(
                                                     'singletrack', 
                                                     'singletrackInputFiles')),
-                                                    dtype=object)
+                                                    dtype=np.object)
     else:
         CPStoch.pop('singletrack')
         

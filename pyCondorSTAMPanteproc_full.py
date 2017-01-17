@@ -298,7 +298,14 @@ def main():
                     tempName1['stamp'] \
                              ['decl'] = configs.getfloat('trigger', 'DEC')
 
-                elif H1_job == 34:
+                if configs.has_option('injection', 'iota'):
+                    tempName1['stamp']['iota'] = configs.get('injection', 
+                                                                'iota')
+                if configs.has_option('injection', 'psi'):
+                    tempName1['stamp']['psi'] = configs.get('injection', 
+                                                                'psi')
+
+                if H1_job == 34:
                     anteprocHParamsList[jobGroup - 1] \
                                        [33] \
                                        ['useReferenceAntennaFactors'] = False
@@ -316,9 +323,13 @@ def main():
                         configs.get('variations', 'paramCat') == 'anteproc'):
                     if configs.get('variations', 'paramName') == 'stamp.alpha':
                         tempName1['stamp']['alpha'] = varyVals[jobGroup - 1]
+                    elif configs.get('variations', 'paramName') == 'stamp.iota':
+                        tempName1['stamp']['iota'] = varyVals[jobGroup - 1]
+                    elif configs.get('variations', 'paramName') == 'stamp.psi':
+                        tempName1['stamp']['psi'] = varyVals[jobGroup - 1]
                     else:
-                        raise ValueError("Only variations in stamp.alpha \
-                                            are supported at this time")
+                        raise ValueError("Only variations in stamp.alpha," + \
+                                " iota, and psi are supported at this time")
                 
 
 
@@ -346,7 +357,13 @@ def main():
                     tempName2['stamp'] \
                              ['decl'] = configs.getfloat('trigger', 'DEC')
 
-                elif L1_job == 34:
+                if configs.has_option('injection', 'iota'):
+                    tempName2['stamp']['iota'] = configs.get('injection', 
+                                                                'iota')
+                if configs.has_option('injection', 'psi'):
+                    tempName2['stamp']['psi'] = configs.get('injection', 
+                                                                'psi')
+                if L1_job == 34:
                     anteprocLParamsList[jobGroup - 1] \
                                        [33] \
                                        ['useReferenceAntennaFactors'] = False
@@ -363,9 +380,13 @@ def main():
                         configs.get('variations', 'paramCat') == 'anteproc'):
                     if configs.get('variations', 'paramName') == 'stamp.alpha':
                         tempName2['stamp']['alpha'] = varyVals[jobGroup - 1]
+                    elif configs.get('variations', 'paramName') == 'stamp.iota':
+                        tempName2['stamp']['iota'] = varyVals[jobGroup - 1]
+                    elif configs.get('variations', 'paramName') == 'stamp.psi':
+                        tempName2['stamp']['psi'] = varyVals[jobGroup - 1]
                     else:
-                        raise ValueError("Only variations in stamp.alpha \
-                                            are supported at this time")
+                        raise ValueError("Only variations in stamp.alpha," + \
+                                " iota, and psi are supported at this time")
     
 
         if configs.getboolean('injection', 'onTheFly'):
