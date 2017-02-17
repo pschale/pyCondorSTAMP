@@ -8,6 +8,7 @@ from numpy import argsort
 #from pyCondorSTAMPLib_V3 import create_dir
 import matplotlib as mpl
 mpl.use('Agg')
+mpl.rc('text', usetex=True)
 import matplotlib.pyplot as plt
 plt.rcParams['legend.numpoints'] = 1
 
@@ -47,6 +48,8 @@ parser.add_option("-j", dest = "numJobs", help = "number of jobs per group")
 print("NOTE: Script ignores all files and directories starting with '.'")
 print("NOTE: Common functions such as 'create_dir' should eventually be in a separate common python module.")
 out_str = "Job Num\tSNR\tMin Freq\tMaxFreq\tLength Of Cluster\n"
+SNRs = []
+xvals = []
 for j in range(1, int(options.numJobGroups) + 1):
     
     out_str += "\n"
@@ -66,6 +69,17 @@ for j in range(1, int(options.numJobGroups) + 1):
 
         out_str += "\t".join([str(jobDir), str(SNR), str(fmin), str(fmax), str(length)])
         out_str += "\n"
+
+        SNRs.append(SNR)
+        xvals.append(j*180/20)
+
+plt.scatter(xvals, SNRs)
+plt.xlim([0, 180])
+plt.xlabel(r'$\psi$', fontsize=18)
+plt.ylabel('SNR')
+plt.title(r'SNR vs $\psi$ with $\iota = 45$')
+plt.savefig(os.path.join(options.targetDirectory, "SNR_scatter.png"))
+
 
 with open(os.path.join(options.targetDirectory, "LoudestClusters2.txt"), "w") as h:
     print >> h, out_str

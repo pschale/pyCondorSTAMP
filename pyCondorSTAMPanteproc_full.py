@@ -327,9 +327,11 @@ def main():
                         tempName1['stamp']['iota'] = varyVals[jobGroup - 1]
                     elif configs.get('variations', 'paramName') == 'stamp.psi':
                         tempName1['stamp']['psi'] = varyVals[jobGroup - 1]
+                    elif configs.get('variations', 'paramName') == 'stamp.start':
+                        tempName1['stamp']['start'] += varyVals[jobGroup - 1]
                     else:
                         raise ValueError("Only variations in stamp.alpha," + \
-                                " iota, and psi are supported at this time")
+                                " iota, psi, and start are supported at this time")
                 
 
 
@@ -384,9 +386,11 @@ def main():
                         tempName2['stamp']['iota'] = varyVals[jobGroup - 1]
                     elif configs.get('variations', 'paramName') == 'stamp.psi':
                         tempName2['stamp']['psi'] = varyVals[jobGroup - 1]
+                    elif configs.get('variations', 'paramName') == 'stamp.start':
+                        tempName2['stamp']['start'] += varyVals[jobGroup - 1]
                     else:
                         raise ValueError("Only variations in stamp.alpha," + \
-                                " iota, and psi are supported at this time")
+                                " iota, psi, and start are supported at this time")
     
 
         if configs.getboolean('injection', 'onTheFly'):
@@ -658,11 +662,11 @@ def main():
             outputFileName = ("H1-anteproc_params_group_"
                               + str(jobGroup) + "_" + str(jobNum) + ".txt")
             with open(anteproc_dir + "/" + outputFileName, 'w') as h:
-                print >> h, "\n".join([key + ' ' + str(val).lower() 
+                print >> h, "\n".join([key + ' ' + repr(val).lower() 
                                         if not isinstance(val, basestring) 
                                         else key + ' ' + val 
                                         for key, val in 
-                                        anteproc_dict.iteritems()])
+                                        sorted(anteproc_dict.iteritems())])
             
         for jobNum in L1AnteprocJobNums:
         
@@ -684,11 +688,11 @@ def main():
             outputFileName = ("L1-anteproc_params_group_"
                               + str(jobGroup) + "_" + str(jobNum) + ".txt")
             with open(anteproc_dir + "/" + outputFileName, 'w') as h:
-                print >> h, "\n".join([key + ' ' + str(val).lower() 
+                print >> h, "\n".join([key + ' ' + repr(val).lower() 
                                         if not isinstance(val, basestring) 
                                         else key + ' ' + val 
                                         for key, val in 
-                                        anteproc_dict.iteritems()])
+                                        sorted(anteproc_dict.iteritems())])
     
     # create grandstochtrack execution script
     print("Creating shell scripts")
