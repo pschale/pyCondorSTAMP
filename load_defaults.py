@@ -39,7 +39,7 @@ def getDefaultCommonParams():
                     'doFreqMask': False,
                     'freqsToRemove': [],
                     'nBinsToRemove': "",
-                    'outputfilename': "map",
+                    'outputfilename': "map_g1",
                     'storemats': True,
                     'pp_seed': -1,
 },
@@ -160,7 +160,7 @@ def getDefaultCommonParams():
                             "doRadon": 0,
                             "doRadonReconstruction": 0,
                             "doStampFreqMask": 1,
-                            "doStochtrack": 0,
+                            "doStochtrack": 1,
                             "doZebragard": 0,
                             "fastring": 0,
                             "fixAntennaFactors": 0,
@@ -197,9 +197,6 @@ def getDefaultCommonParams():
                             "skypatch": 0,
                             "stamp_pem": 0,
                             "stochPlus": 0,
-                            "stochtrack": {
-
-                            },
                             "yMapScale": 1e-43,
         
                             "stochtrack" : {
@@ -207,15 +204,22 @@ def getDefaultCommonParams():
                                 "F": 3000,
                                 "mindur": 25,
                                 "doExponential": 0,
-                                "doSeed": 0,
+                                "doSeed": False,
                                 "demo": False,
                                 "doStampFreqMask": True,
                                 "doPixelCut": 1,
                                 "pixel_threshold": 10,
                                 "norm": "npix",
                                 "StampFreqsToRemove": [57, 58, 59, 60, 61, 62, 63, 119, 120, 121],
-
+                                "doBezier": True,
+                                "doTranspose": False,
+                                "stochsky": False,
+                                "doRModes": False,
+                                "extra_pixels": 0,
+                                "doRamp": False,
+                                "saveMat": False,
                                 "singletrack" : {
+                                "posSNRmode": True 
                                 }
 
             },
