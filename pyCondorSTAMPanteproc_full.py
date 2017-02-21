@@ -20,12 +20,15 @@ def main():
     
     parser.add_option("-c", "--config-file", dest = "configFilePath",
                       help = "Path to params file")
+    parser.add_option("-n", "--name", dest="dirName",
+                        default="stamp_analysis_anteproc",
+                        help="Name of analysis directory, date will be added")
     parser.add_option("-v", "--verbose", 
                         action = "store_true", dest = "verbose", 
                         default = False,
                         help = "prints out dictionaries to file at end")
-    parser.add_option("-n", "--no-delete", action = "store_true", 
-                        dest = "noDelete", default = False,
+    parser.add_option("-p", "--preserve", action = "store_true", 
+                        dest = "preserve", default = False,
                         help = "If active, errors will not trigger \
                         deletion of generated files.")
     parser.add_option("-s", "--submit_dag", action = "store_true", 
@@ -110,10 +113,10 @@ def main():
     configPath = os.path.join(configs.get('dirs', 'outputDir'), 
                               "config_file.txt")
     outputDir = make_file_path_absolute(configs.get('dirs', 'outputDir'))
-    outputDir = os.path.join(outputDir, "stamp_analysis_anteproc")
+    outputDir = os.path.join(outputDir, options.dirName)
         
     baseDir = dated_dir(outputDir)
-    noDelete = options.noDelete
+    preserve = options.preserve
     
     supportDir = create_dir(baseDir + "/input_files")
     jobsBaseDir = create_dir(baseDir + "/jobs")
@@ -812,7 +815,7 @@ if __name__ == "__main__":
         import inspect
         lvars = inspect.trace()[1][0].f_locals
         baseDir = lvars['baseDir']
-        if not lvars['noDelete']:
+        if not lvars['preserve']:
             print("Error has occurred. Deleting all files that were created.")
             from shutil import rmtree
             rmtree(baseDir)
