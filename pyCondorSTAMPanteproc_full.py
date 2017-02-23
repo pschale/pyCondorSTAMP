@@ -1,7 +1,7 @@
 #pyCondorSTAMPanteproc_full.py
 from __future__ import division
 
-from numpy import argsort, sqrt, arccos, pi, array, object
+from numpy import argsort, sqrt, arccos, pi, array, object, random
 import scipy.io as sio
 import random
 import json
@@ -233,8 +233,14 @@ def main():
                     deltaTotal += [abs(triggerJobStart - job1[1])
                                     + abs(triggerJobStart - job2[1])]
                     jobPairs += [[index1, index2]]
-        sortedIndices = argsort(deltaTotal)[:configs.getint('search', 
-                                                            'maxNumJobPairs')]
+
+        if configs.getboolean('search', 'randomizeJobPairs'):
+            sortedIndices = np.random.randint(0, len(deltaTotal),
+                                              configs.getint(
+                                                'search', 'maxNumJobPairs'))
+        else:
+            sortedIndices = argsort(deltaTotal)[:configs.getint(
+                                                  'search', 'maxNumJobPairs')]
         sortedJobPairs = [jobPairs[x] for x in sortedIndices]
    
     else:
