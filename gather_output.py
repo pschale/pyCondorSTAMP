@@ -131,6 +131,9 @@ allkeys = outdata.keys()
 ordered_keys = ['Group', 'Job', 'SNRs', 'fmin', 'fmax', 'length', 'tmin', 'tmax', 'jobNumH', 'jobNumL', 'injfreq', 'phi', 'iota', 'psi', 'alpha', 'recov']
 ordered_keys = [ele for ele in ordered_keys if ele in allkeys]
 
+if variations and varyingParam not in ['stamp.alpha', 'stamp.phi', 'stamp.iota', 'stamp.psi', 'stamp.f0']:
+    ordered_keys.append(varyingParam)
+
 output_frame = pd.DataFrame(outdata, index=range(1, len(outdata['SNRs'])+1))
 output_frame = output_frame.round({'SNRs': 2})
 output_frame = output_frame[ordered_keys]
