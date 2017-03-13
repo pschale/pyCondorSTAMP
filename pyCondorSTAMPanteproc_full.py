@@ -96,6 +96,8 @@ def main():
     if configs.getboolean('singletrack', 'singletrackBool'):
         configs.set('condor', 'numCPU', '1')
         configs.set('condor', 'doGPU', 'False')
+        configs.set('condor', 'maxJobsGrandStochtrack', 
+                    configs.get('condor', 'maxJobsAnteproc'))
         
     if injectionRecovery and (configs.getint('search', 'T') 
             * configs.getint('search', 'F') > 1000000):
