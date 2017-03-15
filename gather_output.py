@@ -137,7 +137,7 @@ if variations and varyingParam not in ['stamp.alpha', 'stamp.phi', 'stamp.iota',
 output_frame = pd.DataFrame(outdata, index=range(1, len(outdata['SNRs'])+1))
 output_frame = output_frame.round({'SNRs': 2})
 output_frame = output_frame[ordered_keys]
-output_frame.to_csv(os.path.join(baseDir, 'STAMP_output_dataframe.txt'))
+output_frame.to_csv(os.path.join(baseDir, 'STAMP_output_dataframe.csv'))
 output_frame.to_html(buf=open(os.path.join(baseDir, 'STAMP_output_data.html'), 'w'))
 
 

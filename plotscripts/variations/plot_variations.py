@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import os
 from optparse import OptionParser
 import ConfigParser
+import pandas as pd
 
 parser = OptionParser()
 parser.add_option("-d", "--directory", dest = "directory",)
@@ -28,56 +29,22 @@ configs.read(os.path.join(baseDir, 'input_files', configfile))
 if not configs.getboolean('variations', 'doVariations'):
     raise ValueError("Specified Directory does not have variations enabled")
 
-numJobGroups = configs.getint('variations', 'numJobGroups')
 varyingParam = configs.get('variations', 'paramName')
 varyingDist = configs.get('variations', 'distribution')
-injfreq = configs.getfloat('injection', 'waveFrequency')
 
-def get_param_from_anteproc(baseDir, IFO, jg, jn, param):
-    f = os.path.join(baseDir, 'anteproc_data', IFO + "-anteproc_params_group_" + str(jg) + "_" + str(int(jn)) + ".txt")
-    for line in open(f):
-        text = line.split(" ")
-        if text[0] == param:
-            return float(text[1])
-    else:
-        raise ValueError("parameter not found in anteproc config file")
+data = pd.read_csv(os.path.join(baseDir, 'STAMP_output_dataframe.csv'))
+cols = data.columns
 
-rec_xvals = []
-rec_SNRs = []
-unrec_xvals = []
-unrec_SNRs = []
+desired_col = [ele for ele in cols if ele in varyingParam]
+if len(desired_col) > 1:
+    raise ValueError("Error: more than 1 parameter matched to varyingParam. This is a problem with the (shortened) names of columns")
+desired_col=desired_col[0]
 
-for i in range(numJobGroups):
-    jgdir = os.path.join(baseDir, 'jobs', 'job_group_' + str(i+1))
-    for jobdir in [os.path.join(jgdir, ele) for ele in os.listdir(jgdir)]:
-        try:
-            files = os.listdir(os.path.join(jobdir, 'grandStochtrackOutput'))
-            matfile = [ele for ele in files if 'mat' in ele][0]
-            mat = sio.loadmat(os.path.join(jobdir, 'grandStochtrackOutput', matfile))
-            snr = mat['stoch_out']['max_SNR'][0,0][0,0]
-            fmin = mat['stoch_out'][0,0]['fmin'][0,0]
-            fmax = mat['stoch_out'][0,0]['fmax'][0,0]
+rec_SNRs = list(data['SNRs'][data['recov']].as_matrix())
+rec_xvals = list(data[desired_col][data['recov']].as_matrix())
+unrec_SNRs = list(data['SNRs'][data['recov']==False].as_matrix())
+unrec_xvals = list(data[desired_col][data['recov']==False].as_matrix())
 
-            inmat = sio.loadmat(os.path.join(jobdir, 'grandStochtrackInput', 'params.mat'))
-            anteproc_job_nums = [inmat['params']['anteproc'][0][0]['jobNum1'][0][0][0][0], inmat['params']['anteproc'][0][0]['jobNum2'][0][0][0][0]]
-
-            hval = get_param_from_anteproc(baseDir, 'H1', i+1, anteproc_job_nums[0], varyingParam)
-            lval = get_param_from_anteproc(baseDir, 'L1', i+1, anteproc_job_nums[1], varyingParam)
-
-            if not hval == lval:
-                raise ValueError("Error: Values for parameter {} do not match between H and L; " + \
-                                 "job group {}, H job {}, L job {}".format(varyingParam, i, 
-                                                anteproc_job_nums[0], anteproc_job_nums[1]))
-
-            if (float(fmin) - injfreq) * (float(fmax) - injfreq) < 0:
-                rec_xvals.append(hval)
-                rec_SNRs.append(snr)
-            else:
-                unrec_xvals.append(hval)
-                unrec_SNRs.append(snr)
-
-        except IndexError:
-            print("job " + str(i) + "has not finished yet")
 
 plt.scatter(rec_xvals, rec_SNRs, color='g', label="Recovered Injection")
 plt.scatter(unrec_xvals, unrec_SNRs, color='r', label="Recovered Noise")
@@ -90,7 +57,7 @@ plt.legend(loc='upper left')
 if 'log' in varyingDist:
     plt.xscale('log')
 
-plt.savefig(os.path.join(baseDir, "scatterplot.png"))
+plt.savefig(os.path.join(baseDir, "scatterplot_new.png"))
 
 
 
