@@ -380,6 +380,10 @@ def main():
                 if configs.has_option('injection', 'psi'):
                     tempName2['stamp']['psi'] = configs.get('injection', 
                                                                 'psi')
+                if configs.has_option('injection', 'fdot'):
+                    tempName2['stamp']['fdot'] = configs.get('injection', 
+                                                                'fdot')
+                
                 if L1_job == 34:
                     anteprocLParamsList[jobGroup - 1] \
                                        [33] \

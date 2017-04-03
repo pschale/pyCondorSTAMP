@@ -213,7 +213,7 @@ def gather_output(baseDir):
                                          "job group {}, H job {}, L job {}".format(key, i+1, 
                                                         H1num, L1num))
                     injfreq = float(H1anteproc['stamp.f0'])
-                    outdata['recov'].append( (float(outdata['fmin'][-1]) - injfreq) * (float(outdata['fmax'][-1]) - injfreq) < 0 )
+                    outdata['recov'].append( (float(outdata['fmin'][-1]) - injfreq) * (float(outdata['fmax'][-1]) - injfreq) <= 0 )
                     outdata['alpha'].append(Round_To_n(float(H1anteproc['stamp.alpha']), 3))
                     outdata['h0'].append(Round_To_n(float(H1anteproc['stamp.h0']),3))
                     outdata['InjAmp'].append(Round_To_n(np.sqrt(2)*float(H1anteproc['stamp.h0'])*np.sqrt(float(H1anteproc['stamp.alpha'])), 3))

@@ -8,9 +8,12 @@ import os
 from optparse import OptionParser
 import ConfigParser
 import pandas as pd
+from matplotlib.ticker import ScalarFormatter
+
 
 parser = OptionParser()
-parser.add_option("-d", "--directory", dest = "directory",)
+parser.add_option("-d", "--directory", dest="directory")
+parser.add_option("-t", "--title", dest="title", default=False)
 (options, args) = parser.parse_args()
 
 baseDir = options.directory
@@ -40,22 +43,30 @@ if len(desired_col) > 1:
     raise ValueError("Error: more than 1 parameter matched to varyingParam. This is a problem with the (shortened) names of columns")
 desired_col=desired_col[0]
 
-rec_SNRs = list(data['SNRs'][data['recov']].as_matrix())
+rec_SNRs = list(data['SNR'][data['recov']].as_matrix())
 rec_xvals = list(data[desired_col][data['recov']].as_matrix())
-unrec_SNRs = list(data['SNRs'][data['recov']==False].as_matrix())
+unrec_SNRs = list(data['SNR'][data['recov']==False].as_matrix())
 unrec_xvals = list(data[desired_col][data['recov']==False].as_matrix())
 
+#axes = plt.subplot(111)
+fig1, axes = plt.subplots()
 
-plt.scatter(rec_xvals, rec_SNRs, color='g', label="Recovered Injection")
-plt.scatter(unrec_xvals, unrec_SNRs, color='r', label="Recovered Noise")
-plt.xlabel(varyingParam)
-plt.ylabel("SNR")
-plt.xlim([min(rec_xvals + unrec_xvals)*0.9, max(rec_xvals + unrec_xvals)*1.1])
-plt.plot([min(rec_xvals + unrec_xvals)*0.9, max(rec_xvals + unrec_xvals)*1.1], [7.5, 7.5], label="Loudest Background (est)")
-plt.legend(loc='upper left')
+axes.scatter(rec_xvals, rec_SNRs, color='g', label="Recovered Injection")
+axes.scatter(unrec_xvals, unrec_SNRs, color='r', label="Recovered Noise")
+axes.set_xlabel(varyingParam)
+axes.set_ylabel("SNR")
+axes.set_xlim([min(rec_xvals + unrec_xvals)*0.9, max(rec_xvals + unrec_xvals)*1.1])
+axes.plot([min(rec_xvals + unrec_xvals)*0.9, max(rec_xvals + unrec_xvals)*1.1], [7.5, 7.5], label="Loudest Background (est)")
+axes.legend(loc='upper left')
+axes.set_xticks([1e-45, 1.5e-45, 2e-45])
+axes.get_xaxis().set_major_formatter(ScalarFormatter())
+axes.get_xaxis().get_major_formatter().labelOnlyBase = False
 
 if 'log' in varyingDist:
     plt.xscale('log')
+
+if options.title:
+    plt.title(options.title)
 
 plt.savefig(os.path.join(baseDir, "scatterplot_new.png"))
 
