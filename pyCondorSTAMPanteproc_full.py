@@ -34,7 +34,10 @@ def main():
     parser.add_option("-s", "--submit_dag", action = "store_true", 
                         dest = "submitDag", default = False,
                         help = "Submits dag automatically")
-    
+    parser.add_option("-a", "--clean-anteproc", dest = "cleanAnteproc",
+                        action="store_true", default=False,
+                        help="Deletes all anteproc mats after all jobs finish")
+
     (options, args) = parser.parse_args()
     
     configFilePath = options.configFilePath
@@ -799,7 +802,7 @@ def main():
               anteprocSub, stochtrackParamsList, stochtrackSub, 
               configs.getint('condor', 'maxJobsAnteproc'), 
               configs.getint('condor', 'maxJobsGrandStochtrack'), 
-              webDisplaySub, baseDir)
+              webDisplaySub, baseDir, options.cleanAnteproc)
         
     generate_summary(configs, baseDir)
     

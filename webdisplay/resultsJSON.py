@@ -79,6 +79,8 @@ def main():
     parser.add_option("-d", "--dir", dest = "targetDirectory",
                       help = "Path to directory to scan for STAMP plots and create JSON.",
                       metavar = "DIRECTORY")
+    parser.add_option("-c", "--clean-anteproc-mats", dest= "cleanAnteproc", action="store_true", default=False,
+                      help="Deletes all anteproc mats after all jobs complete")
     parser.add_option("-D", "--debug", action="store_true", dest="debug",
             help = "Prints debug output from script.")
 
@@ -110,6 +112,8 @@ def main():
         outputfilename = os.path.join(analysisdir, "plotlisting.json")
         with open(outputfilename, "w") as outfile:
             json.dump(output_json, outfile, indent = 4)
+        if options.cleanAnteproc:
+            delete_anteproc_mats(analysisdir)
     else:
         print("Check target directory structure. This script does not seems to be set up to properly unpack this directory.")
 
@@ -153,6 +157,7 @@ def gather_output(baseDir):
         outdata['iota'] = []
         outdata['psi'] = []
         outdata['injfreq'] = []
+        outdata['fdot'] = []
 
     outdata['SNR'] = []
     outdata['tmin'] = []
@@ -213,7 +218,24 @@ def gather_output(baseDir):
                                          "job group {}, H job {}, L job {}".format(key, i+1, 
                                                         H1num, L1num))
                     injfreq = float(H1anteproc['stamp.f0'])
-                    outdata['recov'].append( (float(outdata['fmin'][-1]) - injfreq) * (float(outdata['fmax'][-1]) - injfreq) <= 0 )
+                    outdata['fdot'].append(float(H1anteproc['stamp.fdot']))
+                    if outdata['fdot'][-1] == 0:
+                        outdata['recov'].append( (float(outdata['fmin'][-1]) - injfreq) * (float(outdata['fmax'][-1]) - injfreq) <= 0 )
+                    else:
+                        if (((outdata['fmin'][-1] - injfreq)*outdata['fdot'][-1] > 0) and
+                            ((outdata['fmax'][-1] - injfreq)*outdata['fdot'][-1] > 0)):
+                            
+                            deltaf = outdata['fmax'][-1] - outdata['fmin'][-1]
+                            if abs(abs(outdata['fdot'][-1] * outdata['length'][-1]) - deltaf) < 5:
+                                outdata['recov'].append(True)
+                            else:
+                                outdata['recov'].append(False)
+                    
+                        else:
+                            outdata['recov'].append(False)
+
+
+
                     outdata['alpha'].append(Round_To_n(float(H1anteproc['stamp.alpha']), 3))
                     outdata['h0'].append(Round_To_n(float(H1anteproc['stamp.h0']),3))
                     outdata['InjAmp'].append(Round_To_n(np.sqrt(2)*float(H1anteproc['stamp.h0'])*np.sqrt(float(H1anteproc['stamp.alpha'])), 3))
@@ -241,6 +263,22 @@ def gather_output(baseDir):
     output_frame.to_html(buf=open(os.path.join(baseDir, 'STAMP_output_data.html'), 'w'))
 
     return output_frame
+
+def delete_anteproc_mats(analysis_dir):
+
+    anteproc_dir = os.path.join(analysis_dir, "anteproc_data")
+    data_dirs = [ele for ele in os.listdir(anteproc_dir)
+                            if os.path.isdir(
+                            os.path.join(anteproc_dir, ele))]
+            
+    for adir in data_dirs:
+        adir = os.path.join(anteproc_dir, adir)
+        files = [ele for ele in os.listdir(os.path.join(adir)) 
+                                    if ele[-4:] == ".mat"]
+        for f in files:
+            os.remove(os.path.join(adir, f))  
+        
+
 
 if __name__ == "__main__":
     main()

@@ -19,7 +19,7 @@ def getDefaultCommonParams():
                     'numSegmentsPerInterval': 9,
                     'ignoreMidSegment': True,
                     'hannDuration1': 1.00,
-                    'flow': 40,
+                    'flow': 50,
                     'fhigh': 2500,
                     'deltaF': 1,
                     'alphaExp': 0,
@@ -70,7 +70,7 @@ def getDefaultCommonParams():
                      'doSidereal': False,
                      'fRef': 100,
                      'fhigh': 2500,
-                     'flow': 40,
+                     'flow': 50,
                      'frameDuration1': -1,
                      'frameDuration2': -1,
                      'freqsToRemove': "",
@@ -120,7 +120,7 @@ def getDefaultCommonParams():
     
         },
     
-        "grandStochtrack" : {"fmin": 40,
+        "grandStochtrack" : {"fmin": 50,
                             "fmax": 2500,
                             "hstart": 1000000000.,
                             "hstop": 1000000001.,

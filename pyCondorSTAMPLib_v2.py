@@ -482,7 +482,7 @@ def write_webpage_sub_file(webPageSH, dagDir, accountingGroup):
 def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums, 
               L1AnteprocJobNums, numJobGroups, anteprocSub, 
               stochtrackParamsList, stochtrackSub, maxJobsAnteproc, 
-              maxJobsGrandStochtrack, webDisplaySub, baseDir):
+              maxJobsGrandStochtrack, webDisplaySub, baseDir, cleanAnteproc):
 
     output = ""
     jobCounter = 0
@@ -532,7 +532,12 @@ def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums,
     output += ("JOB " + str(jobCounter) + " " + webDisplaySub + "\nRETRY "
                     + str(jobCounter) + " 2\n")
     output += ("VARS " + str(jobCounter) + " jobNumber=\"" + str(jobCounter)
-                    + '" cmd_line_args=" -d ' + baseDir + '"\n')
+                    + '" cmd_line_args=" -d ' + baseDir)
+    if cleanAnteproc:
+        output += ' -c"\n'
+    else:
+        output += '"\n'
+
     output += "CATEGORY " + str(jobCounter) + " WEBPAGE\n\n"
         
     output += "\n\n"
