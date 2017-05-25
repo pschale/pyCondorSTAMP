@@ -58,7 +58,6 @@ axes.set_ylabel("SNR")
 axes.set_xlim([min(rec_xvals + unrec_xvals)*0.9, max(rec_xvals + unrec_xvals)*1.1])
 axes.plot([min(rec_xvals + unrec_xvals)*0.9, max(rec_xvals + unrec_xvals)*1.1], [7.5, 7.5], label="Loudest Background (est)")
 axes.legend(loc='upper left')
-axes.set_xticks([1e-45, 1.5e-45, 2e-45])
 axes.get_xaxis().set_major_formatter(ScalarFormatter())
 axes.get_xaxis().get_major_formatter().labelOnlyBase = False
 

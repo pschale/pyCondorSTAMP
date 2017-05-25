@@ -519,7 +519,7 @@ def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums,
     for jobDict in stochtrackParamsList:
 
         output += ("JOB " + str(jobCounter) + " " + stochtrackSub 
-                    + "\nRETRY " + str(jobCounter) + " 2\n")
+                    + "\nRETRY " + str(jobCounter) + " 4\n")
         output += ("VARS " + str(jobCounter) + ' jobNumber="' 
                     + str(jobCounter) + '" paramPath="' 
                     + jobDict["stochtrackInputDir"] + '/params.mat" ')

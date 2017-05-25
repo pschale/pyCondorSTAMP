@@ -85,8 +85,8 @@ def main():
         configs.set('search', 'simulated', 'False')
         configs.set('search', 'relativeDirection', 'False')
         
-    if pseudo_onsource:
-        configs.set('search', 'relativeDirection', 'False')
+    #if pseudo_onsource:
+    #    configs.set('search', 'relativeDirection', 'False')
     
     if not configs.getboolean('injection', 'doInjections'):
         configs.set('injection', 'onTheFly', 'False')
@@ -215,19 +215,38 @@ def main():
         sortedJobPairs = [[0,0]]
     
     elif pseudo_onsource:
-        jobIndices1 = [index for index, val in enumerate(times)
-                            if triggerJobStart - val[1] >= 3600]
-        jobIndices2 = [index for index, val in enumerate(times) 
-                            if val[1] - triggerJobStart >= 3600]
-        jobIndexList1 = random.sample(
-                            jobIndices1, 
-                            int(configs.getint('search', maxNumJobPairs)/2))
-        jobIndexList2 = random.sample(jobIndices2, 
-                            int(configs.getint('search', maxNumJobPairs)/2))
-        sortedJobPairs = ([
-                          [x,x] for x in jobIndexList1]
-                          + [[x,x] for x in jobIndexList2
-                         ])
+        if any([abs(triggerJobStart - ele[1]) < 500 for ele in times]):
+            print("WARNING: Job starts within 500 seconds of trigger!")
+
+        jobIndices = [index for index, val in enumerate(times)]
+        random.shuffle(jobIndices)
+        croppedJobIndices = jobIndices[:configs.getint('search', 
+                                                      'maxNumJobPairs')]
+        #jobIndices1 = [index for index, val in enumerate(times)
+        #                    if triggerJobStart - val[1] >= 0]
+        #jobIndices2 = [index for index, val in enumerate(times) 
+        #                    if val[1] - triggerJobStart < 0]
+
+        #random.shuffle(jobIndices1)
+        #random.shuffle(jobIndices2)
+        #k = len(jobIndices1)
+        #jobIndices = jobIndices1 + jobIndices2
+        #mn = configs.getint('search', 'maxNumJobPairs')
+        #j = [abs(i - (k - mn/2)) for i in range(len(jobIndices))]
+        #startIndex = j.index(min(j))
+        #croppedJobIndices = jobIndices[startIndex:startIndex+mn]
+        sortedJobPairs = [[x,x] for x in croppedJobIndices]
+
+        #lenj1 = min(configs.getint('search', 'maxNumJobPairs')/2, 
+        #            len(jobIndices1))
+        #lenj2 = min(configs.getint('search', 'maxNumJobPairs')/2, 
+        #            len(jobIndices2))
+        #jobIndexList1 = random.sample(jobIndices1, lenj1)
+        #jobIndexList2 = random.sample(jobIndices2, lenj2)
+        #sortedJobPairs = ([
+        #                  [x,x] for x in jobIndexList1]
+        #                  + [[x,x] for x in jobIndexList2
+        #                 ])
     
     elif offsource or injectionRecovery:
         deltaTotal = []
@@ -805,7 +824,6 @@ def main():
               webDisplaySub, baseDir, options.cleanAnteproc)
         
     generate_summary(configs, baseDir)
-    
     webpage.load_conf_cp_webfiles(baseDir)
     
     if options.verbose:
