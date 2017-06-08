@@ -9,8 +9,8 @@ parser = argparse.ArgumentParser(description='Makes a job file for STAMP')
 parser.add_argument('-t', dest='triggerTime', type=int, help='Trigger time')
 parser.add_argument('-n', dest='numJobs', type=int, 
                         help='Number of jobs desired')
-parser.add_argument('-d', dest='duration', type=int, default=1540,
-                        help='OPTIONAL - duration of jobs (default 1540)')
+parser.add_argument('-d', dest='duration', type=int, default=1640,
+                        help='OPTIONAL - duration of jobs (default 1640)')
 parser.add_argument('-b', dest='onsourceBuffer', type=int, default=2,
                         help='OPTIONAL - seconds before trigger \
                         onsource starts (default 2)')
@@ -45,7 +45,10 @@ if Segment(options.triggerTime - 100, options.triggerTime + 1700) not in bothAct
     raise ValueError("Analysis Ready flag not active during onsource")
 
 #remove onsource from active time, make onsource job
-onsource = [options.triggerTime - options.onsourceBuffer, options.triggerTime + options.duration - options.onsourceBuffer]
+# 18 seconds before trigger is for PSD estimation:
+# job output will be [-20, 1620] (this is fed into anteproc)
+# job after processing by STAMP script will be [-2, 1600] (this is fed into grand_stochtrack)
+onsource = [options.triggerTime - options.onsourceBuffer - 18, options.triggerTime + options.duration - options.onsourceBuffer - 18]
 bothActive = bothActive - SegmentList([Segment(onsource)])
 
 bothActive = SegmentList([Segment(ele) for ele in bothActive])
