@@ -161,6 +161,7 @@ def getDefaultCommonParams():
                             "doRadonReconstruction": 0,
                             "doStampFreqMask": 1,
                             "doStochtrack": 1,
+                            "doTFNotch": 0,
                             "doZebragard": 0,
                             "fastring": 0,
                             "fixAntennaFactors": 0,

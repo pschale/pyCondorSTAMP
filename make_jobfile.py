@@ -3,7 +3,7 @@
 import argparse
 from gwpy.segments import DataQualityFlag, SegmentList, Segment
 from pylal.xlal.datatypes.ligotimegps import LIGOTimeGPS
-
+import os
 
 parser = argparse.ArgumentParser(description='Makes a job file for STAMP')
 parser.add_argument('-t', dest='triggerTime', type=int, help='Trigger time')
@@ -17,6 +17,7 @@ parser.add_argument('-b', dest='onsourceBuffer', type=int, default=2,
 parser.add_argument('-N', dest='name', type=str, help='Name of Trigger')
 parser.add_argument('-f', dest='frameType', type=str, help='Type of frame, \
                         default is C01', default='C01')
+parser.add_argument('-l', dest='location', type=str, help='location to save files')
 
 options = parser.parse_args()
 
@@ -86,14 +87,14 @@ onsource_str = [str(ele) for ele in onsource]
 onsource_str = ['1'] + onsource_str +  [str(options.duration)]
 onsource_str = " ".join(onsource_str)
 
-with open(onsource_job_file, "w") as h:
+with open(os.path.join(options.location, onsource_job_file), "w") as h:
     h.write(onsource_str)
 
 offsource_str = [[str(ele) for ele in line] for line in offsource]
 offsource_str = [[str(i+1)] + line + [str(options.duration)] for i, line in enumerate(offsource_str)]
 offsource_str = "\n".join([" ".join(line) for line in offsource_str])
 
-with open(offsource_job_file, "w") as h:
+with open(os.path.join(options.location, offsource_job_file), "w") as h:
     h.write(offsource_str)
 
 
