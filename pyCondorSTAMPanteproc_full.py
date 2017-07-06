@@ -766,12 +766,12 @@ def main():
             temp_frames = create_frame_file_list("H1_"
                              + configs.get('search', 'frameType'), 
                              str(times[tempJob][1] - 2), 
-                             str(times[tempJob][1] + 1602), "H")
+                             str(times[tempJob][2] + 2), "H")
             archived_H = create_cache_and_time_file(temp_frames, "H", 
                                                     tempJob+1, cacheDir)
         else:
             create_fake_cache_and_time_file(str(times[tempJob][1] - 2), 
-                                            str(times[tempJob][1] + 1602), 
+                                            str(times[tempJob][2] + 2), 
                                             "H", tempJob, fakeCacheDir)
             archived_H = False
     for tempJob in set(tempNumbersL):
@@ -780,12 +780,12 @@ def main():
             temp_frames = create_frame_file_list("L1_"
                              + configs.get('search', 'frameType'), 
                              str(times[tempJob][1] - 2), 
-                             str(times[tempJob][1] + 1602), "L")
+                             str(times[tempJob][2] + 2), "L")
             archived_L = create_cache_and_time_file(temp_frames, "L", 
                                                     tempJob+1, cacheDir)
         else:
             create_fake_cache_and_time_file(str(times[tempJob][1] - 2), 
-                    str(times[tempJob][1] + 1602), "L", tempJob, fakeCacheDir)
+                    str(times[tempJob][2] + 2), "L", tempJob, fakeCacheDir)
             archived_L = False
             
     if archived_H or archived_L:

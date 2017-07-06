@@ -2,7 +2,7 @@
 
 from __future__ import division
 import numpy as np
-from os import getcwd, path, makedirs
+from os import getcwd, path, makedirs, listdir
 import collections, datetime, random, subprocess
 from load_defaults import getDefaultCommonParams
 from shutil import copy
@@ -330,10 +330,20 @@ def getCommonParams(configs):
             
     if configs.getboolean('singletrack', 'singletrackBool'):
         CPStoch['singletrack']['doSingletrack'] = True
-        CPStoch['singletrack']['trackInputFiles'] = np.array(json.loads(
-                                                    configs.get(
-                                                    'singletrack', 
-                                                    'singletrackInputFiles')),
+        singletrackPath = configs.get('singletrack', 'singletrackInputfiles')
+        if path.isdir(singletrackPath):
+            singletrackFiles = listdir(singletrackPath)
+            singletrackFiles = [ele for ele in singletrackFiles 
+                                    if ele[-4:] == '.mat']
+            singletrackFiles = [path.join(singletrackPath, ele) 
+                                    for ele in singletrackFiles]
+            CPStoch['singletrack'] \
+                   ['trackInputFiles'] = np.array(singletrackFiles,
+                                                    dtype=np.object)
+        else:
+            CPStoch['singletrack'] \
+                   ['trackInputFiles'] = np.array(json.loads(
+                                                    singletrackPath),
                                                     dtype=np.object)
     else:
         CPStoch.pop('singletrack')
