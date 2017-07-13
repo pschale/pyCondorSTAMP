@@ -61,6 +61,7 @@ axes.legend(loc='upper left')
 axes.get_xaxis().set_major_formatter(ScalarFormatter())
 axes.get_xaxis().get_major_formatter().labelOnlyBase = False
 
+#axes.set_ylim([0, 25])
 if 'log' in varyingDist:
     plt.xscale('log')
 

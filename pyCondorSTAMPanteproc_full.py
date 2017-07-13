@@ -59,6 +59,11 @@ def main():
     offsource = searchType == "offsource"
     injectionRecovery = searchType == "injectionRecovery"
     
+    if not configs.has_option('search', 'useCustomJobPairs'):
+        useCustomJobPairs = False
+    else:
+        useCustomJobPairs = configs.getboolean('search', 'useCustomJobPairs')
+
     if (configs.getboolean('injection', 'doInjections') and 
             not configs.getboolean('injection', 'onTheFly') and 
             not os.isfile(injection_file)):
@@ -214,7 +219,7 @@ def main():
     elif onsource:
         sortedJobPairs = [[0,0]]
     
-    elif pseudo_onsource:
+    elif pseudo_onsource and not useCustomJobPairs:
         if any([abs(triggerJobStart - ele[1]) < 500 for ele in times]):
             print("WARNING: Job starts within 500 seconds of trigger!")
 
@@ -248,7 +253,7 @@ def main():
         #                  + [[x,x] for x in jobIndexList2
         #                 ])
     
-    elif offsource or injectionRecovery:
+    elif (offsource or injectionRecovery) and not useCustomJobPairs:
         deltaTotal = []
         jobPairs = []
         for index1, job1 in enumerate(times):
@@ -267,9 +272,31 @@ def main():
                                                   'search', 'maxNumJobPairs')]
         sortedJobPairs = [jobPairs[x] for x in sortedIndices]
    
-    else:
+    elif not (offsource or injectionRecovery or pseudo_onsource):
         print("Error: need to define search type correctly")
         raise
+
+    if useCustomJobPairs:
+        jobPairs = []
+        with open(configs.get('search', 'customJobPairsFile')) as f:
+            for line in f:
+                jobPairs.append([int(ele)-1 for ele in line.split()]) #-1 for number to index
+        #now to validate
+        if not all([len(ele) == 2 for ele in jobPairs]):
+            raise ValueError('File does not specify a pair of jobs on each line')
+
+        if not all([ele < len(times) for ele in sum(jobPairs, [])]):
+            raise ValueError('Job file does not contain enough jobs for custom job pairs')
+
+        if offsource and any([ele[0] == ele[1] for ele in jobPairs]):
+            raise ValueError('specified offsource, but put in onsource jobpair(s)')
+
+        if pseudo_onsource and not all ([ele[0] == ele[1] for ele in jobPairs]):
+            raise ValueError('specified pseudo_onsource, but put in offsource jobpair(s)')
+
+        sortedJobPairs = jobPairs
+
+
         
     #These are the job indices run by anteproc 
     tempNumbersH = list(set([x[0] for x in sortedJobPairs])) #job indices
