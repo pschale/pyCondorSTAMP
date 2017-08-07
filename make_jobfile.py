@@ -1,5 +1,9 @@
 #makes a job file for a given trigger time and number of offsource times
 #requires GWPY to get segment list
+#to activate gwpy virtual environment, run:
+#. ~detchar/opt/gwpysoft/bin/activate
+#(the dot is part of the command)
+
 import argparse
 from gwpy.segments import DataQualityFlag, SegmentList, Segment
 from pylal.xlal.datatypes.ligotimegps import LIGOTimeGPS
@@ -18,14 +22,25 @@ parser.add_argument('-N', dest='name', type=str, help='Name of Trigger')
 parser.add_argument('-f', dest='frameType', type=str, help='Type of frame, \
                         default is C01', default='C01')
 parser.add_argument('-l', dest='location', type=str, help='location to save files')
+parser.add_argument('--start-background', dest='start_background', type=int,
+                        help='OPTIONAL - start of background, default is n*d seconds before trigger')
+parser.add_argument('--end-background', dest='end_background', type=int,
+                        help='OPTIONAL - end of background, default is n*d seconds after trigger')
+
 
 options = parser.parse_args()
 
 onsource_job_file = options.name + '_onsource_job.txt'
 offsource_job_file = options.name + '_offsource_jobs.txt'
 
-startTime = options.triggerTime - options.duration*options.numJobs
-endTime = options.triggerTime + options.duration*options.numJobs
+if (options.start_background is not None) & (options.end_background is not None):
+    startTime = options.start_background
+    endTime = options.end_background
+elif (options.start_background is not None) or (options.end_background is not None):
+    raise ValueError('need to set both start_background and end_background')
+else:
+    startTime = options.triggerTime - options.duration*options.numJobs
+    endTime = options.triggerTime + options.duration*options.numJobs
 
 if options.frameType == 'C00':
     segName = 'DMT-ANALYSIS_READY'
@@ -33,10 +48,6 @@ elif options.frameType == 'C01':
     segName = 'DCS-ANALYSIS_READY_C01'
 else:
     raise ValueError('Can only accept C00 or C01 for frametype')
-
-print('H1:' + segName)
-print(startTime)
-print(endTime)
 
 H1flag = DataQualityFlag.query('H1:' + segName, startTime, endTime).active
 L1flag = DataQualityFlag.query('L1:' + segName, startTime, endTime).active
@@ -57,18 +68,20 @@ for seg in bothActive:
         print('L in observing:', pass_L_test)
         raise ValueError('Some segments not in observing time')
 
-#print bothActive
 
-#check if onsource has flag active
-if Segment(options.triggerTime - 100, options.triggerTime + 1700) not in bothActive:
-    print(bothActive)
-    raise ValueError("Analysis Ready flag not active during onsource")
 
 #remove onsource from active time, make onsource job
 # 18 seconds before trigger is for PSD estimation:
 # job output will be [-20, 1620] (this is fed into anteproc)
 # job after processing by STAMP script will be [-2, 1600] (this is fed into grand_stochtrack)
 onsource = [options.triggerTime - options.onsourceBuffer - 18, options.triggerTime + options.duration - options.onsourceBuffer - 18]
+
+
+#check if onsource has flag active
+if Segment(onsource) not in bothActive:
+    print(bothActive)
+    raise ValueError("Analysis Ready flag not active during onsource")
+
 bothActive = bothActive - SegmentList([Segment(onsource)])
 
 bothActive = SegmentList([Segment(ele) for ele in bothActive])
@@ -102,14 +115,29 @@ for job in offsource:
         print('L in observing:', pass_L_test)
         raise ValueError('Some segments not in observing time')
 
+    if SegmentList([Segment(job)]).intersects_segment(Segment(onsource)):
+        raise ValueError('Offsource Segment overlaps with onsource')
+
+print(len(offsource))
 # Reduce number of jobs to numJobs; end up with same number before and after - or as close as possible
 numBeforeTrigger = len([ele for ele in offsource if ele[0] < options.triggerTime])
-
+print(numBeforeTrigger)
 if numBeforeTrigger < options.numJobs/2:
     offsource = offsource[:options.numJobs]
+    print('Unable to make equal split of background jobs.')
+    print('Most jobs occur after trigger')
+elif len(offsource) - numBeforeTrigger < options.numJobs/2:
+    offsource = offsource[-options.numJobs:]
+    print('Unable to make equal split of background jobs.')
+    print('Most background jobs occur before trigger')
 else:
     offsource = offsource[numBeforeTrigger-options.numJobs/2:]
     offsource = offsource[:options.numJobs]
+
+#check that enough offsource jobs were made
+if len(offsource) < options.numJobs:
+    raise ValueError('Not enough background jobs were generated, {} asked for, only {} generated'.format(options.numJobs, len(offsource)))
+
 
 #make things strings and output them
 

@@ -35,7 +35,7 @@ dummy_data = dummy['SNR'].as_matrix()
 
 ksstat, pvalue = stats.ks_2samp(background_data, dummy['SNR'].as_matrix())
 
-[hist, bin_edges] = np.histogram(background_data, bins=20, range=(5.5, 9))
+[hist, bin_edges] = np.histogram(background_data, bins=2000, range=(5.5, 9))
 
 hist = np.cumsum(hist)
 hist = hist[-1] - hist
@@ -45,6 +45,12 @@ xvals = (bin_edges[1:] + bin_edges[0:-1])/2
 plt.semilogy(xvals, hist)
 
 dummy_xvals = np.interp(dummy_data, xvals, hist)
+m = np.zeros(dummy_xvals.size)
+m[:] = 1/background_data.size
+dummy_xvals = np.maximum(m, dummy_xvals)
+print(dummy_xvals)
+print(dummy_data)
+print(m)
 plt.scatter(dummy_data, dummy_xvals, color='r')
 
 plt.text(7, 0.4, "KS stat: {:f}".format(ksstat))
@@ -53,7 +59,7 @@ plt.text(7, 0.3, "p value: {:f}".format(pvalue))
 plt.xlabel("SNR of loudest Trigger")
 plt.ylabel("Number")
 plt.xlim([5.5, max(8, max(dummy_data))])
-plt.ylim([1e-3, 1])
+plt.ylim([8e-4, 1])
 plt.title('Background Dist and Dummy Onsource jobs')
 
 plt.savefig(os.path.join(dummy_dir, 'hist_vs_background.png'))
