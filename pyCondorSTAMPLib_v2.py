@@ -500,7 +500,7 @@ def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums,
         for jobNum in H1AnteprocJobNums:
         
             output += ("JOB " + str(jobCounter) + " " + anteprocSub 
-                        + "\nRETRY " + str(jobCounter) + " 2\n")
+                        + "\nRETRY " + str(jobCounter) + " 5\n")
             output += ("VARS " + str(jobCounter) 
                         + ' jobNumber="' + str(jobCounter) 
                         + '" paramFile="' + anteprocDir 
@@ -514,7 +514,7 @@ def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums,
         for jobNum in L1AnteprocJobNums:
         
             output += ("JOB " + str(jobCounter) + " " + anteprocSub 
-                        + "\nRETRY " + str(jobCounter) + " 2\n")
+                        + "\nRETRY " + str(jobCounter) + " 5\n")
             output += ("VARS " + str(jobCounter) 
                         + ' jobNumber="' + str(jobCounter) 
                         + '" paramFile="' + anteprocDir 

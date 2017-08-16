@@ -39,8 +39,8 @@ if (options.start_background is not None) & (options.end_background is not None)
 elif (options.start_background is not None) or (options.end_background is not None):
     raise ValueError('need to set both start_background and end_background')
 else:
-    startTime = options.triggerTime - options.duration*options.numJobs
-    endTime = options.triggerTime + options.duration*options.numJobs
+    startTime = options.triggerTime - 1.5*options.duration*options.numJobs
+    endTime = options.triggerTime + 1.5*options.duration*options.numJobs
 
 if options.frameType == 'C00':
     segName = 'DMT-ANALYSIS_READY'
@@ -118,10 +118,8 @@ for job in offsource:
     if SegmentList([Segment(job)]).intersects_segment(Segment(onsource)):
         raise ValueError('Offsource Segment overlaps with onsource')
 
-print(len(offsource))
 # Reduce number of jobs to numJobs; end up with same number before and after - or as close as possible
 numBeforeTrigger = len([ele for ele in offsource if ele[0] < options.triggerTime])
-print(numBeforeTrigger)
 if numBeforeTrigger < options.numJobs/2:
     offsource = offsource[:options.numJobs]
     print('Unable to make equal split of background jobs.')
