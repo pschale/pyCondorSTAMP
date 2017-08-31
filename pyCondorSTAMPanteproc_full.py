@@ -74,6 +74,9 @@ def main():
         wave_tau = 400
     else:
         wave_tau = 150
+
+    if configs.has_option('injection', 'tau'):
+        wave_tau = configs.getfloat('injection', 'tau')
         
     wave_duration = wave_tau*3
     
@@ -471,10 +474,15 @@ def main():
                 waveform_name = configs.get('injection', 'waveform_name')
                 CPDict['anteproc_h']['stamp']['fly_waveform'] = waveform_name
                 CPDict['anteproc_l']['stamp']['fly_waveform'] = waveform_name
+                if waveform_name == 'msmagnetar':
+                    CPDict['anteproc_h']['stamp']['nn'] = configs.getfloat('injection', 'nn')
+                    CPDict['anteproc_l']['stamp']['nn'] = configs.getfloat('injection', 'nn')
+                    CPDict['anteproc_h']['stamp']['epsilon'] = configs.getfloat('injection', 'epsilon')
+                    CPDict['anteproc_l']['stamp']['epsilon'] = configs.getfloat('injection', 'epsilon')
+
             else:
                 CPDict['anteproc_h']['stamp']['fly_waveform'] = "half_sg"
                 CPDict['anteproc_l']['stamp']['fly_waveform'] = "half_sg"
-            
 
             CPDict['anteproc_h']['stamp']['h0'] = sqrt(0.5)
             CPDict['anteproc_h']['stamp']['f0'] = configs.getfloat(
@@ -591,13 +599,13 @@ def main():
                 GSParams['anteproc']['inmats2'] += ("_" 
                                             + jobDictionary["injection_tags"])
             if (configs.getboolean('search', 'longPixel') or 
-                        configs.getboolean('burstegard')):
+                        configs.getboolean('search', 'burstegard')):
                 job1_hstart = job1StartTime + (9-1)*4/2+2
             else:
                 job1_hstart = job1StartTime + (9-1)/2+2
             
             if (configs.getboolean('search', 'longPixel') or 
-                             configs.getboolean('burstegard')):
+                             configs.getboolean('search', 'burstegard')):
                 job1_hstop = job1_hstart + 1602
             else:
                 job1_hstop = job1_hstart + 400        

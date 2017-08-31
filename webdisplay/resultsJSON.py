@@ -195,55 +195,57 @@ def gather_output(baseDir):
                 outdata['jobNumH'].append(H1num)
                 outdata['jobNumL'].append(L1num)
 
-                H1anteproc = get_param_from_anteproc(baseDir, 'H1', i+1, H1num)
-                L1anteproc = get_param_from_anteproc(baseDir, 'L1', i+1, L1num)
+                try:
+                    H1anteproc = get_param_from_anteproc(baseDir, 'H1', i+1, H1num)
+                    L1anteproc = get_param_from_anteproc(baseDir, 'L1', i+1, L1num)
 
 
-                if variations:
-                    hval = H1anteproc[varyingParam]
-                    lval = L1anteproc[varyingParam]
+                    if variations:
+                        hval = H1anteproc[varyingParam]
+                        lval = L1anteproc[varyingParam]
 
-                    if varyingParam not in ['stamp.alpha', 'stamp.phi', 'stamp.iota', 'stamp.psi', 'stamp.f0']:
-                        outdata[varyingParam].append(hval)
+                        if varyingParam not in ['stamp.alpha', 'stamp.phi', 'stamp.iota', 'stamp.psi', 'stamp.f0']:
+                            outdata[varyingParam].append(hval)
 
-                    if not hval == lval:
-                        raise ValueError("Error: Values for parameter {} do not match between H and L; " + \
-                                         "job group {}, H job {}, L job {}".format(varyingParam, i+1, 
-                                                        H1num, L1num))
-
-                if injection:
-                    for key in ['stamp.alpha', 'stamp.phi0', 'stamp.iota', 'stamp.psi']:
-                        if not H1anteproc[key] == L1anteproc[key]:
+                        if not hval == lval:
                             raise ValueError("Error: Values for parameter {} do not match between H and L; " + \
-                                         "job group {}, H job {}, L job {}".format(key, i+1, 
-                                                        H1num, L1num))
-                    injfreq = float(H1anteproc['stamp.f0'])
-                    outdata['fdot'].append(float(H1anteproc['stamp.fdot']))
-                    if outdata['fdot'][-1] == 0:
-                        outdata['recov'].append( (float(outdata['fmin'][-1]) - injfreq) * (float(outdata['fmax'][-1]) - injfreq) <= 0 )
-                    else:
-                        if (((outdata['fmin'][-1] - injfreq)*outdata['fdot'][-1] > 0) and
-                            ((outdata['fmax'][-1] - injfreq)*outdata['fdot'][-1] > 0)):
-                            
-                            deltaf = outdata['fmax'][-1] - outdata['fmin'][-1]
-                            if abs(abs(outdata['fdot'][-1] * outdata['length'][-1]) - deltaf) < 5:
-                                outdata['recov'].append(True)
+                                             "job group {}, H job {}, L job {}".format(varyingParam, i+1, 
+                                                            H1num, L1num))
+
+                    if injection:
+                        for key in ['stamp.alpha', 'stamp.phi0', 'stamp.iota', 'stamp.psi']:
+                            if not H1anteproc[key] == L1anteproc[key]:
+                                raise ValueError("Error: Values for parameter {} do not match between H and L; " + \
+                                             "job group {}, H job {}, L job {}".format(key, i+1, 
+                                                            H1num, L1num))
+                        injfreq = float(H1anteproc['stamp.f0'])
+                        outdata['fdot'].append(float(H1anteproc['stamp.fdot']))
+                        if outdata['fdot'][-1] == 0:
+                            outdata['recov'].append( (float(outdata['fmin'][-1]) - injfreq) * (float(outdata['fmax'][-1]) - injfreq) <= 0 )
+                        else:
+                            if (((outdata['fmin'][-1] - injfreq)*outdata['fdot'][-1] > 0) and
+                                ((outdata['fmax'][-1] - injfreq)*outdata['fdot'][-1] > 0)):
+                                
+                                deltaf = outdata['fmax'][-1] - outdata['fmin'][-1]
+                                if abs(abs(outdata['fdot'][-1] * outdata['length'][-1]) - deltaf) < 5:
+                                    outdata['recov'].append(True)
+                                else:
+                                    outdata['recov'].append(False)
+                        
                             else:
                                 outdata['recov'].append(False)
-                    
-                        else:
-                            outdata['recov'].append(False)
 
 
 
-                    outdata['alpha'].append(Round_To_n(float(H1anteproc['stamp.alpha']), 3))
-                    outdata['h0'].append(Round_To_n(float(H1anteproc['stamp.h0']),3))
-                    outdata['InjAmp'].append(Round_To_n(np.sqrt(2)*float(H1anteproc['stamp.h0'])*np.sqrt(float(H1anteproc['stamp.alpha'])), 3))
-                    outdata['phi'].append(float(H1anteproc['stamp.phi0']))
-                    outdata['iota'].append(float(H1anteproc['stamp.iota']))
-                    outdata['psi'].append(float(H1anteproc['stamp.psi']))
-                    outdata['injfreq'] = injfreq
-                
+                        outdata['alpha'].append(Round_To_n(float(H1anteproc['stamp.alpha']), 3))
+                        outdata['h0'].append(Round_To_n(float(H1anteproc['stamp.h0']),3))
+                        outdata['InjAmp'].append(Round_To_n(np.sqrt(2)*float(H1anteproc['stamp.h0'])*np.sqrt(float(H1anteproc['stamp.alpha'])), 3))
+                        outdata['phi'].append(float(H1anteproc['stamp.phi0']))
+                        outdata['iota'].append(float(H1anteproc['stamp.iota']))
+                        outdata['psi'].append(float(H1anteproc['stamp.psi']))
+                        outdata['injfreq'] = injfreq
+                except IOError:
+                    print('Unable to read anteproc config files')
 
             except IndexError:
                 print("job " + str(i) + "has not finished yet")

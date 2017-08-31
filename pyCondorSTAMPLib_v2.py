@@ -242,6 +242,13 @@ def deepupdate(d, u):
 def getCommonParams(configs):
     CPDict = getDefaultCommonParams()   
     
+    CPDict['anteproc']['flow'] = configs.getint('search', 'fmin')
+    CPDict['anteproc']['fhigh'] = configs.getint('search', 'fmax')
+    CPDict['preproc']['flow'] = configs.getint('search', 'fmin')
+    CPDict['preproc']['fhigh'] = configs.getint('search', 'fmax')
+    CPDict['grandStochtrack']['fmin'] = configs.getint('search', 'fmin')
+    CPDict['grandStochtrack']['fmax'] = configs.getint('search', 'fmax')
+
     CPStoch = CPDict['grandStochtrack']['stochtrack']
 
     CPStoch['T'] = configs.getint('search', 'T')
@@ -259,8 +266,8 @@ def getCommonParams(configs):
         else:
             CPDict['anteproc_h']['segmentDuration'] = 1
             CPDict['anteproc_l']['segmentDuration'] = 1
-            CPStoch['mindur'] = 100
-            CPStoch['F'] = 600
+            CPStoch['mindur'] = 20
+            #CPStoch['F'] = 600
             CPDict['job_start_shift'] = 6
             CPDict['job_duration'] = 400
     
@@ -279,7 +286,16 @@ def getCommonParams(configs):
         CPDict['anteproc_h']['doDetectorNoiseSim'] = False
         CPDict['anteproc_l']['doDetectorNoiseSim'] = False
     
-    
+    if (configs.has_option('search', 'doTFNotch') and 
+            configs.getboolean('search', 'doTFNotch')):
+        print('doing TF notch')
+        CPDict['grandStochtrack']['doTFNotch'] = True
+        CPDict['grandStochtrack']['TFNotchesFile'] = configs.get('search', 'TFNotchesFile')
+
+        CPDict['anteproc_h']['TFNotchesFile'] = configs.get('search', 'TFNotchesFile')
+        CPDict['anteproc_l']['TFNotchesFile'] = configs.get('search', 'TFNotchesFile')
+
+
     # Add in injections (if desired)
     if configs.getboolean('injection', 'doInjections'):
         if configs.getboolean('injection', 'polarizationSmallerResponse'):
@@ -561,6 +577,47 @@ def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums,
     output += "\n\n\n\n\n\n"
     
     output += "MAXJOBS ANTEPROC " + str(maxJobsAnteproc) + "\n"
+    output += "MAXJOBS GRANDSTOCHTRACK " + str(maxJobsGrandStochtrack) + "\n"
+    output += "MAXJOBS WEBPAGE 1"
+    
+    with open(dagDir + "/stampAnalysis.dag", "w") as h:
+        print >> h, output 
+
+def write_only_stochtrack_dag(dagDir, jobFile, 
+              stochtrackParamsList, stochtrackSub, 
+              maxJobsGrandStochtrack, webDisplaySub, baseDir):
+
+    output = ""
+    jobCounter = 0
+    cutoff = jobCounter
+    for jobDict in stochtrackParamsList:
+
+        output += ("JOB " + str(jobCounter) + " " + stochtrackSub 
+                    + "\nRETRY " + str(jobCounter) + " 4\n")
+        output += ("VARS " + str(jobCounter) + ' jobNumber="' 
+                    + str(jobCounter) + '" paramPath="' 
+                    + jobDict["stochtrackInputDir"] + '/params.mat" ')
+        output += 'jobNum="' + str(jobDict['grandStochtrackParams']
+                                           ['params']
+                                           ['jobNumber']) + '"\n'
+        output += "CATEGORY " + str(jobCounter) + " GRANDSTOCHTRACK\n\n"
+        jobCounter += 1
+        
+    output += ("JOB " + str(jobCounter) + " " + webDisplaySub + "\nRETRY "
+                    + str(jobCounter) + " 2\n")
+    output += ("VARS " + str(jobCounter) + " jobNumber=\"" + str(jobCounter)
+                    + '" cmd_line_args=" -d ' + baseDir)
+    output += '"\n'
+
+    output += "CATEGORY " + str(jobCounter) + " WEBPAGE\n\n"
+        
+    output += "\n\n"
+    
+    output += "PARENT " + " ".join([str(i) for i in range(cutoff, jobCounter)])
+    output += " CHILD " + " " + str(jobCounter)
+    
+    output += "\n\n\n\n\n\n"
+    
     output += "MAXJOBS GRANDSTOCHTRACK " + str(maxJobsGrandStochtrack) + "\n"
     output += "MAXJOBS WEBPAGE 1"
     
