@@ -242,6 +242,8 @@ def deepupdate(d, u):
 def getCommonParams(configs):
     CPDict = getDefaultCommonParams()   
     
+    CPDict['anteproc']['numSegmentsPerInterval'] = configs.getint('search', 'NSPI')
+
     CPDict['anteproc']['flow'] = configs.getint('search', 'fmin')
     CPDict['anteproc']['fhigh'] = configs.getint('search', 'fmax')
     CPDict['preproc']['flow'] = configs.getint('search', 'fmin')
@@ -259,18 +261,39 @@ def getCommonParams(configs):
         CPDict['grandStochtrack']['doStochtrack'] = False
     else:
         if configs.getboolean('search', 'longPixel'):
-            CPDict['anteproc_h']['segmentDuration'] = 4
-            CPDict['anteproc_l']['segmentDuration'] = 4
+            CPDict['anteproc']['segmentDuration'] = 4
+            CPDict['anteproc']['segmentDuration'] = 4
             CPStoch['mindur'] = 25
             CPDict['preproc']['segmentDuration'] = 4
         else:
-            CPDict['anteproc_h']['segmentDuration'] = 1
-            CPDict['anteproc_l']['segmentDuration'] = 1
-            CPStoch['mindur'] = 20
+            CPDict['anteproc']['segmentDuration'] = 1
+            CPDict['anteproc']['segmentDuration'] = 1
+            CPStoch['mindur'] = 8
             #CPStoch['F'] = 600
             CPDict['job_start_shift'] = 6
-            CPDict['job_duration'] = 400
-    
+            #CPDict['job_duration'] = 400
+
+    if (configs.has_option('search', 'deltaF') and 
+            configs.has_option('search', 'segDuration') and
+            configs.has_option('search', 'hannDuration')):
+        CPDict['anteproc']['deltaF'] = configs.getfloat('search', 'deltaF')
+        CPDict['anteproc']['segmentDuration'] = configs.getfloat('search', 'segDuration')
+        CPDict['anteproc']['hannDuration1'] = configs.getfloat('search', 'hannDuration')
+
+    if configs.has_option('search', 'doCBC') and configs.getboolean('search', 'doCBC'):
+        CPStoch['doBezier'] = False
+        CPStoch['doECBC'] = True
+        CPStoch['cbc'] = {}
+        CPStoch['cbc']['min_mass'] = configs.getfloat('cbc', 'min_mass')
+        CPStoch['cbc']['max_mass'] = configs.getfloat('cbc', 'max_mass')
+        CPStoch['cbc']['min_eccentricity'] = configs.getfloat('cbc', 'min_eccentricity')
+        CPStoch['cbc']['max_eccentricity'] = configs.getfloat('cbc', 'max_eccentricity')
+        CPStoch['cbc']['n_eccentricity'] = configs.getfloat('cbc', 'n_eccentricity')
+        CPStoch['extra_pixels'] = configs.getint('cbc', 'extra_pixels')
+        if CPStoch['T'] * CPStoch['F'] > 1e4:
+            print('\n\nWARNING: lots of clusters selected for CBC search, probably not what you want\n\n')
+
+
     if configs.getboolean('search', 'simulated'):
         CPDict['anteproc_h']['doDetectorNoiseSim'] = True
         CPDict['anteproc_l']['doDetectorNoiseSim'] = True
@@ -508,33 +531,38 @@ def write_webpage_sub_file(webPageSH, dagDir, accountingGroup):
 def write_dag(dagDir, anteprocDir, jobFile, H1AnteprocJobNums, 
               L1AnteprocJobNums, numJobGroups, anteprocSub, 
               stochtrackParamsList, stochtrackSub, maxJobsAnteproc, 
-              maxJobsGrandStochtrack, webDisplaySub, baseDir, cleanAnteproc):
+              maxJobsGrandStochtrack, webDisplaySub, baseDir, cleanAnteproc, pem=False, det='H1'):
 
     output = ""
     jobCounter = 0
+    
+    anteproc_name = '/' + det + '-DARM-anteproc_params_group_' if pem else '/H1-anteproc_params_group_'
     for jobGroup in range(1, numJobGroups + 1):
         for jobNum in H1AnteprocJobNums:
-        
+
             output += ("JOB " + str(jobCounter) + " " + anteprocSub 
                         + "\nRETRY " + str(jobCounter) + " 5\n")
             output += ("VARS " + str(jobCounter) 
                         + ' jobNumber="' + str(jobCounter) 
                         + '" paramFile="' + anteprocDir 
-                        + "/H1-anteproc_params_group_" + str(jobGroup) 
+                        + anteproc_name + str(jobGroup) 
                         + "_" + str(jobNum) + '.txt"')
             output += ('jobFile="' + jobFile 
                         + '" jobNum="' + str(jobNum) + '"\n')
             output += "CATEGORY " + str(jobCounter) + " ANTEPROC\n\n"
             jobCounter += 1
+    
+    anteproc_name = '/' + det + '-PEM-anteproc_params_group_' if pem else '/L1-anteproc_params_group_'
     for jobGroup in range(1, numJobGroups + 1):
         for jobNum in L1AnteprocJobNums:
         
+            
             output += ("JOB " + str(jobCounter) + " " + anteprocSub 
                         + "\nRETRY " + str(jobCounter) + " 5\n")
             output += ("VARS " + str(jobCounter) 
                         + ' jobNumber="' + str(jobCounter) 
                         + '" paramFile="' + anteprocDir 
-                        + "/L1-anteproc_params_group_" + str(jobGroup) 
+                        + anteproc_name + str(jobGroup) 
                         + "_" + str(jobNum) + '.txt"')
             output += ('jobFile="' + jobFile 
                         + '" jobNum="' + str(jobNum) + '"\n')

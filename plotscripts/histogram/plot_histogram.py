@@ -52,13 +52,14 @@ plt.savefig(os.path.join(baseDir, 'new_histogram.png'))
 
 plt.clf()
 if len(varycols) == 0:
-    h = plt.hist(datagroups, cumulative=-1, normed=True, range=(5.5, 9.5), bins=5000)
+    h = plt.hist(datagroups, cumulative=-1, normed=True, range=(3, 9.5), bins=5000)
     plt.clf()
     xvals = [(h[1][i] + h[1][i+1])/2. for i in range(len(h[1])-1)]
     plt.semilogy(xvals, h[0])
     plt.xlabel("SNR")
     plt.ylabel("Fraction of jobs at least that loud")
     plt.ylim([1e-3, 1])
+    plt.xlim([5.5, 9.5])
     plt.savefig(os.path.join(baseDir, 'new_cum_histogram.png'))
 
 

@@ -69,25 +69,25 @@ def main():
             not os.isfile(injection_file)):
         pyCondorSTAMPanteprocError("Injection file does not exist.  \
             Make onTheFly true if you do not wish to specify injection file")      
-        
-    if configs.getboolean('injection', 'longTau'):
-        wave_tau = 400
-    else:
-        wave_tau = 150
+    if configs.getboolean('injection', 'doInjections'):    
+        if configs.getboolean('injection', 'longTau'):
+            wave_tau = 400
+        else:
+            wave_tau = 150
 
-    if configs.has_option('injection', 'tau'):
-        wave_tau = configs.getfloat('injection', 'tau')
+        if configs.has_option('injection', 'tau'):
+            wave_tau = configs.getfloat('injection', 'tau')
+            
+        wave_duration = wave_tau*3
         
-    wave_duration = wave_tau*3
-    
-    #this might need adjustment for particular triggers
-    if configs.getboolean('injection', 'polarizationSmallerResponse'): 
-        wave_iota = 120
-        wave_psi = 45
-    else:
-        wave_iota = 0
-        wave_psi = 0
-    
+        #this might need adjustment for particular triggers
+        if configs.getboolean('injection', 'polarizationSmallerResponse'): 
+            wave_iota = 120
+            wave_psi = 45
+        else:
+            wave_iota = 0
+            wave_psi = 0
+        
     if onsource:
         configs.set('injection', 'doInjections', 'False')
         configs.set('search', 'simulated', 'False')
@@ -540,8 +540,8 @@ def main():
         CPDict['grandStochtrack'] \
               ['clusterFile'] = configs.get('search', 'clusterFile')
     
-    if configs.getboolean('search', 'constantFreqMask'):
-        CPDict['varying_injection_start'] = [-2, 1604 - wave_duration - 2]
+    #if configs.getboolean('search', 'constantFreqMask'):
+    #    CPDict['varying_injection_start'] = [-2, 1604 - wave_duration - 2]
     
                 
     # build dag directory, support directories
@@ -886,26 +886,27 @@ if __name__ == "__main__":
     except:
         import inspect
         lvars = inspect.trace()[1][0].f_locals
-        baseDir = lvars['baseDir']
-        if not lvars['preserve']:
-            print("Error has occurred. Deleting all files that were created.")
-            from shutil import rmtree
-            rmtree(baseDir)
-        else:
-            try:
-                import pprint
-                dict_dir = create_dir(os.path.join(baseDir, "intermediate_dictionaries"))
-                pprint.pprint(lvars['CPDict'], 
-                    open(os.path.join(dict_dir, "commonParams.txt"), "w"))
-                pprint.pprint(lvars['anteprocHParamsList'], 
-                    open(os.path.join(dict_dir, "anteprocHParams.txt"), "w"))
-                pprint.pprint(lvars['anteprocLParamsList'], 
-                    open(os.path.join(dict_dir, "anteprocLParams.txt"), "w"))
-                pprint.pprint(lvars['stochtrackParamsList'], 
-                    open(os.path.join(dict_dir, "stochtrackParams.txt"), "w"))
-                print("printed dictionaries to files")
-            except KeyError:
-                pass
+        if 'baseDir' in lvars.keys():
+            baseDir = lvars['baseDir']
+            if not lvars['preserve']:
+                print("Error has occurred. Deleting all files that were created.")
+                from shutil import rmtree
+                rmtree(baseDir)
+            else:
+                try:
+                    import pprint
+                    dict_dir = create_dir(os.path.join(baseDir, "intermediate_dictionaries"))
+                    pprint.pprint(lvars['CPDict'], 
+                        open(os.path.join(dict_dir, "commonParams.txt"), "w"))
+                    pprint.pprint(lvars['anteprocHParamsList'], 
+                        open(os.path.join(dict_dir, "anteprocHParams.txt"), "w"))
+                    pprint.pprint(lvars['anteprocLParamsList'], 
+                        open(os.path.join(dict_dir, "anteprocLParams.txt"), "w"))
+                    pprint.pprint(lvars['stochtrackParamsList'], 
+                        open(os.path.join(dict_dir, "stochtrackParams.txt"), "w"))
+                    print("printed dictionaries to files")
+                except KeyError:
+                    pass
         
         import traceback, sys
         traceback.print_exc(file=sys.stdout)
